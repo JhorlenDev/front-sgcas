@@ -64,6 +64,10 @@ export type Cidadao = CidadaoLista & {
   socioeconomico?: Record<string, unknown> | null;
   membros_da_familia?: unknown[] | null;
   anexos?: unknown[] | null;
+  autoriza_imagem?: boolean | null;
+  imagem_aceita_em?: string | null;
+  imagem_revogada_em?: string | null;
+  consentiu_tefe_cidadao_em?: string | null;
 };
 
 export type Servico = {

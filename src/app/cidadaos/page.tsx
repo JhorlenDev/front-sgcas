@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Search, UserPlus } from "lucide-react";
+import { ArrowRight, FileText, Search, UserPlus } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api } from "@/lib/api";
 import type { Cidadao, CidadaoLista } from "@/types/sgcas";
 
@@ -25,6 +26,9 @@ export default function CidadaosPage() {
   const [modalAberto, setModalAberto] = useState(false);
   const [erroCadastro, setErroCadastro] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [mostrarTermo, setMostrarTermo] = useState(false);
+  const [termoLido, setTermoLido] = useState(false);
+  const [criarAcesso, setCriarAcesso] = useState(true);
 
   const carregarCidadaos = useCallback(async (termo = "") => {
     setCarregando(true);
@@ -55,16 +59,17 @@ export default function CidadaosPage() {
         method: "POST",
         body: JSON.stringify({
           ...body,
-          consentimento: form.get("consentimento") === "on",
-          criar_acesso_tefe_cidadao: form.get("criar_acesso_tefe_cidadao") === "on",
+          consentimento: termoLido,
+          criar_acesso_tefe_cidadao: criarAcesso,
         }),
       });
 
       setModalAberto(false);
+      setTermoLido(false);
       event.currentTarget.reset();
       router.push(`/cidadaos/${cidadao.id}`);
     } catch {
-      setErroCadastro("Não foi possível salvar. Confira e-mail e consentimento.");
+      setErroCadastro("Não foi possível salvar. Confira os dados e o consentimento.");
     } finally {
       setSalvando(false);
     }
@@ -193,14 +198,40 @@ export default function CidadaosPage() {
             </div>
 
             <div className="grid gap-3 rounded-lg bg-meta-soft-gray p-4">
+              <h4 className="text-sm font-semibold text-meta-near-black">Termos de Uso e Privacidade (LGPD)</h4>
+
+              <button
+                type="button"
+                onClick={() => setMostrarTermo(true)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              >
+                <FileText size={14} />
+                Ler termo completo
+              </button>
+
               <label className="row text-sm text-meta-charcoal">
-                <input name="criar_acesso_tefe_cidadao" type="checkbox" defaultChecked />
+                <input
+                  type="checkbox"
+                  checked={criarAcesso}
+                  onChange={(e) => setCriarAcesso(e.target.checked)}
+                />
                 Criar acesso no Tefé Cidadão
               </label>
+
               <label className="row text-sm text-meta-charcoal">
-                <input name="consentimento" type="checkbox" />
-                Termo lido e consentido
+                <input
+                  type="checkbox"
+                  checked={termoLido}
+                  onChange={(e) => setTermoLido(e.target.checked)}
+                />
+                Confirmo que li o termo acima para o cidadão e este consente
               </label>
+
+              {criarAcesso && !termoLido && (
+                <p className="text-xs text-amber-600">
+                  Para criar acesso, confirme que o termo foi lido para o cidadão
+                </p>
+              )}
             </div>
 
             {erroCadastro && <div className="notice">{erroCadastro}</div>}
@@ -209,9 +240,30 @@ export default function CidadaosPage() {
               <SecondaryButton type="button" onClick={() => setModalAberto(false)} disabled={salvando}>
                 Cancelar
               </SecondaryButton>
-              <Button disabled={salvando}>{salvando ? "Salvando..." : "Salvar cadastro"}</Button>
+              <Button disabled={salvando || (criarAcesso && !termoLido)}>
+                {salvando ? "Salvando..." : "Salvar cadastro"}
+              </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={mostrarTermo} onOpenChange={setMostrarTermo}>
+        <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Termo de Consentimento LGPD</DialogTitle>
+            <DialogDescription>
+              Leia atentamente antes de prosseguir com o cadastro.
+            </DialogDescription>
+          </DialogHeader>
+
+          <TermoLGPD />
+
+          <DialogFooter>
+            <SecondaryButton onClick={() => setMostrarTermo(false)}>
+              Fechar
+            </SecondaryButton>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </AppShell>
