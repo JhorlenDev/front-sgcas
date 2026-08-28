@@ -10,7 +10,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, startTransition, useCallback, useEffect, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import {
   Dialog,
@@ -65,7 +65,9 @@ export default function AcoesItinerantesPage() {
   }, []);
 
   useEffect(() => {
-    void carregarDados();
+    startTransition(() => {
+      void carregarDados();
+    });
   }, [carregarDados]);
 
   async function salvarAcao(event: FormEvent<HTMLFormElement>) {
