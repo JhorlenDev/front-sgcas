@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FolderOpen, Headset, Users } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { Card, EmptyState, PageHeader, SecondaryButton } from "@/components/ui";
+import { Button, Card, EmptyState, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { Caso, Senha } from "@/types/sgcas";
 
@@ -30,7 +30,7 @@ export default function DashboardPage() {
           <span>Atalho rapido</span>
           <Headset size={28} />
           <Link href="/recepcao">
-            <SecondaryButton>Registrar recepcao</SecondaryButton>
+            <Button>Registrar recepcao</Button>
           </Link>
         </Card>
       </div>

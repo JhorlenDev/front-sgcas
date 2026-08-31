@@ -12,7 +12,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ['Montserrat', 'Helvetica', 'Arial', 'Noto Sans', 'sans-serif'],
+        sans: ['var(--font-nunito)', 'Nunito', 'Noto Sans', 'Helvetica', 'Arial', 'sans-serif'],
       },
       colors: {
         border: 'hsl(var(--border))',

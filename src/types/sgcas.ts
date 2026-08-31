@@ -64,6 +64,10 @@ export type Cidadao = CidadaoLista & {
   socioeconomico?: Record<string, unknown> | null;
   membros_da_familia?: unknown[] | null;
   anexos?: unknown[] | null;
+  autoriza_imagem?: boolean | null;
+  imagem_aceita_em?: string | null;
+  imagem_revogada_em?: string | null;
+  consentiu_tefe_cidadao_em?: string | null;
 };
 
 export type Servico = {
@@ -146,4 +150,44 @@ export type EntradaHistorico = {
   quem_atendeu: string | null;
   no_mes_corrente: boolean;
   e_de_outra_unidade: boolean;
+};
+
+export type AcaoItinerante = {
+  id: string;
+  titulo: string;
+  descricao?: string | null;
+  local: string;
+  data: string;
+  observacoes?: string | null;
+  unidade: string;
+  unidade_nome: string;
+  responsavel: string;
+  responsavel_nome: string;
+  ativa: boolean;
+  participantes: number;
+  cidadaos_atendidos: number;
+  beneficios_concedidos: number;
+  casos_abertos: number;
+  concluida: boolean;
+};
+
+export type BalancoAcaoItinerante = AcaoItinerante & {
+  balanco: {
+    cidadaos_cadastrados: number;
+    casos_abertos_vinculados: number;
+    beneficios_vinculados: number;
+    participantes: number;
+    cidadaos_atendidos: number;
+    beneficios_concedidos: number;
+    casos_abertos: number;
+    concluida: boolean;
+  };
+};
+
+export type ResumoAcoesItinerantes = {
+  total_cidadaos: number;
+  total_casos: number;
+  total_beneficios: number;
+  total_acoes: number;
+  total_concluidas: number;
 };

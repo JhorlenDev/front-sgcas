@@ -57,6 +57,7 @@
 
   body {
     @apply bg-meta-warm-gray text-foreground antialiased;
+    font-family: var(--font-nunito), 'Nunito', 'Noto Sans', 'Helvetica', 'Arial', sans-serif;
     font-feature-settings: "ss01", "ss02";
   }
 
