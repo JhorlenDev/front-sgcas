@@ -78,5 +78,11 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
 
 export function loginWithTefeCidadao() {
   clearLogoutMarker();
+  // Precisa ser navegação do navegador, e não router.push(): /api/ não é
+  // página do Next, e sim proxy para o Django (ver rewrites em
+  // next.config.ts), que responde 302 para o Keycloak. Navegação
+  // client-side não segue redirect do servidor para um domínio externo, e o
+  // login não sairia do lugar.
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- destino é o backend, não uma rota do Next
   window.location.href = "/api/auth/keycloak/login";
 }
