@@ -87,8 +87,8 @@ export default function NovoCidadaoPage() {
             <Input name="endereco" />
           </Field>
 
-          <div className="col-span-full grid gap-3 rounded-lg bg-meta-soft-gray p-4">
-            <h4 className="text-sm font-semibold text-meta-near-black">Termos de Uso e Privacidade (LGPD)</h4>
+          <div className="col-span-full grid gap-3 rounded-lg bg-secondary p-4">
+            <h4 className="text-sm font-semibold text-foreground">Termos de Uso e Privacidade (LGPD)</h4>
 
             <button
               type="button"
@@ -99,7 +99,7 @@ export default function NovoCidadaoPage() {
               Ler termo completo
             </button>
 
-            <label className="row text-sm text-meta-charcoal">
+            <label className="row text-sm text-foreground">
               <input
                 type="checkbox"
                 checked={criarAcesso}
@@ -108,7 +108,7 @@ export default function NovoCidadaoPage() {
               Criar acesso no Tefé Cidadão
             </label>
 
-            <label className="row text-sm text-meta-charcoal">
+            <label className="row text-sm text-foreground">
               <input
                 type="checkbox"
                 checked={termoLido}
@@ -118,7 +118,7 @@ export default function NovoCidadaoPage() {
             </label>
 
             {criarAcesso && !termoLido && (
-              <p className="text-xs text-amber-600">
+              <p className="text-xs text-[var(--pmt-color-warning-soft-fg)]">
                 Para criar acesso, confirme que o termo foi lido para o cidadão
               </p>
             )}

@@ -83,7 +83,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pageTitle = current?.label ?? "SGCAS";
 
   return (
-    <div className="min-h-screen bg-meta-warm-gray">
+    <div className="min-h-screen bg-background">
       <Sidebar
         pathname={pathname}
         homeHref={defaultRouteForRole(user.papel)}
@@ -100,39 +100,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       />
 
       <div className={cn("transition-[padding] duration-300", sidebarCollapsed ? "md:pl-20" : "md:pl-64")}>
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-meta-divider/70 px-4 frosted-nav md:px-8">
+        <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border/70 px-4 bg-elevated md:px-8">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
 
           <div className="flex min-w-0 items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span className="truncate text-sm font-semibold text-meta-charcoal">{pageTitle}</span>
+            <span className="h-2 w-2 rounded-full bg-success" />
+            <span className="truncate text-sm font-semibold text-foreground">{pageTitle}</span>
           </div>
 
           <div className="flex-1" />
 
           <div className="flex items-center gap-4">
             {user.unidade ? (
-              <span className="hidden rounded-pill bg-meta-soft-gray px-3 py-1 text-xs font-medium text-meta-slate sm:inline">
+              <span className="hidden rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground sm:inline">
                 {user.unidade.nome}
               </span>
             ) : (
-              <span className="hidden items-center gap-1 rounded-pill bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 sm:inline-flex">
+              <span className="hidden items-center gap-1 rounded-full bg-[var(--pmt-color-warning-soft)] px-3 py-1 text-xs font-medium text-[var(--pmt-color-warning-soft-fg)] sm:inline-flex">
                 <Sparkles className="h-3.5 w-3.5" />
                 Sem unidade vinculada
               </span>
             )}
 
             <div className="flex items-center gap-3">
-              <Avatar className="h-9 w-9 shadow-lift ring-2 ring-white">
+              <Avatar className="h-9 w-9 ring-2 ring-white">
                 <AvatarFallback className="bg-primary text-xs font-medium text-primary-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden sm:block">
-                <p className="text-sm font-medium leading-tight text-meta-charcoal">{user.nome}</p>
-                <p className="text-xs tracking-tight text-meta-slate">{user.papel}</p>
+                <p className="text-sm font-medium leading-tight text-foreground">{user.nome}</p>
+                <p className="text-xs tracking-tight text-muted-foreground">{user.papel}</p>
               </div>
             </div>
 
@@ -168,14 +168,14 @@ function Sidebar({
         collapsed ? "md:w-20" : "md:w-64",
       )}
     >
-      <div className="flex flex-grow flex-col overflow-y-auto border-r border-meta-divider bg-white pt-6">
+      <div className="flex flex-grow flex-col overflow-y-auto border-r border-border bg-white pt-6">
         <div className={cn("mb-8 flex items-center", collapsed ? "justify-center px-3" : "justify-between px-6")}>
           <Brand href={homeHref} compact={collapsed} hideText={collapsed} />
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggle}
-            className={cn("h-9 w-9", collapsed && "absolute left-[62px] top-6 rounded-full border border-meta-divider bg-white shadow-lift")}
+            className={cn("h-9 w-9", collapsed && "absolute left-[62px] top-6 rounded-full border border-border bg-white")}
             title={collapsed ? "Expandir menu" : "Minimizar menu"}
             aria-label={collapsed ? "Expandir menu lateral" : "Minimizar menu lateral"}
           >
@@ -207,7 +207,7 @@ function MobileSidebar({
   return (
     <div className="fixed inset-0 z-50 md:hidden">
       <button className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-label="Fechar menu" />
-      <aside className="relative flex h-full w-72 max-w-[84vw] flex-col overflow-y-auto border-r border-meta-divider bg-white pt-5 shadow-elevated">
+      <aside className="relative flex h-full w-72 max-w-[84vw] flex-col overflow-y-auto border-r border-border bg-white pt-5 shadow-elevated">
         <div className="mb-4 flex items-center justify-between px-5">
           <Brand href={homeHref} compact />
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -230,12 +230,12 @@ function Brand({ href, compact = false, hideText = false }: { href: string; comp
       href={href}
       title="SGCAS"
     >
-      <div className={cn("flex h-10 w-10 items-center justify-center rounded-pill bg-primary", !hideText && "mr-3")}>
+      <div className={cn("flex h-10 w-10 items-center justify-center rounded-full bg-primary", !hideText && "mr-3")}>
         <Shield className="h-5 w-5 text-primary-foreground" />
       </div>
       <div className={cn(hideText && "sr-only")}>
-        <h1 className="text-base font-semibold tracking-tight text-meta-charcoal">SGCAS</h1>
-        <p className="text-xs text-meta-slate">Assistência Social</p>
+        <h1 className="text-base font-semibold tracking-tight text-foreground">SGCAS</h1>
+        <p className="text-xs text-muted-foreground">Assistência Social</p>
       </div>
     </Link>
   );
@@ -254,12 +254,12 @@ function Nav({ pathname, role, compact = false }: { pathname: string; role: stri
             href={item.href}
             title={item.label}
             className={cn(
-              "flex items-center rounded-pill px-4 py-2.5 text-[15px] font-medium tracking-tight transition-all duration-200",
+              "flex items-center rounded-full px-4 py-2.5 text-base font-medium tracking-tight transition-all duration-200",
               compact && "justify-center px-0",
-              isActive ? "bg-primary text-primary-foreground shadow-lift" : "text-meta-charcoal hover:bg-meta-soft-gray",
+              isActive ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary",
             )}
           >
-            <item.icon className={cn("h-[18px] w-[18px] flex-shrink-0", !compact && "mr-3", isActive ? "" : "text-meta-slate")} />
+            <item.icon className={cn("h-[18px] w-[18px] flex-shrink-0", !compact && "mr-3", isActive ? "" : "text-muted-foreground")} />
             <span className={cn(compact && "sr-only")}>{item.label}</span>
           </Link>
         );
@@ -270,13 +270,13 @@ function Nav({ pathname, role, compact = false }: { pathname: string; role: stri
 
 function Footer({ compact = false }: { compact?: boolean }) {
   return (
-    <div className={cn("relative flex-shrink-0 border-t border-meta-divider", compact ? "p-3" : "p-6")}>
+    <div className={cn("relative flex-shrink-0 border-t border-border", compact ? "p-3" : "p-6")}>
       {compact ? (
-        <p className="text-center text-[10px] font-semibold tracking-tight text-meta-slate">v0.1</p>
+        <p className="text-center text-sm font-semibold tracking-tight text-muted-foreground">v0.1</p>
       ) : (
         <>
-          <p className="text-center text-xs tracking-tight text-meta-slate">SGCAS v0.1.0</p>
-          <p className="mt-0.5 text-center text-[11px] tracking-tight text-meta-slate/70">Desenvolvido por SEDECTI</p>
+          <p className="text-center text-xs tracking-tight text-muted-foreground">SGCAS v0.1.0</p>
+          <p className="mt-0.5 text-center text-sm tracking-tight text-muted-foreground/70">Desenvolvido por SEDECTI</p>
         </>
       )}
     </div>

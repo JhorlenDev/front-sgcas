@@ -129,7 +129,7 @@ export default function AdminPage() {
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="!mb-1">Solicitações de acesso</h2>
-              <p className="text-sm leading-6 text-meta-slate">Escolha a role e a unidade antes de aprovar.</p>
+              <p className="text-sm leading-6 text-muted-foreground">Escolha a role e a unidade antes de aprovar.</p>
             </div>
             <Badge tone={pedidos.length ? "warn" : "good"}>{pedidos.length}</Badge>
           </div>
@@ -140,14 +140,14 @@ export default function AdminPage() {
             <div className="space-y-3">
               {pedidos.map((pedido) => (
                 <form
-                  className="rounded-card border border-meta-divider bg-meta-warm-gray p-4"
+                  className="rounded-none border border-border bg-background p-4"
                   key={pedido.id}
                   onSubmit={(event) => void aprovar(event, pedido)}
                 >
                   <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <strong className="block truncate text-sm text-meta-charcoal">{pedido.nome}</strong>
-                      <small className="block truncate text-xs text-meta-slate">{pedido.email}</small>
+                      <strong className="block truncate text-sm text-foreground">{pedido.nome}</strong>
+                      <small className="block truncate text-xs text-muted-foreground">{pedido.email}</small>
                     </div>
                     <Badge tone="warn">{formatarDataCurta(pedido.pedido_em)}</Badge>
                   </div>
@@ -172,7 +172,7 @@ export default function AdminPage() {
                     </Field>
                   </div>
 
-                  <p className="mt-3 text-xs leading-5 text-meta-slate">
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
                     Dica: recepcionista e técnico normalmente precisam estar vinculados a uma unidade.
                   </p>
 
@@ -190,7 +190,7 @@ export default function AdminPage() {
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <h2 className="!mb-1">Operadores cadastrados</h2>
-              <p className="text-sm leading-6 text-meta-slate">Ajuste perfil, lotação e status. O perfil é atualizado no Keycloak.</p>
+              <p className="text-sm leading-6 text-muted-foreground">Ajuste perfil, lotação e status. O perfil é atualizado no Keycloak.</p>
             </div>
             <Badge tone="neutral">{operadores.length}</Badge>
           </div>
@@ -201,14 +201,14 @@ export default function AdminPage() {
             <div className="space-y-3">
               {operadores.map((operador) => (
                 <form
-                  className="rounded-card border border-meta-divider bg-white p-4 shadow-lift"
+                  className="rounded-none border border-border bg-white p-4"
                   key={operador.id}
                   onSubmit={(event) => void atualizarOperador(event, operador)}
                 >
                   <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <strong className="block truncate text-sm text-meta-charcoal">{operador.nome || operador.email}</strong>
-                      <small className="block truncate text-xs text-meta-slate">{operador.email}</small>
+                      <strong className="block truncate text-sm text-foreground">{operador.nome || operador.email}</strong>
+                      <small className="block truncate text-xs text-muted-foreground">{operador.email}</small>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge tone={operador.ativo ? "good" : "bad"}>{operador.ativo ? "Ativo" : "Inativo"}</Badge>
@@ -237,14 +237,14 @@ export default function AdminPage() {
                         ))}
                       </Select>
                     </Field>
-                    <label className="inline-flex h-11 items-center gap-2 rounded-lg border border-meta-divider bg-meta-soft-gray px-3 text-xs font-semibold text-meta-charcoal">
+                    <label className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-secondary px-3 text-xs font-semibold text-foreground">
                       <input name="ativo" type="checkbox" defaultChecked={operador.ativo} />
                       Ativo
                     </label>
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-xs leading-5 text-meta-slate">{descricaoPapel(operador.papel)}</p>
+                    <p className="text-xs leading-5 text-muted-foreground">{descricaoPapel(operador.papel)}</p>
                     <Button className="h-9 px-4 text-xs" type="submit">
                       <UserCog size={15} />
                       Salvar
@@ -275,7 +275,7 @@ function ResumoCard({
 }) {
   const toneClass = {
     good: "bg-success/10 text-success",
-    warn: "bg-warning/20 text-[#8a5a00]",
+    warn: "bg-[var(--pmt-color-warning-soft)] text-[var(--pmt-color-warning-soft-fg)]",
     bad: "bg-destructive/10 text-destructive",
   }[tone];
 
@@ -283,11 +283,11 @@ function ResumoCard({
     <Card className="!p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">{title}</p>
-          <strong className="mt-1.5 block text-2xl text-meta-charcoal">{value.toLocaleString("pt-BR")}</strong>
-          <small className="mt-0.5 block text-xs text-meta-slate">{text}</small>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</p>
+          <strong className="mt-1.5 block text-2xl text-foreground">{value.toLocaleString("pt-BR")}</strong>
+          <small className="mt-0.5 block text-xs text-muted-foreground">{text}</small>
         </div>
-        <span className={`flex h-9 w-9 items-center justify-center rounded-pill ${toneClass}`}>
+        <span className={`flex h-9 w-9 items-center justify-center rounded-full ${toneClass}`}>
           <Icon size={16} />
         </span>
       </div>

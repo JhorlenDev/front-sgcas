@@ -156,7 +156,7 @@ export default function InstitucionalPage() {
                   <tr key={unidade.id}>
                     <td>
                       <strong>{unidade.nome}</strong>
-                      {unidade.coordenacao && <small className="block text-meta-slate">{unidade.coordenacao}</small>}
+                      {unidade.coordenacao && <small className="block text-muted-foreground">{unidade.coordenacao}</small>}
                     </td>
                     <td>{unidade.tipo ?? "-"}</td>
                     <td>{unidade.sigla ?? "-"}</td>
@@ -194,7 +194,7 @@ export default function InstitucionalPage() {
                   <tr key={servico.id}>
                     <td>
                       <strong>{servico.nome}</strong>
-                      {servico.descricao && <small className="block text-meta-slate">{servico.descricao}</small>}
+                      {servico.descricao && <small className="block text-muted-foreground">{servico.descricao}</small>}
                     </td>
                     <td>{servico.unidade_nome}</td>
                     <td>{servico.demanda_nome ?? "Sem categoria"}</td>
@@ -249,7 +249,7 @@ export default function InstitucionalPage() {
             </div>
 
             {coordenacoes.length === 0 && (
-              <div className="rounded-lg bg-meta-soft-gray px-4 py-3 text-sm leading-6 text-meta-slate">
+              <div className="rounded-lg bg-secondary px-4 py-3 text-sm leading-6 text-muted-foreground">
                 Coordenação é opcional. Como não há coordenações cadastradas, a unidade será criada sem vínculo.
               </div>
             )}

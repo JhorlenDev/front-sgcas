@@ -38,7 +38,7 @@ export function FormField({
   return (
     <div className="space-y-2">
       <label className="block space-y-2">
-        <span className="block text-sm font-medium leading-none tracking-tight text-meta-charcoal">
+        <span className="block text-sm font-medium leading-none tracking-tight text-foreground">
           {label}
         </span>
         {children}

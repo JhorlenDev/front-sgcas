@@ -220,26 +220,26 @@ export default function AcoesItinerantesPage() {
         <Card className="!p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Planejamento</p>
-              <strong className="mt-2 block text-xl text-meta-charcoal">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Planejamento</p>
+              <strong className="mt-2 block text-xl text-foreground">
                 {acoesFuturas.length} {acoesFuturas.length === 1 ? "ação" : "ações"}
               </strong>
-              <small className="mt-1 block text-meta-slate">
+              <small className="mt-1 block text-muted-foreground">
                 {acoesFuturas.length === 0
                   ? "Nenhuma ação programada."
                   : "Próximas ações agendadas."}
               </small>
             </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-pill bg-primary/10 text-primary">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
               <CalendarDays size={18} />
             </span>
           </div>
           {acoesFuturas.slice(0, 3).length > 0 && (
             <div className="mt-3 space-y-2">
               {acoesFuturas.slice(0, 3).map((acao) => (
-                <div key={acao.id} className="rounded-lg bg-meta-soft-gray p-3">
-                  <p className="text-xs font-semibold text-meta-charcoal">{acao.titulo}</p>
-                  <p className="text-xs text-meta-slate">
+                <div key={acao.id} className="rounded-lg bg-secondary p-3">
+                  <p className="text-xs font-semibold text-foreground">{acao.titulo}</p>
+                  <p className="text-xs text-muted-foreground">
                     {formatarDataCompleta(acao.data)} — {acao.local}
                   </p>
                 </div>
@@ -249,33 +249,33 @@ export default function AcoesItinerantesPage() {
         </Card>
 
         {/* Card Campo - próximo atendimento externo (aviso chamativo) */}
-        <div className={`relative overflow-hidden rounded-card border-2 bg-gradient-to-br from-warning/5 to-warning/10 p-5 shadow-lift transition-all ${proximaAcao ? "border-warning" : "border-meta-divider"}`}>
+        <div className={`relative overflow-hidden rounded-none border-2 bg-gradient-to-br from-warning/5 to-warning/10 p-5 transition-all ${proximaAcao ? "border-warning" : "border-border"}`}>
           {proximaAcao && (
-            <div className="pointer-events-none absolute -inset-[3px] rounded-card border-2 border-warning animate-[pulse_2s_ease-in-out_infinite] opacity-70" />
+            <div className="pointer-events-none absolute -inset-[3px] rounded-none border-2 border-warning animate-[pulse_2s_ease-in-out_infinite] opacity-70" />
           )}
           <div className="relative">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#8a5a00]">Campo</p>
-                <strong className="mt-2 block text-2xl font-extrabold text-meta-charcoal">
+                <p className="text-xs font-bold uppercase tracking-[0.12em] text-[var(--pmt-color-warning-soft-fg)]">Campo</p>
+                <strong className="mt-2 block text-2xl font-extrabold text-foreground">
                   {proximaAcao ? "Próxima ação!" : "Atendimento externo"}
                 </strong>
               </div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-pill bg-warning/20 text-[#8a5a00]">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--pmt-color-warning-soft)] text-[var(--pmt-color-warning-soft-fg)]">
                 <MapPinned size={22} />
               </span>
             </div>
             {proximaAcao && (
               <div className="mt-3 rounded-lg border border-warning/30 bg-white p-4">
-                <p className="text-base font-bold text-meta-charcoal">{proximaAcao.titulo}</p>
-                <p className="mt-1 text-sm text-meta-slate">
+                <p className="text-base font-bold text-foreground">{proximaAcao.titulo}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
                   {formatarDataCompleta(proximaAcao.data)}
                 </p>
-                <p className="mt-0.5 text-sm font-semibold text-[#8a5a00]">{proximaAcao.local}</p>
+                <p className="mt-0.5 text-sm font-semibold text-[var(--pmt-color-warning-soft-fg)]">{proximaAcao.local}</p>
               </div>
             )}
             {!proximaAcao && (
-              <p className="mt-2 text-sm text-meta-slate">
+              <p className="mt-2 text-sm text-muted-foreground">
                 Cadastros, casos e benefícios na ação.
               </p>
             )}
@@ -286,30 +286,30 @@ export default function AcoesItinerantesPage() {
         <Card className="!p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Balanço</p>
-              <strong className="mt-2 block text-xl text-meta-charcoal">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Balanço</p>
+              <strong className="mt-2 block text-xl text-foreground">
                 {resumo?.total_cidadaos ?? 0} cidadãos
               </strong>
-              <small className="mt-1 block text-meta-slate">
+              <small className="mt-1 block text-muted-foreground">
                 {resumo ? `${resumo.total_concluidas} de ${resumo.total_acoes} ações concluídas` : "Carregando..."}
               </small>
             </div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-pill bg-success/10 text-success">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success">
               <Users size={18} />
             </span>
           </div>
           {resumo && (resumo.total_casos > 0 || resumo.total_beneficios > 0) && (
             <div className="mt-3 flex gap-3">
               {resumo.total_casos > 0 && (
-                <div className="rounded-lg bg-meta-soft-gray px-3 py-2 text-center">
-                  <strong className="block text-lg font-bold text-meta-charcoal">{resumo.total_casos}</strong>
-                  <span className="text-xs text-meta-slate">casos</span>
+                <div className="rounded-lg bg-secondary px-3 py-2 text-center">
+                  <strong className="block text-lg font-bold text-foreground">{resumo.total_casos}</strong>
+                  <span className="text-xs text-muted-foreground">casos</span>
                 </div>
               )}
               {resumo.total_beneficios > 0 && (
-                <div className="rounded-lg bg-meta-soft-gray px-3 py-2 text-center">
-                  <strong className="block text-lg font-bold text-meta-charcoal">{resumo.total_beneficios}</strong>
-                  <span className="text-xs text-meta-slate">benefícios</span>
+                <div className="rounded-lg bg-secondary px-3 py-2 text-center">
+                  <strong className="block text-lg font-bold text-foreground">{resumo.total_beneficios}</strong>
+                  <span className="text-xs text-muted-foreground">benefícios</span>
                 </div>
               )}
             </div>
@@ -323,7 +323,7 @@ export default function AcoesItinerantesPage() {
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="!mb-0">Histórico de ações</h2>
           <div className="flex items-center gap-2">
-            <Clock size={14} className="text-meta-slate" />
+            <Clock size={14} className="text-muted-foreground" />
             <select
               className="input !h-9 !w-auto !py-1 text-xs"
               value={ordenacao}
@@ -335,7 +335,7 @@ export default function AcoesItinerantesPage() {
           </div>
         </div>
 
-        {carregando && <span className="text-sm text-meta-slate">Carregando...</span>}
+        {carregando && <span className="text-sm text-muted-foreground">Carregando...</span>}
 
         {!carregando && acoesOrdenadas.length === 0 && (
           <EmptyState
@@ -381,7 +381,7 @@ export default function AcoesItinerantesPage() {
                       {acao.concluida ? (
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1.5 rounded-pill bg-success/10 px-3 py-1.5 text-xs font-semibold text-success transition-colors hover:bg-success/20"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1.5 text-xs font-semibold text-success transition-colors hover:bg-success/20"
                           onClick={() => void abrirBalanco(acao)}
                         >
                           <FileText className="h-3.5 w-3.5" />
@@ -390,7 +390,7 @@ export default function AcoesItinerantesPage() {
                       ) : (
                         <button
                           type="button"
-                          className="inline-flex items-center gap-1.5 rounded-pill bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors group-hover:bg-primary-hover"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors group-hover:bg-primary-hover"
                           onClick={() => {
                             setAcaoConcluir(acao);
                             setCidadaosInput("");
@@ -407,7 +407,7 @@ export default function AcoesItinerantesPage() {
                       )}
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1.5 rounded-pill border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-100"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--pmt-color-danger)] bg-[var(--pmt-color-danger-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--pmt-color-danger-soft-fg)] transition-colors hover:bg-[var(--pmt-color-danger-soft)]"
                         onClick={() => void excluirAcao(acao)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -495,7 +495,7 @@ export default function AcoesItinerantesPage() {
                 value={participantesInput}
                 onChange={(e) => setParticipantesInput(e.target.value)}
               />
-              <small className="text-xs text-meta-slate">funcionários públicos que integraram esta ação</small>
+              <small className="text-xs text-muted-foreground">funcionários públicos que integraram esta ação</small>
             </Field>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -550,21 +550,21 @@ export default function AcoesItinerantesPage() {
             )}
           </DialogHeader>
 
-          {carregandoBalanco && <span className="text-sm text-meta-slate">Carregando...</span>}
+          {carregandoBalanco && <span className="text-sm text-muted-foreground">Carregando...</span>}
 
           {balancoDetalhe && !carregandoBalanco && (
             <div className="grid gap-4">
-              <div className="rounded-lg bg-meta-soft-gray p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Data</p>
-                <p className="mt-1 text-sm font-semibold text-meta-charcoal">
+              <div className="rounded-lg bg-secondary p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Data</p>
+                <p className="mt-1 text-sm font-semibold text-foreground">
                   {formatarDataCompleta(balancoDetalhe.data)}
                 </p>
               </div>
 
               {balancoDetalhe.descricao && (
-                <div className="rounded-lg bg-meta-soft-gray p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Descrição</p>
-                  <p className="mt-1 text-sm text-meta-charcoal">{balancoDetalhe.descricao}</p>
+                <div className="rounded-lg bg-secondary p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Descrição</p>
+                  <p className="mt-1 text-sm text-foreground">{balancoDetalhe.descricao}</p>
                 </div>
               )}
 
@@ -574,7 +574,7 @@ export default function AcoesItinerantesPage() {
                   <strong className="block text-2xl font-bold text-primary">
                     {balancoDetalhe.balanco.cidadaos_atendidos}
                   </strong>
-                  <small className="text-xs text-meta-slate">Cidadãos atendidos</small>
+                  <small className="text-xs text-muted-foreground">Cidadãos atendidos</small>
                 </div>
 
                 <div className="rounded-lg bg-primary/5 p-4 text-center">
@@ -582,7 +582,7 @@ export default function AcoesItinerantesPage() {
                   <strong className="block text-2xl font-bold text-primary">
                     {balancoDetalhe.balanco.participantes}
                   </strong>
-                  <small className="text-xs text-meta-slate">Participantes</small>
+                  <small className="text-xs text-muted-foreground">Participantes</small>
                 </div>
 
                 <div className="rounded-lg bg-primary/5 p-4 text-center">
@@ -590,7 +590,7 @@ export default function AcoesItinerantesPage() {
                   <strong className="block text-2xl font-bold text-success">
                     {balancoDetalhe.balanco.beneficios_concedidos}
                   </strong>
-                  <small className="text-xs text-meta-slate">Benefícios</small>
+                  <small className="text-xs text-muted-foreground">Benefícios</small>
                 </div>
 
                 <div className="rounded-lg bg-primary/5 p-4 text-center">
@@ -598,24 +598,24 @@ export default function AcoesItinerantesPage() {
                   <strong className="block text-2xl font-bold text-primary">
                     {balancoDetalhe.balanco.casos_abertos}
                   </strong>
-                  <small className="text-xs text-meta-slate">Casos</small>
+                  <small className="text-xs text-muted-foreground">Casos</small>
                 </div>
               </div>
 
-              <div className="rounded-lg bg-meta-soft-gray p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Responsável</p>
-                <p className="mt-1 text-sm text-meta-charcoal">{balancoDetalhe.responsavel_nome}</p>
+              <div className="rounded-lg bg-secondary p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Responsável</p>
+                <p className="mt-1 text-sm text-foreground">{balancoDetalhe.responsavel_nome}</p>
               </div>
 
-              <div className="rounded-lg bg-meta-soft-gray p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Unidade</p>
-                <p className="mt-1 text-sm text-meta-charcoal">{balancoDetalhe.unidade_nome}</p>
+              <div className="rounded-lg bg-secondary p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Unidade</p>
+                <p className="mt-1 text-sm text-foreground">{balancoDetalhe.unidade_nome}</p>
               </div>
 
               {balancoDetalhe.observacoes && (
-                <div className="rounded-lg bg-meta-soft-gray p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Observações</p>
-                  <p className="mt-1 text-sm text-meta-charcoal">{balancoDetalhe.observacoes}</p>
+                <div className="rounded-lg bg-secondary p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Observações</p>
+                  <p className="mt-1 text-sm text-foreground">{balancoDetalhe.observacoes}</p>
                 </div>
               )}
             </div>

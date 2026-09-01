@@ -1,92 +1,61 @@
+/* Identidade visual: PMT 2026 (ver design-system/README.md).
+   O CSS do sistema entra ANTES das diretivas do Tailwind, para que as
+   utilities vencam empates de especificidade. Usamos a versao sem reset
+   porque o preflight do Tailwind ja faz esse trabalho. */
+@import "../../design-system/pmt-sem-reset.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Ponte de nomes para o que le a variavel direto — bibliotecas de terceiro
+     e trechos herdados. Os componentes de components/ui consomem as cores
+     pelas utilities do preset (bg-primary, text-muted-foreground), que ja
+     apontam para estes mesmos tokens. */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 201 29% 15%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 201 29% 15%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 201 29% 15%;
-
-    --primary: 213 100% 44%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 218 100% 36%;
-    --primary-pressed: 216 100% 36%;
-
-    --secondary: 210 27% 96%;
-    --secondary-foreground: 201 29% 15%;
-
-    --muted: 216 20% 97%;
-    --muted-foreground: 210 14% 42%;
-
-    --accent: 214 100% 95%;
-    --accent-foreground: 213 100% 44%;
-
-    --destructive: 351 90% 41%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 136 100% 25%;
-    --success-foreground: 0 0% 100%;
-
-    --warning: 40 93% 56%;
-    --warning-foreground: 201 29% 15%;
-
-    --border: 213 22% 89%;
-    --input: 213 22% 89%;
-    --ring: 213 100% 44%;
-
-    --radius: 0.5rem;
-    --radius-card: 1.25rem;
-    --radius-feature: 1.5rem;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  html {
-    font-feature-settings: "ss01", "ss02";
+    --background: var(--pmt-color-bg);
+    --foreground: var(--pmt-color-fg);
+    --card: var(--pmt-color-elevated);
+    --card-foreground: var(--pmt-color-fg);
+    --popover: var(--pmt-color-elevated);
+    --popover-foreground: var(--pmt-color-fg);
+    --primary: var(--pmt-color-primary);
+    --primary-foreground: var(--pmt-color-primary-fg);
+    --secondary: var(--pmt-color-surface);
+    --secondary-foreground: var(--pmt-color-fg-2);
+    --muted: var(--pmt-color-surface);
+    --muted-foreground: var(--pmt-color-fg-muted);
+    --accent: var(--pmt-color-accent);
+    --accent-foreground: var(--pmt-color-accent-fg);
+    --destructive: var(--pmt-color-danger);
+    --destructive-foreground: var(--pmt-color-danger-fg);
+    --border: var(--pmt-color-line);
+    --input: var(--pmt-color-line);
+    --ring: var(--pmt-color-ring);
+    --radius: var(--pmt-radius-lg);
   }
 
   body {
-    @apply bg-meta-warm-gray text-foreground antialiased;
-    font-family: var(--font-nunito), 'Nunito', 'Noto Sans', 'Helvetica', 'Arial', sans-serif;
-    font-feature-settings: "ss01", "ss02";
+    @apply bg-background text-foreground antialiased;
   }
 
-  h1,
-  h2,
-  h3 {
-    letter-spacing: -0.01em;
-  }
-}
-
-@layer utilities {
-  .frosted-nav {
-    background-color: rgba(241, 244, 247, 0.8);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
+  /* O preflight zera os titulos; o sistema os quer com a tipografia
+     editorial de volta. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--pmt-font-heading);
+    font-weight: var(--pmt-weight-black);
+    letter-spacing: var(--pmt-tracking-heading);
   }
 
-  .shadow-elevated {
-    box-shadow: 0 12px 28px 0 rgba(0, 0, 0, 0.12), 0 2px 4px 0 rgba(0, 0, 0, 0.08);
-  }
-
-  .shadow-lift {
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.08);
+  h1 {
+    letter-spacing: var(--pmt-tracking-hero);
   }
 }
 
 @layer components {
   .center-screen {
-    @apply flex min-h-screen items-center justify-center bg-meta-warm-gray p-5 text-meta-charcoal;
+    @apply flex min-h-screen items-center justify-center bg-background p-5 text-foreground;
   }
 
   .grid {
@@ -102,20 +71,22 @@
     @apply md:grid-cols-3;
   }
 
+  /* Cartao de conteudo e reto: borda de 1px, sem raio e sem sombra. Sombra
+     no PMT e so para o que flutua — modal, dropdown, toast. */
   .card {
-    @apply rounded-card border border-meta-divider bg-white p-5 text-meta-charcoal shadow-lift transition-all duration-300;
+    @apply rounded-none border border-border bg-card p-5 text-card-foreground transition-colors;
   }
 
   .card h1 {
-    @apply text-3xl font-medium tracking-tight;
+    @apply text-3xl tracking-heading;
   }
 
   .card h2 {
-    @apply mb-4 text-xl font-medium tracking-tight text-meta-charcoal;
+    @apply mb-4 text-xl tracking-heading;
   }
 
   .card h3 {
-    @apply text-lg font-medium tracking-tight text-meta-charcoal;
+    @apply text-lg tracking-heading;
   }
 
   .narrow-card {
@@ -123,31 +94,32 @@
   }
 
   .button {
-    @apply inline-flex h-11 items-center justify-center gap-2 rounded-pill bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-lift transition-all hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
   }
 
   .button.secondary {
-    @apply bg-meta-soft-gray text-meta-charcoal shadow-none hover:bg-meta-divider;
+    @apply bg-secondary text-secondary-foreground hover:bg-border;
   }
 
   .button.danger {
-    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+    @apply bg-destructive text-destructive-foreground hover:opacity-90;
   }
 
   .input {
-    @apply flex min-h-11 w-full rounded-lg border border-input bg-white px-3 py-2 text-sm text-meta-charcoal shadow-sm transition-colors placeholder:text-meta-slate/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex min-h-11 w-full rounded-md border border-input bg-elevated px-3 py-2 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   textarea.input {
     @apply min-h-28 resize-y;
   }
 
+  /* Todo campo tem rotulo visivel — placeholder nao e rotulo. */
   .field {
-    @apply grid gap-2 text-sm font-medium text-meta-charcoal;
+    @apply grid gap-2 text-sm font-semibold text-foreground;
   }
 
   .field > span {
-    @apply text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate;
+    @apply text-xs font-bold uppercase tracking-eyebrow text-muted-foreground;
   }
 
   .page-header {
@@ -155,11 +127,11 @@
   }
 
   .page-header h1 {
-    @apply text-2xl font-medium tracking-tight text-meta-charcoal md:text-3xl;
+    @apply text-3xl tracking-heading md:text-4xl;
   }
 
   .page-header p {
-    @apply mt-2 max-w-2xl text-sm leading-6 text-meta-slate;
+    @apply mt-2 max-w-2xl text-sm leading-6 text-muted-foreground;
   }
 
   .page-action {
@@ -179,62 +151,75 @@
   }
 
   .line-row {
-    @apply border-t border-meta-divider/80 py-4 first:border-t-0 first:pt-0 last:pb-0;
+    @apply border-t border-border py-4 first:border-t-0 first:pt-0 last:pb-0;
   }
 
   .plain-row {
-    @apply flex w-full items-center justify-between gap-3 border-t border-meta-divider/80 py-4 text-left transition-colors first:border-t-0 first:pt-0 hover:text-primary;
+    @apply flex w-full items-center justify-between gap-3 border-t border-border py-4 text-left transition-colors first:border-t-0 first:pt-0 hover:text-primary;
   }
 
   .plain-row strong,
   .line-row strong {
-    @apply text-sm font-semibold text-meta-charcoal;
+    @apply text-sm font-bold text-foreground;
   }
 
   .plain-row span,
   .line-row span {
-    @apply text-sm text-meta-charcoal;
+    @apply text-sm text-foreground;
   }
 
   .plain-row small,
   .line-row small {
-    @apply text-xs text-meta-slate;
+    @apply text-xs text-muted-foreground;
   }
 
+  /* Estado nunca e so cor: o texto dentro do badge e que carrega o
+     significado para quem nao distingue as cores. */
   .badge {
-    @apply inline-flex w-fit items-center rounded-pill border px-2.5 py-1 text-xs font-semibold;
+    @apply inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-xs font-bold;
   }
 
   .badge.neutral {
-    @apply border-meta-divider bg-meta-soft-gray text-meta-slate;
+    border-color: var(--pmt-color-line);
+    background: var(--pmt-color-neutral-soft);
+    color: var(--pmt-color-neutral-soft-fg);
   }
 
   .badge.good {
-    @apply border-emerald-200 bg-emerald-50 text-emerald-700;
+    border-color: var(--pmt-color-success);
+    background: var(--pmt-color-success-soft);
+    color: var(--pmt-color-success-soft-fg);
   }
 
   .badge.warn {
-    @apply border-amber-200 bg-amber-50 text-amber-700;
+    border-color: var(--pmt-color-warning);
+    background: var(--pmt-color-warning-soft);
+    color: var(--pmt-color-warning-soft-fg);
   }
 
   .badge.bad {
-    @apply border-red-200 bg-red-50 text-red-700;
+    border-color: var(--pmt-color-danger);
+    background: var(--pmt-color-danger-soft);
+    color: var(--pmt-color-danger-soft-fg);
   }
 
   .empty {
-    @apply rounded-feature border border-dashed border-meta-divider bg-meta-warm-gray p-8 text-center;
+    @apply rounded-none border border-dashed border-border bg-surface p-8 text-center;
   }
 
   .empty strong {
-    @apply block text-base font-semibold text-meta-charcoal;
+    @apply block text-base font-bold text-foreground;
   }
 
   .empty span {
-    @apply mt-1 block text-sm leading-6 text-meta-slate;
+    @apply mt-1 block text-sm leading-6 text-muted-foreground;
   }
 
   .notice {
-    @apply rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950;
+    @apply rounded-md border px-4 py-3 text-sm leading-6;
+    border-color: var(--pmt-color-warning);
+    background: var(--pmt-color-warning-soft);
+    color: var(--pmt-color-warning-soft-fg);
   }
 
   .table {
@@ -242,19 +227,19 @@
   }
 
   .table th {
-    @apply border-b border-meta-divider px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate;
+    @apply border-b border-border px-3 py-2.5 text-left text-xs font-bold uppercase tracking-eyebrow text-muted-foreground;
   }
 
   .table td {
-    @apply border-b border-meta-divider/70 px-3 py-2.5 text-meta-charcoal;
+    @apply border-b border-border px-3 py-2.5 text-foreground;
   }
 
   .table .clickable-row {
-    @apply cursor-pointer outline-none transition-colors hover:bg-meta-soft-gray/70 focus-visible:bg-meta-soft-gray focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary;
+    @apply cursor-pointer outline-none transition-colors hover:bg-surface focus-visible:bg-surface focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring;
   }
 
   .table .clickable-row strong {
-    @apply font-semibold text-meta-charcoal;
+    @apply font-bold text-foreground;
   }
 
   .dashboard-stats .stat {
@@ -267,19 +252,20 @@
 
   .stat-head span,
   .action-stat > span {
-    @apply text-sm font-medium text-meta-slate;
+    @apply text-sm font-semibold text-muted-foreground;
   }
 
   .stat-icon {
-    @apply flex h-10 w-10 items-center justify-center rounded-pill bg-meta-baby-blue text-primary;
+    @apply flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary;
   }
 
+  /* A hierarquia vem de peso e escala, nao de cor. */
   .stat strong {
-    @apply mt-5 block text-4xl font-medium tracking-tight text-meta-charcoal;
+    @apply mt-5 block font-heading text-4xl font-black tracking-heading text-foreground;
   }
 
   .stat small {
-    @apply mt-2 block text-sm leading-6 text-meta-slate;
+    @apply mt-2 block text-sm leading-6 text-muted-foreground;
   }
 
   .hero-stat {
@@ -293,7 +279,7 @@
   }
 
   .hero-stat .stat-icon {
-    @apply bg-white/15 text-white;
+    @apply bg-white/15 text-primary-foreground;
   }
 
   .action-stat {

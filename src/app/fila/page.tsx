@@ -270,15 +270,15 @@ export default function FilaPage() {
             <EmptyState title="Fila vazia" text="A recepcao ainda nao encaminhou atendimentos." />
           ) : (
             fila.map((senha) => (
-              <div className="rounded-feature border border-meta-divider bg-meta-warm-gray p-4 transition-all hover:bg-white hover:shadow-lift" key={senha.id}>
+              <div className="rounded-none border border-border bg-background p-4 transition-all hover:bg-white hover:" key={senha.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <strong className="flex h-11 min-w-14 items-center justify-center rounded-feature bg-primary px-3 text-lg text-primary-foreground">
+                    <strong className="flex h-11 min-w-14 items-center justify-center rounded-none bg-primary px-3 text-lg text-primary-foreground">
                       {senha.senha}
                     </strong>
                     <div>
-                      <span className="font-semibold text-meta-charcoal">{senha.cidadao_nome}</span>
-                      <small className="block text-meta-slate">{senha.servico}</small>
+                      <span className="font-semibold text-foreground">{senha.cidadao_nome}</span>
+                      <small className="block text-muted-foreground">{senha.servico}</small>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -297,7 +297,7 @@ export default function FilaPage() {
             <EmptyState title="Nenhum atendimento iniciado" text="Use o botão chamar próximo para conferir a senha antes de iniciar." />
           ) : (
             <div className="grid">
-              <div className="rounded-feature border border-meta-divider bg-meta-warm-gray p-5">
+              <div className="rounded-none border border-border bg-background p-5">
                 <div className="row">
                   <Badge tone="good">{atendimento.senha.senha}</Badge>
                   <Badge tone="warn">{atendimento.senha.prioridade}</Badge>
@@ -306,12 +306,12 @@ export default function FilaPage() {
                   </Badge>
                 </div>
                 <h3 className="mt-3">{atendimento.cidadao.nome}</h3>
-                <p className="text-sm text-meta-slate">{atendimento.senha.servico}</p>
+                <p className="text-sm text-muted-foreground">{atendimento.senha.servico}</p>
                 {atendimento.caso && (
                   <div className="mt-4 rounded-lg bg-white p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Caso em atendimento</p>
+                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Caso em atendimento</p>
                     <strong>{atendimento.caso.protocolo}</strong>
-                    <p className="text-sm text-meta-slate">{atendimento.caso.descricao || atendimento.caso.situacao}</p>
+                    <p className="text-sm text-muted-foreground">{atendimento.caso.descricao || atendimento.caso.situacao}</p>
                   </div>
                 )}
               </div>
@@ -326,7 +326,7 @@ export default function FilaPage() {
                   </Button>
                   <button
                     type="button"
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-pill border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 transition-all hover:bg-red-100"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[var(--pmt-color-danger)] bg-[var(--pmt-color-danger-soft)] px-4 text-sm font-semibold text-[var(--pmt-color-danger-soft-fg)] transition-all hover:bg-[var(--pmt-color-danger-soft)]"
                     onClick={() => abrirModo("naoCompareceu")}
                   >
                     <UserX size={16} />
@@ -349,7 +349,7 @@ export default function FilaPage() {
                   </Button>
                   <button
                     type="button"
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-pill border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 transition-all hover:bg-red-100"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[var(--pmt-color-danger)] bg-[var(--pmt-color-danger-soft)] px-3 text-xs font-semibold text-[var(--pmt-color-danger-soft-fg)] transition-all hover:bg-[var(--pmt-color-danger-soft)]"
                     onClick={() => abrirModo("naoCompareceu")}
                   >
                     <UserX size={15} />
@@ -379,7 +379,7 @@ export default function FilaPage() {
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h2 className="!mb-1">Últimos atendimentos</h2>
-            <p className="text-sm leading-6 text-meta-slate">Casos mais recentes assumidos por você.</p>
+            <p className="text-sm leading-6 text-muted-foreground">Casos mais recentes assumidos por você.</p>
           </div>
           <Badge tone="neutral">{painel?.ultimos_atendimentos?.length ?? 0}</Badge>
         </div>
@@ -389,13 +389,13 @@ export default function FilaPage() {
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {painel.ultimos_atendimentos.map((caso) => (
-              <article className="rounded-feature border border-meta-divider bg-white p-4 shadow-lift" key={caso.id}>
+              <article className="rounded-none border border-border bg-white p-4" key={caso.id}>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <strong className="text-meta-charcoal">{caso.cidadao_nome}</strong>
+                  <strong className="text-foreground">{caso.cidadao_nome}</strong>
                   <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
                 </div>
-                <p className="text-sm font-medium text-meta-charcoal">{caso.servico_nome || caso.protocolo}</p>
-                <p className="mt-1 text-sm leading-6 text-meta-slate">{caso.descricao || "Sem relato registrado."}</p>
+                <p className="text-sm font-medium text-foreground">{caso.servico_nome || caso.protocolo}</p>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">{caso.descricao || "Sem relato registrado."}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloPrioridade(caso.prioridade)}</Badge>
                   <Badge tone="neutral">{formatarDataHora(caso.aberto_em)}</Badge>
@@ -416,20 +416,20 @@ export default function FilaPage() {
               </DialogHeader>
 
               <div className="grid gap-4">
-                <div className="rounded-feature border border-meta-divider bg-meta-warm-gray p-5">
+                <div className="rounded-none border border-border bg-background p-5">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <div className="mb-2 flex flex-wrap gap-2">
                         <Badge tone="good">{atendimento.senha.senha}</Badge>
                         <Badge tone={tomDaPrioridade(atendimento.senha.prioridade)}>{rotuloPrioridade(atendimento.senha.prioridade)}</Badge>
                       </div>
-                      <h3 className="text-xl font-semibold text-meta-charcoal">{atendimento.cidadao.nome}</h3>
-                      <p className="mt-1 text-sm text-meta-slate">{atendimento.senha.servico || "Serviço não informado"}</p>
+                      <h3 className="text-xl font-semibold text-foreground">{atendimento.cidadao.nome}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{atendimento.senha.servico || "Serviço não informado"}</p>
                     </div>
                     {atendimento.caso && (
-                      <div className="rounded-card bg-white px-4 py-3 text-sm shadow-sm">
-                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Caso</p>
-                        <strong className="text-meta-charcoal">{atendimento.caso.protocolo}</strong>
+                      <div className="rounded-none bg-white px-4 py-3 text-sm">
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Caso</p>
+                        <strong className="text-foreground">{atendimento.caso.protocolo}</strong>
                       </div>
                     )}
                   </div>
@@ -459,7 +459,7 @@ export default function FilaPage() {
                       </SecondaryButton>
                       <button
                         type="button"
-                        className="button border border-red-200 !bg-red-50 !text-red-700 shadow-none hover:!bg-red-100"
+                        className="button border border-[var(--pmt-color-danger)] !bg-[var(--pmt-color-danger-soft)] !text-[var(--pmt-color-danger-soft-fg)] shadow-none hover:!bg-[var(--pmt-color-danger-soft)]"
                         onClick={() => abrirModo("naoCompareceu")}
                         disabled={salvando}
                       >
@@ -568,14 +568,14 @@ export default function FilaPage() {
 
                 {modoModal === "naoCompareceu" && (
                   <form className="grid gap-4" onSubmit={marcarNaoCompareceu}>
-                    <div className="rounded-feature border border-red-200 bg-red-50 p-4">
+                    <div className="rounded-none border border-[var(--pmt-color-danger)] bg-[var(--pmt-color-danger-soft)] p-4">
                       <div className="flex gap-3">
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-white text-red-700 shadow-sm">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[var(--pmt-color-danger-soft-fg)]">
                           <UserX size={18} />
                         </span>
                         <div>
-                          <strong className="block text-sm text-red-900">Confirmar não comparecimento?</strong>
-                          <p className="mt-1 text-sm leading-6 text-red-800">
+                          <strong className="block text-sm text-[var(--pmt-color-danger-soft-fg)]">Confirmar não comparecimento?</strong>
+                          <p className="mt-1 text-sm leading-6 text-[var(--pmt-color-danger-soft-fg)]">
                             A senha será marcada como desistência e o caso será encerrado como cancelado.
                           </p>
                         </div>
@@ -594,7 +594,7 @@ export default function FilaPage() {
                         Cancelar
                       </SecondaryButton>
                       <button
-                        className="button border border-red-200 !bg-red-600 !text-white hover:!bg-red-700"
+                        className="button border border-[var(--pmt-color-danger)] !bg-destructive !text-white hover:!bg-destructive"
                         disabled={salvando}
                       >
                         {salvando ? "Marcando..." : "Confirmar não compareceu"}
@@ -613,7 +613,7 @@ export default function FilaPage() {
 
 function ResumoHistorico({ historico }: { historico: EntradaHistorico[] }) {
   return (
-    <div className="rounded-feature border border-meta-divider bg-white p-4">
+    <div className="rounded-none border border-border bg-white p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h3 className="!text-base">Histórico rápido</h3>
         <Badge tone="neutral">{historico.length}</Badge>
@@ -623,9 +623,9 @@ function ResumoHistorico({ historico }: { historico: EntradaHistorico[] }) {
       ) : (
         <div className="grid gap-2">
           {historico.slice(0, 4).map((entrada, index) => (
-            <div className="rounded-card bg-meta-soft-gray p-3" key={`${entrada.quando}-${index}`}>
-              <strong className="block text-sm text-meta-charcoal">{entrada.o_que}</strong>
-              <small className="mt-1 block text-xs leading-5 text-meta-slate">
+            <div className="rounded-none bg-secondary p-3" key={`${entrada.quando}-${index}`}>
+              <strong className="block text-sm text-foreground">{entrada.o_que}</strong>
+              <small className="mt-1 block text-xs leading-5 text-muted-foreground">
                 {formatarDataHora(entrada.quando)} · {entrada.unidade}{entrada.detalhe ? ` · ${entrada.detalhe}` : ""}
               </small>
             </div>
@@ -662,10 +662,10 @@ function RegistroGuiado({
   compacto?: boolean;
 }) {
   return (
-    <div className="grid gap-4 rounded-feature border border-meta-divider bg-meta-soft-gray p-4">
+    <div className="grid gap-4 rounded-none border border-border bg-secondary p-4">
       <div>
         <h3 className="!text-base">Registro do atendimento</h3>
-        <p className="mt-1 text-xs leading-5 text-meta-slate">
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
           Preencha só o que fizer sentido. O sistema organiza isso no histórico do caso.
         </p>
       </div>
@@ -739,9 +739,9 @@ function MiniStat({
 }) {
   const toneClass = {
     primary: "bg-primary/10 text-primary",
-    neutral: "bg-meta-soft-gray text-meta-charcoal",
+    neutral: "bg-secondary text-foreground",
     good: "bg-success/10 text-success",
-    warn: "bg-warning/20 text-[#8a5a00]",
+    warn: "bg-[var(--pmt-color-warning-soft)] text-[var(--pmt-color-warning-soft-fg)]",
     bad: "bg-destructive/10 text-destructive",
   }[tone];
 
@@ -749,11 +749,11 @@ function MiniStat({
     <Card className="!p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">{title}</p>
-          <strong className="mt-2 block text-3xl text-meta-charcoal">{value.toLocaleString("pt-BR")}</strong>
-          <small className="mt-1 block text-meta-slate">{detail}</small>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</p>
+          <strong className="mt-2 block text-3xl text-foreground">{value.toLocaleString("pt-BR")}</strong>
+          <small className="mt-1 block text-muted-foreground">{detail}</small>
         </div>
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-pill ${toneClass}`}>
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${toneClass}`}>
           <Icon size={18} />
         </span>
       </div>

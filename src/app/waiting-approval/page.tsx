@@ -33,18 +33,18 @@ export default function WaitingApprovalPage() {
   }
 
   return (
-    <main className="min-h-screen bg-meta-warm-gray p-5 text-meta-charcoal">
+    <main className="min-h-screen bg-background p-5 text-foreground">
       <div className="mx-auto flex min-h-screen max-w-5xl items-center justify-center">
         <Card className="w-full overflow-hidden !p-0">
           <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
-            <section className="relative bg-[#061f43] p-8 text-white md:p-10">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.26),transparent_34%),linear-gradient(135deg,rgba(6,31,67,0.98),rgba(16,91,190,0.84))]" />
+            <section className="relative bg-dark p-8 text-white md:p-10">
+              <div className="absolute inset-0 bg-gradient-page-hero" />
               <div className="relative">
-                <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/12 ring-1 ring-white/15">
+                <div className="mb-8 flex h-14 w-14 items-center justify-center rounded-xl bg-white/12 ring-1 ring-white/15">
                   <ShieldCheck className="h-7 w-7" />
                 </div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100/70">Solicitação registrada</p>
-                <h1 className="mt-4 text-3xl font-medium leading-tight md:text-4xl">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--pmt-color-fg-on-dark-muted)]">Solicitação registrada</p>
+                <h1 className="mt-4 text-3xl leading-tight text-[var(--pmt-color-fg-on-dark)] md:text-4xl">
                   Acesso aguardando liberação.
                 </h1>
                 <p className="mt-4 max-w-md text-sm leading-7 text-white/72">
@@ -55,8 +55,8 @@ export default function WaitingApprovalPage() {
 
             <section className="p-8 md:p-10">
               <div className="mb-8">
-                <h2 className="text-2xl font-medium tracking-tight text-meta-charcoal">O que fazer agora?</h2>
-                <p className="mt-2 text-sm leading-6 text-meta-slate">
+                <h2 className="text-2xl tracking-tight text-foreground">O que fazer agora?</h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Reenvie a solicitação e fale com o coordenador da sua unidade ou com um administrador para aprovar seu perfil e vincular sua unidade.
                 </p>
               </div>
@@ -108,13 +108,13 @@ function Step({
   text: string;
 }) {
   return (
-    <div className="flex gap-3 rounded-card border border-meta-divider bg-meta-warm-gray p-4">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-primary/10 text-primary">
+    <div className="flex gap-3 rounded-none border border-border bg-background p-4">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Icon size={18} />
       </span>
       <div>
-        <strong className="block text-sm text-meta-charcoal">{title}</strong>
-        <p className="mt-1 text-sm leading-6 text-meta-slate">{text}</p>
+        <strong className="block text-sm text-foreground">{title}</strong>
+        <p className="mt-1 text-sm leading-6 text-muted-foreground">{text}</p>
       </div>
     </div>
   );

@@ -211,7 +211,7 @@ export default function RecepcaoPage() {
         }
       />
 
-      <div className="mb-5 flex flex-wrap gap-2 rounded-card border border-meta-divider bg-white p-2 shadow-lift">
+      <div className="mb-5 flex flex-wrap gap-2 rounded-none border border-border bg-white p-2">
         <AbaButton active={aba === "nova"} onClick={() => setAba("nova")}>
           <UserPlus size={17} />
           Nova recepção
@@ -239,7 +239,7 @@ export default function RecepcaoPage() {
             <Card>
               <h2>Buscar cidadão</h2>
               <div className="relative mb-5">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-meta-slate" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="pl-10"
                   value={busca}
@@ -267,7 +267,7 @@ export default function RecepcaoPage() {
                     <strong>{item.nome}</strong>
                     <small className="block">{item.cpf ?? [item.bairro, item.cidade].filter(Boolean).join(" - ")}</small>
                   </span>
-                  <span className="inline-flex shrink-0 items-center rounded-pill bg-primary px-4 py-2 text-sm font-semibold !text-white shadow-lift">
+                  <span className="inline-flex shrink-0 items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold !text-white">
                     Selecionar
                   </span>
                 </button>
@@ -289,39 +289,39 @@ export default function RecepcaoPage() {
                 <Card className="h-fit !p-4">
                   <div className="mb-3">
                     <h2 className="!mb-1 !text-base">Atendimento</h2>
-                    <p className="text-xs leading-5 text-meta-slate">Escolha o desfecho da recepção.</p>
+                    <p className="text-xs leading-5 text-muted-foreground">Escolha o desfecho da recepção.</p>
                   </div>
                   <div className="grid gap-2.5">
                     {mensagem && <div className="notice">{mensagem}</div>}
 
                     <button
                       type="button"
-                      className="rounded-2xl border border-primary/15 bg-primary/5 p-3 text-left transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/10 hover:shadow-lift"
+                      className="rounded-xl border border-primary/15 bg-primary/5 p-3 text-left transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-primary/10 hover:"
                       onClick={() => abrirAcao("ENCAMINHADO")}
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-primary text-white shadow-sm">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-white">
                           <Send size={15} />
                         </span>
                         <div className="min-w-0">
-                          <strong className="block text-[13px] font-semibold text-meta-charcoal">Iniciar atendimento</strong>
-                          <small className="block text-[11px] leading-4 text-meta-slate">Cria caso e senha.</small>
+                          <strong className="block text-sm font-semibold text-foreground">Iniciar atendimento</strong>
+                          <small className="block text-sm leading-4 text-muted-foreground">Cria caso e senha.</small>
                         </div>
                       </div>
                     </button>
 
                     <button
                       type="button"
-                      className="rounded-2xl border border-meta-divider bg-white p-3 text-left transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:bg-meta-soft-gray"
+                      className="rounded-xl border border-border bg-white p-3 text-left transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:bg-secondary"
                       onClick={() => abrirAcao("FINALIZADO")}
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-primary/10 text-primary">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
                           <CheckCircle2 size={15} />
                         </span>
                         <div className="min-w-0">
-                          <strong className="block text-[13px] font-semibold text-meta-charcoal">Finalizar na recepção</strong>
-                          <small className="block text-[11px] leading-4 text-meta-slate">Registra orientação.</small>
+                          <strong className="block text-sm font-semibold text-foreground">Finalizar na recepção</strong>
+                          <small className="block text-sm leading-4 text-muted-foreground">Registra orientação.</small>
                         </div>
                       </div>
                     </button>
@@ -372,7 +372,7 @@ export default function RecepcaoPage() {
             )}
 
             {servicoSelecionado && casosParecidos.length > 0 && (
-              <div className="rounded-feature border border-amber-200 bg-amber-50 p-4 text-amber-950">
+              <div className="rounded-none border border-[var(--pmt-color-warning)] bg-[var(--pmt-color-warning-soft)] p-4 text-[var(--pmt-color-warning-soft-fg)]">
                 <div className="row">
                   <AlertTriangle size={18} />
                   <strong>Possível duplicidade</strong>
@@ -478,10 +478,10 @@ function AbaButton({
     <button
       type="button"
       onClick={onClick}
-      className={`inline-flex min-h-11 items-center gap-2 rounded-pill px-4 py-2 text-sm font-semibold transition-all ${
+      className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
         active
-          ? "bg-primary text-primary-foreground shadow-lift"
-          : "bg-meta-soft-gray text-meta-charcoal hover:bg-meta-warm-gray"
+          ? "bg-primary text-primary-foreground"
+          : "bg-secondary text-foreground hover:bg-background"
       }`}
     >
       {children}
@@ -546,9 +546,9 @@ function MiniStat({
 }) {
   const toneClass = {
     primary: "bg-primary/10 text-primary",
-    neutral: "bg-meta-soft-gray text-meta-charcoal",
+    neutral: "bg-secondary text-foreground",
     good: "bg-success/10 text-success",
-    warn: "bg-warning/20 text-[#8a5a00]",
+    warn: "bg-[var(--pmt-color-warning-soft)] text-[var(--pmt-color-warning-soft-fg)]",
     bad: "bg-destructive/10 text-destructive",
   }[tone];
 
@@ -556,11 +556,11 @@ function MiniStat({
     <Card className="!p-3.5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">{title}</p>
-          <strong className="mt-1.5 block text-2xl text-meta-charcoal">{value.toLocaleString("pt-BR")}</strong>
-          <small className="mt-0.5 block text-xs text-meta-slate">{detail}</small>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</p>
+          <strong className="mt-1.5 block text-2xl text-foreground">{value.toLocaleString("pt-BR")}</strong>
+          <small className="mt-0.5 block text-xs text-muted-foreground">{detail}</small>
         </div>
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-pill ${toneClass}`}>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${toneClass}`}>
           <Icon size={16} />
         </span>
       </div>
@@ -577,7 +577,7 @@ function PainelDoCidadao({ casos, historico }: { casos: Caso[]; historico: Entra
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h2 className="!mb-1 !text-lg">Histórico para decisão</h2>
-          <p className="text-xs leading-5 text-meta-slate">
+          <p className="text-xs leading-5 text-muted-foreground">
             Confira se já existe atendimento parecido antes de criar nova senha.
           </p>
         </div>
@@ -601,13 +601,13 @@ function PainelDoCidadao({ casos, historico }: { casos: Caso[]; historico: Entra
 
 function CasosRecentes({ casos }: { casos: Caso[] }) {
   return (
-    <div className="rounded-card border border-meta-divider bg-white p-4">
+    <div className="rounded-none border border-border bg-white p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="row !justify-start">
-          <span className="flex h-9 w-9 items-center justify-center rounded-pill bg-primary/10 text-primary">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
             <ClipboardList size={17} />
           </span>
-          <h3 className="text-sm font-semibold text-meta-charcoal">Casos recentes</h3>
+          <h3 className="text-sm font-semibold text-foreground">Casos recentes</h3>
         </div>
         <Badge tone="neutral">{casos.length}</Badge>
       </div>
@@ -618,13 +618,13 @@ function CasosRecentes({ casos }: { casos: Caso[] }) {
         <div className="space-y-2.5">
           {casos.slice(0, 6).map((caso) => (
             <article
-              className="rounded-card border border-meta-divider bg-meta-warm-gray p-3.5 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white hover:shadow-lift"
+              className="rounded-none border border-border bg-background p-3.5 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white hover:"
               key={caso.id}
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-meta-slate">Caso {caso.protocolo}</p>
-                  <strong className="mt-1 block text-sm text-meta-charcoal">{caso.servico_nome || "Serviço não informado"}</strong>
+                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Caso {caso.protocolo}</p>
+                  <strong className="mt-1 block text-sm text-foreground">{caso.servico_nome || "Serviço não informado"}</strong>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
@@ -632,9 +632,9 @@ function CasosRecentes({ casos }: { casos: Caso[] }) {
                 </div>
               </div>
 
-              <p className="text-xs leading-5 text-meta-charcoal">{caso.descricao || "Sem observação registrada."}</p>
+              <p className="text-xs leading-5 text-foreground">{caso.descricao || "Sem observação registrada."}</p>
 
-              <div className="mt-3 grid gap-2 text-xs text-meta-slate sm:grid-cols-2">
+              <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
                 <span className="inline-flex items-center gap-2">
                   <MapPin size={14} />
                   {caso.unidade_nome}
@@ -660,13 +660,13 @@ function CasosRecentes({ casos }: { casos: Caso[] }) {
 
 function HistoricoAtendimentos({ historico }: { historico: EntradaHistorico[] }) {
   return (
-    <div className="rounded-card border border-meta-divider bg-white p-4">
+    <div className="rounded-none border border-border bg-white p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="row !justify-start">
-          <span className="flex h-9 w-9 items-center justify-center rounded-pill bg-primary/10 text-primary">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Clock3 size={17} />
           </span>
-          <h3 className="text-sm font-semibold text-meta-charcoal">Histórico de atendimentos</h3>
+          <h3 className="text-sm font-semibold text-foreground">Histórico de atendimentos</h3>
         </div>
         <Badge tone="neutral">{historico.length}</Badge>
       </div>
@@ -674,26 +674,26 @@ function HistoricoAtendimentos({ historico }: { historico: EntradaHistorico[] })
       {historico.length === 0 ? (
         <EmptyState title="Sem atendimentos recentes" text="Nada nos últimos meses que indique duplicidade." />
       ) : (
-        <div className="relative space-y-2.5 before:absolute before:left-4 before:top-2 before:h-[calc(100%-1rem)] before:w-px before:bg-meta-divider">
+        <div className="relative space-y-2.5 before:absolute before:left-4 before:top-2 before:h-[calc(100%-1rem)] before:w-px before:bg-border">
           {historico.slice(0, 8).map((entrada, index) => (
             <article className="relative pl-10" key={`${entrada.quando}-${index}`}>
-              <span className={`absolute left-0 top-1 flex h-8 w-8 items-center justify-center rounded-pill border-4 border-white ${
-                entrada.o_que.toLowerCase().includes("finalizado") ? "bg-success/15 text-success" : "bg-warning/20 text-[#8a5a00]"
+              <span className={`absolute left-0 top-1 flex h-8 w-8 items-center justify-center rounded-full border-4 border-white ${
+                entrada.o_que.toLowerCase().includes("finalizado") ? "bg-success/15 text-success" : "bg-[var(--pmt-color-warning-soft)] text-[var(--pmt-color-warning-soft-fg)]"
               }`}>
                 {entrada.o_que.toLowerCase().includes("finalizado") ? <CheckCircle2 size={15} /> : <ShieldAlert size={15} />}
               </span>
 
-              <div className="rounded-card border border-meta-divider bg-meta-soft-gray p-3.5">
+              <div className="rounded-none border border-border bg-secondary p-3.5">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <strong className="text-sm text-meta-charcoal">{entrada.o_que}</strong>
+                  <strong className="text-sm text-foreground">{entrada.o_que}</strong>
                   <Badge tone={entrada.e_de_outra_unidade ? "warn" : "neutral"}>
                     {entrada.e_de_outra_unidade ? "Outra unidade" : "Mesma unidade"}
                   </Badge>
                 </div>
-                <p className="text-xs leading-5 text-meta-charcoal">
+                <p className="text-xs leading-5 text-foreground">
                   {entrada.detalhe || "Sem observação registrada."}
                 </p>
-                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-meta-slate">
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-2">
                     <Clock3 size={14} />
                     {formatarDataHora(entrada.quando)}
@@ -725,7 +725,7 @@ function UltimosAtendimentos({ atendimentos, completo = false }: { atendimentos:
         <div>
           <h2 className="!mb-1">{completo ? "Atendimentos recentes" : "Meus últimos atendimentos"}</h2>
           {completo && (
-            <p className="text-sm leading-6 text-meta-slate">
+            <p className="text-sm leading-6 text-muted-foreground">
               Tudo que a recepção finalizou no balcão ou encaminhou para a fila.
             </p>
           )}
@@ -738,18 +738,18 @@ function UltimosAtendimentos({ atendimentos, completo = false }: { atendimentos:
       ) : (
         <div className="space-y-2.5">
           {atendimentos.slice(0, completo ? 20 : 6).map((atendimento) => (
-            <article className="rounded-card border border-meta-divider bg-white p-3.5 shadow-lift" key={atendimento.id}>
+            <article className="rounded-none border border-border bg-white p-3.5" key={atendimento.id}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <strong className="text-sm text-meta-charcoal">{atendimento.cidadao_nome}</strong>
+                <strong className="text-sm text-foreground">{atendimento.cidadao_nome}</strong>
                 <Badge tone={atendimento.desfecho === "ENCAMINHADO" ? "warn" : "good"}>
                   {atendimento.desfecho === "ENCAMINHADO" ? "Enviado para fila" : "Finalizado no balcão"}
                 </Badge>
               </div>
-              <p className="text-xs font-medium text-meta-charcoal">{atendimento.demanda}</p>
-              <p className="mt-1 text-xs leading-5 text-meta-slate">
+              <p className="text-xs font-medium text-foreground">{atendimento.demanda}</p>
+              <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 {atendimento.observacao || atendimento.motivo || "Sem observação registrada."}
               </p>
-              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-meta-slate">
+              <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-2">
                   <Clock3 size={14} />
                   {formatarDataHora(atendimento.criado_em)}
@@ -779,7 +779,7 @@ function FilaSomenteLeitura({ fila, onAtualizar }: { fila: Senha[]; onAtualizar:
       <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
           <h2 className="!mb-1">Fila de atendimento</h2>
-          <p className="text-sm leading-6 text-meta-slate">
+          <p className="text-sm leading-6 text-muted-foreground">
             Consulta da recepção. Quem inicia o atendimento é o atendente na tela de fila.
           </p>
         </div>
@@ -794,17 +794,17 @@ function FilaSomenteLeitura({ fila, onAtualizar }: { fila: Senha[]; onAtualizar:
         <div className="grid gap-3">
           {fila.map((senha) => (
             <article
-              className="rounded-feature border border-meta-divider bg-meta-warm-gray p-4 transition-all hover:bg-white hover:shadow-lift"
+              className="rounded-none border border-border bg-background p-4 transition-all hover:bg-white hover:"
               key={senha.id}
             >
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-start gap-3">
-                  <span className="flex h-12 min-w-16 items-center justify-center rounded-feature bg-primary px-4 text-lg font-bold text-primary-foreground shadow-lift">
+                  <span className="flex h-12 min-w-16 items-center justify-center rounded-none bg-primary px-4 text-lg font-bold text-primary-foreground">
                     {senha.senha}
                   </span>
                   <div>
-                    <strong className="block text-meta-charcoal">{senha.cidadao_nome}</strong>
-                    <p className="mt-1 text-sm text-meta-slate">{senha.servico || "Serviço não informado"}</p>
+                    <strong className="block text-foreground">{senha.cidadao_nome}</strong>
+                    <p className="mt-1 text-sm text-muted-foreground">{senha.servico || "Serviço não informado"}</p>
                   </div>
                 </div>
 
@@ -830,24 +830,24 @@ function CidadaoSelecionado({ cidadao, onTrocar }: { cidadao: CidadaoLista; onTr
   ].filter(Boolean);
 
   return (
-    <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-white to-meta-warm-gray px-4 py-3 shadow-sm">
+    <div className="rounded-xl border border-primary/15 bg-gradient-to-br from-primary/10 via-white to-background px-4 py-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary text-white shadow-lift">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white">
             <UserRoundCheck className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary/75">Selecionado</p>
-            <h3 className="mt-0.5 truncate text-[15px] font-semibold text-meta-charcoal">{cidadao.nome}</h3>
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary/75">Selecionado</p>
+            <h3 className="mt-0.5 truncate text-base font-semibold text-foreground">{cidadao.nome}</h3>
             <div className="mt-1.5 flex flex-wrap gap-1.5">
               {dados.length ? (
                 dados.map((item) => (
-                  <span key={item} className="rounded-pill border border-meta-divider bg-white/80 px-2 py-0.5 text-[11px] font-medium text-meta-slate">
+                  <span key={item} className="rounded-full border border-border bg-white/80 px-2 py-0.5 text-sm font-medium text-muted-foreground">
                     {item}
                   </span>
                 ))
               ) : (
-                <span className="rounded-pill border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+                <span className="rounded-full border border-[var(--pmt-color-warning)] bg-[var(--pmt-color-warning-soft)] px-2 py-0.5 text-sm font-medium text-[var(--pmt-color-warning-soft-fg)]">
                   Cadastro sem documento/bairro
                 </span>
               )}
@@ -856,7 +856,7 @@ function CidadaoSelecionado({ cidadao, onTrocar }: { cidadao: CidadaoLista; onTr
         </div>
         <button
           type="button"
-          className="inline-flex h-8 shrink-0 items-center justify-center rounded-pill border border-meta-divider bg-white px-3 text-xs font-semibold text-meta-charcoal shadow-sm transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+          className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-border bg-white px-3 text-xs font-semibold text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
           onClick={onTrocar}
         >
           Trocar

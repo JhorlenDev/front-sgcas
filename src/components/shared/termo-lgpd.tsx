@@ -2,8 +2,8 @@
 
 export function TermoLGPD() {
   return (
-    <div className="space-y-5 text-sm leading-relaxed text-meta-charcoal">
-      <h3 className="text-lg font-bold text-meta-near-black">Termo de Consentimento e Autorização</h3>
+    <div className="space-y-5 text-sm leading-relaxed text-foreground">
+      <h3 className="text-lg font-bold text-foreground">Termo de Consentimento e Autorização</h3>
 
       <section>
         <h4 className="font-semibold">1. Controlador dos Dados</h4>

@@ -107,28 +107,28 @@ export default function CasosPage() {
           <div className="grid gap-3">
             {casos.map((caso) => (
               <button
-                className="rounded-feature border border-meta-divider bg-white p-4 text-left shadow-lift transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-meta-warm-gray"
+                className="rounded-none border border-border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background"
                 key={caso.id}
                 onClick={() => setCasoSelecionado(caso)}
               >
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                   <div className="min-w-0">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                      <strong className="text-meta-charcoal">{caso.cidadao_nome}</strong>
+                      <strong className="text-foreground">{caso.cidadao_nome}</strong>
                       <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
                       <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloPrioridade(caso.prioridade)}</Badge>
                     </div>
-                    <p className="text-sm font-medium text-meta-charcoal">{caso.servico_nome || "Serviço não informado"}</p>
-                    <p className="mt-1 line-clamp-2 text-sm leading-6 text-meta-slate">
+                    <p className="text-sm font-medium text-foreground">{caso.servico_nome || "Serviço não informado"}</p>
+                    <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">
                       {caso.descricao || "Sem observação registrada."}
                     </p>
                   </div>
-                  <div className="flex shrink-0 flex-wrap gap-2 text-xs text-meta-slate">
-                    <span className="inline-flex items-center gap-1.5 rounded-pill bg-meta-soft-gray px-3 py-1.5">
+                  <div className="flex shrink-0 flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5">
                       <ClipboardList size={14} />
                       {caso.protocolo}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-pill bg-meta-soft-gray px-3 py-1.5">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5">
                       <CalendarClock size={14} />
                       {formatarDataHora(caso.aberto_em)}
                     </span>
@@ -150,11 +150,11 @@ export default function CasosPage() {
               </DialogHeader>
 
               <div className="grid gap-4">
-                <div className="rounded-feature border border-meta-divider bg-meta-warm-gray p-5">
+                <div className="rounded-none border border-border bg-background p-5">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">Cidadão</p>
-                      <h3 className="mt-1 text-xl font-medium text-meta-charcoal">{casoSelecionado.cidadao_nome}</h3>
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Cidadão</p>
+                      <h3 className="mt-1 text-xl text-foreground">{casoSelecionado.cidadao_nome}</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge tone={tomDoCaso(casoSelecionado.situacao)}>{rotuloSituacao(casoSelecionado.situacao)}</Badge>
@@ -173,20 +173,20 @@ export default function CasosPage() {
                   </div>
                 </div>
 
-                <div className="rounded-feature border border-meta-divider bg-white p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">
+                <div className="rounded-none border border-border bg-white p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {["CONCLUIDO", "ENCAMINHADO"].includes(casoSelecionado.situacao) ? "Relato/desfecho" : "Dados da triagem"}
                   </p>
-                  <p className="mt-3 text-sm leading-7 text-meta-charcoal">
+                  <p className="mt-3 text-sm leading-7 text-foreground">
                     {casoSelecionado.descricao || "Sem observação registrada."}
                   </p>
                 </div>
 
                 {!["CONCLUIDO", "CANCELADO", "ENCAMINHADO"].includes(casoSelecionado.situacao) && (
-                  <form className="grid gap-4 rounded-feature border border-meta-divider bg-meta-soft-gray p-5" onSubmit={prepararConclusao}>
+                  <form className="grid gap-4 rounded-none border border-border bg-secondary p-5" onSubmit={prepararConclusao}>
                     <div>
                       <h3>Registrar finalização</h3>
-                      <p className="mt-1 text-sm leading-6 text-meta-slate">
+                      <p className="mt-1 text-sm leading-6 text-muted-foreground">
                         Use quando o atendimento técnico terminar. O relato substitui a observação inicial do caso.
                       </p>
                     </div>
@@ -247,9 +247,9 @@ function ResumoCard({
     <Card className="!p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">{title}</p>
-          <strong className="mt-2 block text-3xl text-meta-charcoal">{value.toLocaleString("pt-BR")}</strong>
-          <small className="mt-1 block text-meta-slate">{text}</small>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</p>
+          <strong className="mt-2 block text-3xl text-foreground">{value.toLocaleString("pt-BR")}</strong>
+          <small className="mt-1 block text-muted-foreground">{text}</small>
         </div>
         <Badge tone={tone}>{rotuloTom(tone)}</Badge>
       </div>
@@ -259,12 +259,12 @@ function ResumoCard({
 
 function Info({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div className="rounded-card bg-white p-4">
-      <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">
+    <div className="rounded-none bg-white p-4">
+      <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
         <Icon size={14} />
         {label}
       </p>
-      <strong className="mt-2 block text-sm text-meta-charcoal">{value}</strong>
+      <strong className="mt-2 block text-sm text-foreground">{value}</strong>
     </div>
   );
 }

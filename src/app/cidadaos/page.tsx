@@ -90,7 +90,7 @@ export default function CidadaosPage() {
 
       <Card>
         <div className="relative mb-5">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-meta-slate" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-10"
             value={busca}
@@ -101,7 +101,7 @@ export default function CidadaosPage() {
 
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="!mb-0">{busca.trim() && buscou ? "Resultado da busca" : "Cidadãos recentes"}</h2>
-          {carregando && <span className="text-sm text-meta-slate">Carregando...</span>}
+          {carregando && <span className="text-sm text-muted-foreground">Carregando...</span>}
         </div>
 
         {resultados.length > 0 && (
@@ -134,7 +134,7 @@ export default function CidadaosPage() {
                   <td>{cidadao.cpf ?? "-"}</td>
                   <td>{[cidadao.bairro, cidadao.cidade].filter(Boolean).join(" - ") || "-"}</td>
                   <td>
-                    <span className="inline-flex items-center gap-1.5 rounded-pill bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors group-hover:bg-primary-hover">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors group-hover:bg-primary-hover">
                       Abrir
                       <ArrowRight className="h-3.5 w-3.5" />
                     </span>
@@ -197,8 +197,8 @@ export default function CidadaosPage() {
               </Field>
             </div>
 
-            <div className="grid gap-3 rounded-lg bg-meta-soft-gray p-4">
-              <h4 className="text-sm font-semibold text-meta-near-black">Termos de Uso e Privacidade (LGPD)</h4>
+            <div className="grid gap-3 rounded-lg bg-secondary p-4">
+              <h4 className="text-sm font-semibold text-foreground">Termos de Uso e Privacidade (LGPD)</h4>
 
               <button
                 type="button"
@@ -209,7 +209,7 @@ export default function CidadaosPage() {
                 Ler termo completo
               </button>
 
-              <label className="row text-sm text-meta-charcoal">
+              <label className="row text-sm text-foreground">
                 <input
                   type="checkbox"
                   checked={criarAcesso}
@@ -218,7 +218,7 @@ export default function CidadaosPage() {
                 Criar acesso no Tefé Cidadão
               </label>
 
-              <label className="row text-sm text-meta-charcoal">
+              <label className="row text-sm text-foreground">
                 <input
                   type="checkbox"
                   checked={termoLido}
@@ -228,7 +228,7 @@ export default function CidadaosPage() {
               </label>
 
               {criarAcesso && !termoLido && (
-                <p className="text-xs text-amber-600">
+                <p className="text-xs text-[var(--pmt-color-warning-soft-fg)]">
                   Para criar acesso, confirme que o termo foi lido para o cidadão
                 </p>
               )}
