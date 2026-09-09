@@ -23,6 +23,8 @@ Base da branch: `main` (`d695031`).
 | 5 | Expor por túnel deixou de dar 403 | correção de dev | — |
 | 6 | `Dropdown` e `CampoData` próprios no lugar dos nativos | melhoria | — |
 | 7 | Diálogo: animação corrigida e gaveta no celular | correção | — |
+| 8 | Acertos nos componentes: clique no modal, rolagem, fundo, data antiga | correção | — |
+| 9 | `Checkbox`, `GrupoDeEscolha` e `AreaDeTexto` | melhoria | — |
 
 ---
 
@@ -198,6 +200,69 @@ mandar abrir), e todas as animações respeitam `prefers-reduced-motion`.
 
 Os mesmos princípios valem para o dropdown e o calendário: no celular, os dois
 abrem como gaveta.
+
+
+## 8. Acertos nos componentes, depois de usar
+
+A primeira versão dos componentes tinha quatro problemas que só apareceram com
+eles nas telas:
+
+**O calendário abria dentro do modal e o clique não selecionava** — parecia
+escolher um input em vez da data. Duas causas somadas:
+
+- Enquanto um diálogo modal está aberto, o Radix põe `pointer-events: none` no
+  `body`. Os painéis flutuantes são filhos do `body`, então **desenhavam na tela
+  mas o clique atravessava** e caía no formulário atrás. Corrigido com
+  `pointer-events-auto` explícito nos painéis.
+- Para o Radix, um portal no `body` é o mundo exterior: clicar numa opção
+  contava como clique fora e o diálogo devolvia o foco ao primeiro campo. Os
+  painéis passaram a se marcar com `data-camada-flutuante`, e o `DialogContent`
+  ignora `onPointerDownOutside`, `onInteractOutside` e `onFocusOutside` vindos
+  deles.
+
+**A barra de rolagem do diálogo pesava mais que o conteúdo.** Classe
+`.rolagem-sutil` em `globals.css`: pista transparente, polegar só aparece com o
+ponteiro sobre a área, e `scrollbar-gutter: stable` para o conteúdo não saltar
+quando ela surge.
+
+**Parecia haver uma caixa comendo os campos.** Era o `overflow-y-auto` do corpo
+do diálogo cortando o anel de foco dos inputs rente à borda — o padding estava
+no contêiner de fora. Movido para dentro da área que rola, o anel voltou a ter
+espaço.
+
+**Os campos novos pareciam desabilitados** ao lado dos antigos: usavam
+`bg-background` (o cinza da página) enquanto o `.input` do design system usa
+`bg-elevated`. Dropdown e campo de data passaram a repetir exatamente a caixa do
+`.input` — fundo, borda e raio.
+
+### Data antiga
+
+O calendário ganhou **mês e ano navegáveis** no cabeçalho. Data de nascimento é
+o caso comum deste campo, e chegar a 1958 clicando "mês anterior" são mais de
+800 cliques. A faixa sai de `min`/`max` quando existirem; sem eles, 110 anos
+para trás. Digitar continua sendo o caminho mais curto — o campo aceita
+`dd/mm/aaaa` e mascara sozinho.
+
+Digitar uma data que **não existe** (31/02, por exemplo) agora limpa o valor
+enviado e mostra o aviso. Antes o campo exibia `31/02/1990` e o formulário
+mandava calado a data anterior — a tela dizia uma coisa e o envio, outra.
+
+## 9. Componentes de marcação
+
+`src/components/ui/marcacao.tsx`:
+
+| Componente | Onde |
+| --- | --- |
+| `Checkbox` | LGPD no cadastro de cidadão, "Ativo" na tela de usuários |
+| `GrupoDeEscolha` | escolha única em rádio — disponível, ainda sem uso nas telas |
+| `AreaDeTexto` | as 9 `<textarea>` do sistema |
+
+O `<input type=checkbox>` do navegador tem cerca de 13×13 pixels e não aceita
+estilo — pequeno demais para o dedo, já que o alvo confortável é 44px. Aqui o
+input nativo continua existindo, invisível, com a caixa desenhada por cima:
+é ele que carrega o valor no `FormData`, recebe foco e responde ao teclado, então
+nada de acessibilidade se perde. A caixa ainda aceita `descricao`, que é onde
+cabe a explicação que antes ficava solta embaixo.
 
 
 ## Como revisar

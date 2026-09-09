@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Paginacao } from "@/components/shared/paginacao";
-import { Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
 
@@ -363,8 +363,7 @@ export default function CasosPage() {
                       />
                     </Field>
                     <Field label="Relato do atendimento">
-                      <textarea
-                        className="input"
+                      <AreaDeTexto
                         name="relato"
                         required
                         placeholder="Informe o que foi atendido, orientação dada, encaminhamento ou retorno combinado."

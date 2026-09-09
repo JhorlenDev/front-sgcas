@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, ShieldCheck, UserCog, UsersRound } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader } from "@/components/ui";
+import { Badge, Button, Card, Checkbox, Dropdown, EmptyState, Field, Input, PageHeader } from "@/components/ui";
 import { Paginacao } from "@/components/shared/paginacao";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Operador, Paginado, Papel, Unidade } from "@/types/sgcas";
@@ -268,10 +268,9 @@ export default function AdminPage() {
                         opcoes={opcoesDeUnidade}
                       />
                     </Field>
-                    <label className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-secondary px-3 text-xs font-semibold text-foreground">
-                      <input name="ativo" type="checkbox" defaultChecked={operador.ativo} />
-                      Ativo
-                    </label>
+                    <div className="flex items-end">
+                      <Checkbox name="ativo" defaultChecked={operador.ativo}>Ativo</Checkbox>
+                    </div>
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">

@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { Coordenacao, Demanda, Servico, Unidade } from "@/types/sgcas";
 
@@ -300,7 +300,7 @@ export default function InstitucionalPage() {
               />
             </Field>
             <Field label="Descrição">
-              <textarea className="input" name="descricao" placeholder="Descrição curta do serviço" />
+              <AreaDeTexto name="descricao" placeholder="Descrição curta do serviço" />
             </Field>
 
             <DialogFooter>

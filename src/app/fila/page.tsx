@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
 
@@ -543,8 +543,7 @@ export default function FilaPage() {
                       </Field>
                     </div>
                     <Field label="Motivo">
-                      <textarea
-                        className="input"
+                      <AreaDeTexto
                         value={motivoEncaminhamento}
                         onChange={(event) => setMotivoEncaminhamento(event.target.value)}
                         required
@@ -552,8 +551,7 @@ export default function FilaPage() {
                       />
                     </Field>
                     <Field label="Observações, opcional">
-                      <textarea
-                        className="input"
+                      <AreaDeTexto
                         value={observacaoEncaminhamento}
                         onChange={(event) => setObservacaoEncaminhamento(event.target.value)}
                         placeholder="Documentos entregues, orientação dada, prazo combinado..."
@@ -571,8 +569,7 @@ export default function FilaPage() {
                 {modoModal === "concluir" && (
                   <form className="grid gap-4" onSubmit={concluir}>
                     <Field label="Relato final">
-                      <textarea
-                        className="input"
+                      <AreaDeTexto
                         value={relato}
                         onChange={(event) => setRelato(event.target.value)}
                         placeholder="Se quiser, escreva um resumo final. Se deixar vazio, os campos guiados viram o relato."
@@ -603,8 +600,7 @@ export default function FilaPage() {
                       </div>
                     </div>
                     <Field label="Motivo, opcional">
-                      <textarea
-                        className="input"
+                      <AreaDeTexto
                         value={motivoNaoCompareceu}
                         onChange={(event) => setMotivoNaoCompareceu(event.target.value)}
                         placeholder="Ex.: chamado três vezes, cidadão saiu da unidade, não respondeu..."
@@ -732,8 +728,7 @@ function RegistroGuiado({
       </div>
 
       <Field label={compacto ? "Observação inicial" : "Observação/evolução"}>
-        <textarea
-          className="input"
+        <AreaDeTexto
           value={observacao}
           onChange={(event) => setObservacao(event.target.value)}
           placeholder="Ex.: cidadão trouxe documentos, orientação dada, pendência, combinado de retorno..."

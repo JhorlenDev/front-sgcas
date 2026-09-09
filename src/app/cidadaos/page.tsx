@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, CampoData, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { Badge, Button, CampoData, Card, Checkbox, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Cidadao, CidadaoLista, Paginado } from "@/types/sgcas";
@@ -234,23 +234,20 @@ export default function CidadaosPage() {
                 Ler termo completo
               </button>
 
-              <label className="row text-sm text-foreground">
-                <input
-                  type="checkbox"
-                  checked={criarAcesso}
-                  onChange={(e) => setCriarAcesso(e.target.checked)}
-                />
+<Checkbox
+                checked={criarAcesso}
+                onChange={(e) => setCriarAcesso(e.target.checked)}
+                descricao="Cria a conta da pessoa no SSO durante o atendimento."
+              >
                 Criar acesso no Tefé Cidadão
-              </label>
+              </Checkbox>
 
-              <label className="row text-sm text-foreground">
-                <input
-                  type="checkbox"
-                  checked={termoLido}
-                  onChange={(e) => setTermoLido(e.target.checked)}
-                />
+              <Checkbox
+                checked={termoLido}
+                onChange={(e) => setTermoLido(e.target.checked)}
+              >
                 Confirmo que li o termo acima para o cidadão e este consente
-              </label>
+              </Checkbox>
 
               {criarAcesso && !termoLido && (
                 <p className="text-xs text-[var(--pmt-color-warning-soft-fg)]">

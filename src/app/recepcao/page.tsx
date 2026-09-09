@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, Paginado, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
 
@@ -404,8 +404,7 @@ export default function RecepcaoPage() {
             )}
 
             <Field label={acao === "ENCAMINHADO" ? "Observação para o atendimento" : "Observação"}>
-              <textarea
-                className="input"
+              <AreaDeTexto
                 value={observacao}
                 onChange={(event) => setObservacao(event.target.value)}
                 placeholder="Resumo do que o cidadão solicitou"
@@ -414,8 +413,7 @@ export default function RecepcaoPage() {
 
             {acao === "FINALIZADO" && (
               <Field label="Motivo da finalização">
-                <textarea
-                  className="input"
+                <AreaDeTexto
                   value={motivo}
                   onChange={(event) => setMotivo(event.target.value)}
                   placeholder="Ex.: já existe caso aberto, orientação resolvida no balcão..."
