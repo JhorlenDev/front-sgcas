@@ -176,6 +176,48 @@ Na aba Acompanhamentos:
 - casos em atendimento mostram técnico e relato;
 - casos finalizados/encaminhados mostram o desfecho.
 
+## Listagens: paginação e filtros
+
+As listagens grandes consomem o envelope paginado da API:
+
+```ts
+type Paginado<T> = {
+  itens: T[];
+  total: number;      // registros que casam com o filtro — no banco, não na página
+  pagina: number;
+  por_pagina: number;
+  paginas: number;
+};
+```
+
+O ponto é o `total`. Antes as telas contavam o array recebido, que a API cortava
+em 100 — o painel exibia "100 casos" para um município com 220 mil, e os cartões
+de Acompanhamentos descreviam a última página como se fossem a rede inteira.
+Agora o número vem do banco e a lista tem como avançar.
+
+### O que cada tela ganhou
+
+| Tela | Mudança |
+| --- | --- |
+| **Painel** | "Casos em acompanhamento" vem de `/cases/resumo`; "Na fila", do `total`. As listas avisam que estão recortadas e levam à tela completa. |
+| **Acompanhamentos** | Filtros de busca (protocolo ou nome), situação, prioridade, período e ordenação, com paginação. Os cartões do topo vêm de `/cases/resumo` com os mesmos filtros. |
+| **Cidadãos** | Busca paginada sobre o cadastro inteiro, com o total real ao lado do título. |
+| **Usuários** | Busca por nome/e-mail, paginação, e os contadores de "ativos" e "sem unidade" vindos de consulta própria. |
+| **Recepção / Atendimento** | Passaram a ler o envelope; a fila pede o tamanho de página que a tela usa. |
+
+### Onde mexer
+
+| Arquivo | Papel |
+| --- | --- |
+| `src/lib/api.ts` | `comQuery()` monta a query string ignorando valor vazio; `paginadoVazio()` é o resultado de falha. |
+| `src/components/shared/paginacao.tsx` | Navegação entre páginas. Mostra a faixa e o total ("26–50 de 220.065") e some quando há uma página só. |
+| `src/types/sgcas.ts` | `Paginado<T>` e `ResumoDeCasos`. |
+
+Filtro vazio não vai na query: enviar `?situacao=` faria a API filtrar por
+situação vazia e devolver nada — o filtro "todas" viraria "nenhuma". Trocar de
+filtro volta para a página 1, senão a página atual costuma cair além do fim do
+novo resultado e a tela mostra vazio como se nada casasse.
+
 ## Scripts
 
 ```bash
