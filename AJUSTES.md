@@ -26,6 +26,7 @@ Base da branch: `main` (`d695031`).
 | 8 | Acertos nos componentes: clique no modal, rolagem, fundo, data antiga | correção | — |
 | 9 | `Checkbox`, `GrupoDeEscolha` e `AreaDeTexto` | melhoria | — |
 | 10 | Cantos arredondados seguindo a escala do design system | melhoria | — |
+| 11 | Nomes e protocolos viraram links, respeitando permissão | melhoria | — |
 
 ---
 
@@ -286,6 +287,49 @@ com ela.
 Ficaram **sem** raio, de propósito: divisórias (`.line-row`, `.plain-row` — são
 linhas, não caixas), contêineres de tela cheia, a barra lateral (encosta na
 borda) e a variante `link` do botão, que não tem caixa nenhuma.
+
+
+## 11. Nomes viraram links
+
+Nome de cidadão, de servidor e protocolo de caso agora levam ao registro
+correspondente, em vez de serem texto morto no meio da tela.
+
+| Link | Vai para | Quem enxerga como link |
+| --- | --- | --- |
+| Nome do cidadão | `/cidadaos/:id` | ADMIN, coordenador, assistente social, técnico, gestor de ações |
+| Nome do servidor | `/admin?busca=<nome>` | ADMIN e coordenador |
+| Protocolo do caso | `/casos?busca=<protocolo>` | todos |
+
+Fonte única em `src/components/shared/links.tsx`.
+
+### O link respeita a permissão
+
+`GET /api/citizens/:id` exige `EquipeDeAtendimento`, que **não inclui recepção
+nem visualizador** — eles alcançam o histórico municipal, não o prontuário. Para
+esses papéis o nome continua texto simples.
+
+É deliberado: um link que leva a uma tela de erro é pior do que texto, porque
+promete uma coisa e entrega outra. Conferido no navegador — como ADMIN, o painel
+tem 12 nomes clicáveis; como recepcionista, zero, e os nomes seguem visíveis.
+
+### Filtros passaram a nascer da URL
+
+Para os links de servidor e de protocolo funcionarem, `/casos` e `/admin` leem
+os filtros de `useSearchParams`. Efeito colateral bem-vindo: **qualquer recorte
+virou compartilhável** — colar o link manda a outra pessoa para a mesma lista
+que você está vendo.
+
+`useSearchParams` obriga a um limite de `<Suspense>` em rota prerenderizada
+(documentado em `node_modules/next/dist/docs/.../use-search-params.md`); sem
+ele o build falha, porque a URL não existe na hora de gerar o HTML.
+
+### Onde o nome **não** virou link
+
+Nos cartões que já são um `<button>` inteiro — a lista de acompanhamentos e o
+resultado da busca da recepção. Âncora dentro de botão é HTML inválido, e nesses
+casos o próprio cartão já navega: a lista de cidadãos abre o prontuário, e o
+cartão de caso abre o diálogo, onde o nome **é** link. Em `/casos` o protocolo
+também não vira link, porque levaria à mesma tela.
 
 
 ## Como revisar

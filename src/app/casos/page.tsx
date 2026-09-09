@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CalendarClock, CheckCircle2, ClipboardList, MapPin, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -16,6 +17,8 @@ import { Paginacao } from "@/components/shared/paginacao";
 import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
+// `LinkDoCaso` nao entra aqui: o protocolo levaria a esta mesma lista.
+import { LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
 
 const POR_PAGINA = 25;
 
@@ -50,10 +53,25 @@ const DESFECHOS = [
 
 const FILTROS_VAZIOS = { situacao: "", prioridade: "", busca: "", de: "", ate: "", ordenar: "-aberto_em" };
 
-export default function CasosPage() {
+/**
+ * Os filtros nascem da URL.
+ *
+ * É o que faz `/casos?busca=20260908-A0086B` chegar num acompanhamento
+ * específico — e, de quebra, torna qualquer recorte compartilhável: colar o
+ * link manda a outra pessoa exatamente para a lista que você está vendo.
+ */
+function CasosComFiltros() {
+  const parametros = useSearchParams();
   const [pagina, setPagina] = useState<Paginado<Caso> | null>(null);
   const [resumo, setResumo] = useState<ResumoDeCasos | null>(null);
-  const [filtros, setFiltros] = useState(FILTROS_VAZIOS);
+  const [filtros, setFiltros] = useState(() => ({
+    situacao: parametros.get("situacao") ?? "",
+    prioridade: parametros.get("prioridade") ?? "",
+    busca: parametros.get("busca") ?? "",
+    de: parametros.get("de") ?? "",
+    ate: parametros.get("ate") ?? "",
+    ordenar: parametros.get("ordenar") ?? "-aberto_em",
+  }));
   const [numero, setNumero] = useState(1);
   const [carregando, setCarregando] = useState(true);
   const temporizadorDaBusca = useRef<number | undefined>(undefined);
@@ -318,7 +336,7 @@ export default function CasosPage() {
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Cidadão</p>
-                      <h3 className="mt-1 text-xl text-foreground">{casoSelecionado.cidadao_nome}</h3>
+                      <h3 className="mt-1 text-xl text-foreground"><LinkDoCidadao id={casoSelecionado.cidadao} nome={casoSelecionado.cidadao_nome} /></h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge tone={tomDoCaso(casoSelecionado.situacao)}>{rotuloSituacao(casoSelecionado.situacao)}</Badge>
@@ -330,7 +348,15 @@ export default function CasosPage() {
                     <Info icon={ClipboardList} label="Serviço solicitado" value={casoSelecionado.servico_nome || "Serviço não informado"} />
                     <Info icon={MapPin} label="Unidade" value={casoSelecionado.unidade_nome} />
                     <Info icon={CalendarClock} label="Aberto em" value={formatarDataHora(casoSelecionado.aberto_em)} />
-                    <Info icon={Stethoscope} label="Atendente/técnico" value={casoSelecionado.tecnico_nome || "Ainda não assumido"} />
+                    <Info
+                      icon={Stethoscope}
+                      label="Atendente/técnico"
+                      value={
+                        casoSelecionado.tecnico_nome
+                          ? <LinkDoOperador nome={casoSelecionado.tecnico_nome} />
+                          : "Ainda não assumido"
+                      }
+                    />
                     {casoSelecionado.fechado_em && (
                       <Info icon={CheckCircle2} label="Finalizado em" value={formatarDataHora(casoSelecionado.fechado_em)} />
                     )}
@@ -422,7 +448,8 @@ function ResumoCard({
   );
 }
 
-function Info({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
+// `value` aceita nó, e não só texto: alguns valores agora sao link.
+function Info({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: React.ReactNode }) {
   return (
     <div className="rounded-lg bg-white p-4">
       <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -502,4 +529,16 @@ function rotuloTom(tone: "good" | "warn" | "bad") {
     warn: "Atenção",
     bad: "Ativo",
   }[tone];
+}
+
+/**
+ * `useSearchParams` obriga a um limite de Suspense em rota prerenderizada —
+ * sem ele o build reclama, porque a URL não existe na hora de gerar o HTML.
+ */
+export default function CasosPage() {
+  return (
+    <Suspense fallback={<AppShell><EmptyState title="Carregando…" text="Preparando os acompanhamentos." /></AppShell>}>
+      <CasosComFiltros />
+    </Suspense>
+  );
 }

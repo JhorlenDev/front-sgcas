@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge, Button, CampoData, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api } from "@/lib/api";
+import { LinkDoOperador } from "@/components/shared/links";
 import type {
   AcaoItinerante,
   BalancoAcaoItinerante,
@@ -365,7 +366,7 @@ export default function AcoesItinerantesPage() {
                   </td>
                   <td>{acao.local}</td>
                   <td>{formatarData(acao.data)}</td>
-                  <td>{acao.responsavel_nome}</td>
+                  <td><LinkDoOperador nome={acao.responsavel_nome} /></td>
                   <td>{acao.unidade_nome}</td>
                   <td>
                     {acao.concluida ? (
@@ -604,7 +605,7 @@ export default function AcoesItinerantesPage() {
 
               <div className="rounded-lg bg-secondary p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Responsável</p>
-                <p className="mt-1 text-sm text-foreground">{balancoDetalhe.responsavel_nome}</p>
+                <p className="mt-1 text-sm text-foreground"><LinkDoOperador nome={balancoDetalhe.responsavel_nome} /></p>
               </div>
 
               <div className="rounded-lg bg-secondary p-4">

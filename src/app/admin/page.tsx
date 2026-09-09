@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Clock3, ShieldCheck, UserCog, UsersRound } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Badge, Button, Card, Checkbox, Dropdown, EmptyState, Field, Input, PageHeader } from "@/components/ui";
@@ -28,10 +29,12 @@ const papeis: Array<{ value: Papel; label: string; hint: string }> = [
 
 const POR_PAGINA = 25;
 
-export default function AdminPage() {
+function UsuariosComBusca() {
+  const parametros = useSearchParams();
   const [paginaDeOperadores, setPaginaDeOperadores] = useState<Paginado<Operador> | null>(null);
   const [numero, setNumero] = useState(1);
-  const [buscaDeOperador, setBuscaDeOperador] = useState("");
+  // Chega preenchida quando alguém clicou no nome de um servidor em outra tela.
+  const [buscaDeOperador, setBuscaDeOperador] = useState(() => parametros.get("busca") ?? "");
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [mensagem, setMensagem] = useState("");
@@ -349,4 +352,12 @@ function formatarDataCurta(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+export default function AdminPage() {
+  return (
+    <Suspense fallback={<AppShell><EmptyState title="Carregando…" text="Preparando a gestão de acesso." /></AppShell>}>
+      <UsuariosComBusca />
+    </Suspense>
+  );
 }

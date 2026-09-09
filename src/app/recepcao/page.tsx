@@ -29,6 +29,7 @@ import {
 import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, Paginado, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
+import { LinkDoCaso, LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
 
 type HistoricoResponse = {
   cidadao: CidadaoLista;
@@ -641,7 +642,7 @@ function CasosRecentes({ casos }: { casos: Caso[] }) {
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Caso {caso.protocolo}</p>
+                  <p className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">Caso <LinkDoCaso protocolo={caso.protocolo} /></p>
                   <strong className="mt-1 block text-sm text-foreground">{caso.servico_nome || "Serviço não informado"}</strong>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -664,7 +665,7 @@ function CasosRecentes({ casos }: { casos: Caso[] }) {
                 {caso.tecnico_nome && (
                   <span className="inline-flex items-center gap-2 sm:col-span-2">
                     <Stethoscope size={14} />
-                    Em atendimento com {caso.tecnico_nome}
+                    Em atendimento com <LinkDoOperador nome={caso.tecnico_nome} />
                   </span>
                 )}
               </div>
@@ -758,7 +759,7 @@ function UltimosAtendimentos({ atendimentos, completo = false }: { atendimentos:
           {atendimentos.slice(0, completo ? 20 : 6).map((atendimento) => (
             <article className="rounded-lg border border-border bg-white p-3.5" key={atendimento.id}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <strong className="text-sm text-foreground">{atendimento.cidadao_nome}</strong>
+                <LinkDoCidadao id={atendimento.cidadao} nome={atendimento.cidadao_nome} className="text-sm font-bold text-foreground" />
                 <Badge tone={atendimento.desfecho === "ENCAMINHADO" ? "warn" : "good"}>
                   {atendimento.desfecho === "ENCAMINHADO" ? "Enviado para fila" : "Finalizado no balcão"}
                 </Badge>
@@ -779,7 +780,7 @@ function UltimosAtendimentos({ atendimentos, completo = false }: { atendimentos:
                 {atendimento.caso_protocolo && (
                   <span className="inline-flex items-center gap-2">
                     <ClipboardList size={14} />
-                    Caso {atendimento.caso_protocolo}
+                    Caso <LinkDoCaso protocolo={atendimento.caso_protocolo} />
                   </span>
                 )}
               </div>
@@ -821,7 +822,7 @@ function FilaSomenteLeitura({ fila, onAtualizar }: { fila: Senha[]; onAtualizar:
                     {senha.senha}
                   </span>
                   <div>
-                    <strong className="block text-foreground">{senha.cidadao_nome}</strong>
+                    <LinkDoCidadao id={senha.cidadao} nome={senha.cidadao_nome} className="block font-bold text-foreground" />
                     <p className="mt-1 text-sm text-muted-foreground">{senha.servico || "Serviço não informado"}</p>
                   </div>
                 </div>

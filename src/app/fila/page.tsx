@@ -24,6 +24,7 @@ import {
 import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
+import { LinkDoCaso, LinkDoCidadao } from "@/components/shared/links";
 
 const SITUACOES_IDENTIFICADAS = [
   { value: "Atualização cadastral ou orientação simples", label: "Atualização/orientação" },
@@ -297,7 +298,7 @@ export default function FilaPage() {
                       {senha.senha}
                     </strong>
                     <div>
-                      <span className="font-semibold text-foreground">{senha.cidadao_nome}</span>
+                      <LinkDoCidadao id={senha.cidadao} nome={senha.cidadao_nome} className="font-semibold text-foreground" />
                       <small className="block text-muted-foreground">{senha.servico}</small>
                     </div>
                   </div>
@@ -325,12 +326,12 @@ export default function FilaPage() {
                     {atendimentoIniciado ? "Atendimento iniciado" : "Aguardando confirmação"}
                   </Badge>
                 </div>
-                <h3 className="mt-3">{atendimento.cidadao.nome}</h3>
+                <h3 className="mt-3"><LinkDoCidadao id={atendimento.cidadao.id} nome={atendimento.cidadao.nome} /></h3>
                 <p className="text-sm text-muted-foreground">{atendimento.senha.servico}</p>
                 {atendimento.caso && (
                   <div className="mt-4 rounded-lg bg-white p-4">
                     <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Caso em atendimento</p>
-                    <strong>{atendimento.caso.protocolo}</strong>
+                    <strong><LinkDoCaso protocolo={atendimento.caso.protocolo} /></strong>
                     <p className="text-sm text-muted-foreground">{atendimento.caso.descricao || atendimento.caso.situacao}</p>
                   </div>
                 )}
@@ -411,7 +412,7 @@ export default function FilaPage() {
             {painel.ultimos_atendimentos.map((caso) => (
               <article className="rounded-lg border border-border bg-white p-4" key={caso.id}>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <strong className="text-foreground">{caso.cidadao_nome}</strong>
+                  <LinkDoCidadao id={caso.cidadao} nome={caso.cidadao_nome} className="font-bold text-foreground" />
                   <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
                 </div>
                 <p className="text-sm font-medium text-foreground">{caso.servico_nome || caso.protocolo}</p>
@@ -443,13 +444,13 @@ export default function FilaPage() {
                         <Badge tone="good">{atendimento.senha.senha}</Badge>
                         <Badge tone={tomDaPrioridade(atendimento.senha.prioridade)}>{rotuloPrioridade(atendimento.senha.prioridade)}</Badge>
                       </div>
-                      <h3 className="text-xl font-semibold text-foreground">{atendimento.cidadao.nome}</h3>
+                      <h3 className="text-xl font-semibold text-foreground"><LinkDoCidadao id={atendimento.cidadao.id} nome={atendimento.cidadao.nome} /></h3>
                       <p className="mt-1 text-sm text-muted-foreground">{atendimento.senha.servico || "Serviço não informado"}</p>
                     </div>
                     {atendimento.caso && (
                       <div className="rounded-lg bg-white px-4 py-3 text-sm">
                         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Caso</p>
-                        <strong className="text-foreground">{atendimento.caso.protocolo}</strong>
+                        <strong className="text-foreground"><LinkDoCaso protocolo={atendimento.caso.protocolo} /></strong>
                       </div>
                     )}
                   </div>

@@ -7,6 +7,7 @@ import { AppShell } from "@/components/app-shell";
 import { Button, Card, EmptyState, PageHeader } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import type { Caso, Paginado, ResumoDeCasos, Senha } from "@/types/sgcas";
+import { LinkDoCidadao } from "@/components/shared/links";
 
 export default function DashboardPage() {
   const [fila, setFila] = useState<Paginado<Senha> | null>(null);
@@ -69,7 +70,7 @@ export default function DashboardPage() {
             <>
               {senhas.map((senha) => (
                 <div className="row line-row" key={senha.id}>
-                  <span>{senha.senha} - {senha.cidadao_nome}</span>
+                  <span>{senha.senha} - <LinkDoCidadao id={senha.cidadao} nome={senha.cidadao_nome} /></span>
                   <small>{senha.servico}</small>
                 </div>
               ))}
@@ -90,7 +91,7 @@ export default function DashboardPage() {
             <>
               {recentes.map((caso) => (
                 <div className="row line-row" key={caso.id}>
-                  <span>{caso.cidadao_nome}</span>
+                  <span><LinkDoCidadao id={caso.cidadao} nome={caso.cidadao_nome} /></span>
                   <small>{caso.situacao}</small>
                 </div>
               ))}
