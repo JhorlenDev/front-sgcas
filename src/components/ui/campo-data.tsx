@@ -126,17 +126,32 @@ export function CampoData({
   function aoDigitar(bruto: string) {
     const mascarado = mascarar(bruto);
     if (mascarado === "") { setRascunho({ texto: "", de: "" }); emitir(""); return; }
+
     const convertido = brParaIso(mascarado);
     if (convertido) {
       const completo = comHora && hora ? `${convertido}T${hora}` : convertido;
       setRascunho({ texto: mascarado, de: completo });
       emitir(convertido);
       setMesVisivel(convertido.slice(0, 7));
-    } else {
-      // Data ainda incompleta: guarda o rascunho contra o valor atual.
-      setRascunho({ texto: mascarado, de: iso });
+      return;
     }
+
+    // Data COMPLETA e inexistente — 31/02, por exemplo. Precisa zerar o valor
+    // emitido: mantendo o anterior, o campo mostraria "31/02/1990" enquanto o
+    // formulário enviaria a data de antes, calada. Melhor sair vazio e avisar.
+    if (mascarado.length === 10) {
+      setRascunho({ texto: mascarado, de: "" });
+      emitir("");
+      return;
+    }
+
+    // Ainda incompleta ("12/0"): guarda o rascunho contra o valor atual.
+    setRascunho({ texto: mascarado, de: iso });
   }
+
+  // Só acusa quando a pessoa terminou de digitar; avisar no meio de "31/0"
+  // seria reclamar de algo que ela ainda está escrevendo.
+  const dataInvalida = texto.length === 10 && brParaIso(texto) === null;
 
   const posicionar = React.useCallback(() => {
     if (campo.current) setCaixa(campo.current.parentElement!.getBoundingClientRect());
@@ -177,6 +192,19 @@ export function CampoData({
   }, [aberto]);
 
   const [ano, mes] = mesVisivel.split("-").map(Number);
+
+  // A faixa sai de `min`/`max` quando existirem. Sem eles, 110 anos para trás
+  // cobrem data de nascimento, e 5 para a frente cobrem agendamento.
+  const anosDisponiveis = React.useMemo(() => {
+    const atual = new Date().getFullYear();
+    const inicio = min ? Number(min.slice(0, 4)) : atual - 110;
+    const fim = max ? Number(max.slice(0, 4)) : atual + 5;
+    const faixa = [];
+    for (let a = fim; a >= inicio; a -= 1) faixa.push(a);
+    // O ano em exibição pode estar fora da faixa se veio de dado antigo.
+    if (!faixa.includes(ano)) faixa.push(ano);
+    return faixa;
+  }, [min, max, ano]);
   const primeiroDiaDaSemana = new Date(ano, mes - 1, 1).getDay();
   const diasNoMes = new Date(ano, mes, 0).getDate();
   const celulas: (string | null)[] = [
@@ -190,6 +218,10 @@ export function CampoData({
     setMesVisivel(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
   }
 
+  function irPara(novoMes: number, novoAno: number) {
+    setMesVisivel(`${novoAno}-${String(novoMes).padStart(2, "0")}`);
+  }
+
   function escolher(dia: string) {
     setRascunho(null);
     emitir(dia);
@@ -198,16 +230,43 @@ export function CampoData({
 
   const calendario = (
     <>
-      <div className="flex items-center justify-between gap-2 border-b border-border/70 px-3 py-2">
+      <div className="flex items-center gap-1 border-b border-border/70 px-2 py-2">
         <button type="button" onClick={() => mudarMes(-1)} aria-label="Mês anterior"
-          className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground">
+          className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground">
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="text-sm font-semibold capitalize text-foreground" aria-live="polite">
-          {MESES[mes - 1]} {ano}
-        </span>
+
+        {/*
+          Mês e ano são escolhidos direto, e não só com as setas.
+          Data de nascimento é o caso comum deste campo: chegar a 1958 clicando
+          "mês anterior" são mais de 800 cliques. Digitar continua sendo o
+          caminho mais rápido de todos — o campo de texto aceita `dd/mm/aaaa` —,
+          mas quem prefere escolher olhando também precisa de um caminho curto.
+        */}
+        <select
+          aria-label="Mês"
+          value={mes}
+          onChange={(e) => irPara(Number(e.target.value), ano)}
+          className="min-h-11 flex-1 rounded-md border border-input bg-elevated px-2 text-sm capitalize text-foreground"
+        >
+          {MESES.map((nome, i) => (
+            <option key={nome} value={i + 1}>{nome}</option>
+          ))}
+        </select>
+
+        <select
+          aria-label="Ano"
+          value={ano}
+          onChange={(e) => irPara(mes, Number(e.target.value))}
+          className="min-h-11 w-24 rounded-md border border-input bg-elevated px-2 text-sm text-foreground"
+        >
+          {anosDisponiveis.map((a) => (
+            <option key={a} value={a}>{a}</option>
+          ))}
+        </select>
+
         <button type="button" onClick={() => mudarMes(1)} aria-label="Próximo mês"
-          className="flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground">
+          className="flex h-11 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground">
           <ChevronRight className="h-4 w-4" />
         </button>
       </div>
@@ -284,14 +343,19 @@ export function CampoData({
         placeholder={comHora ? "dd/mm/aaaa" : "dd/mm/aaaa"}
         aria-label={rotulo}
         aria-required={required || undefined}
+        aria-invalid={dataInvalida || undefined}
+        aria-describedby={dataInvalida ? `${idDoCampo}-erro` : undefined}
         disabled={disabled}
         value={comHora && hora ? `${texto} ${hora}`.trim() : texto}
         onChange={(e) => aoDigitar(e.target.value)}
         onFocus={() => !ehGaveta && abrir()}
         className={cn(
-          "h-11 w-full rounded-lg border border-border bg-background pl-4 pr-12 text-base text-foreground transition-colors",
-          "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
+          // Mesma caixa do `.input`: fundo, borda e raio idênticos aos campos
+          // de texto ao lado, senão o campo de data parece de outro sistema.
+          "min-h-11 w-full rounded-md border border-input bg-elevated pl-3 pr-12 text-sm text-foreground transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
+          dataInvalida && "border-destructive focus-visible:ring-destructive",
           className,
         )}
       />
@@ -309,9 +373,15 @@ export function CampoData({
 
       {name && <input type="hidden" name={name} value={iso} />}
 
+      {dataInvalida && (
+        <p id={`${idDoCampo}-erro`} role="alert" className="mt-1.5 text-xs text-destructive">
+          Essa data não existe. Confira o dia e o mês.
+        </p>
+      )}
+
       {aberto && typeof document !== "undefined" && createPortal(
         ehGaveta ? (
-          <div className="fixed inset-0 z-[60] flex items-end justify-center">
+          <div data-camada-flutuante className="pointer-events-auto fixed inset-0 z-[60] flex items-end justify-center">
             <div className="absolute inset-0 bg-black/50 animate-fade-entra motion-reduce:animate-none"
               onClick={() => setAberto(false)} aria-hidden="true" />
             <div ref={painel}
@@ -330,8 +400,14 @@ export function CampoData({
         ) : (
           <div
             ref={painel}
+            data-camada-flutuante
             style={caixa ? ancorar(caixa, { largura: 300, alturaMaxima: 420 }).estilo : { display: "none" }}
-            className="z-[60] overflow-hidden rounded-xl border border-border bg-popover shadow-elevated animate-lista-entra motion-reduce:animate-none"
+            // `pointer-events-auto` é obrigatório: enquanto um diálogo modal
+            // está aberto, o Radix põe `pointer-events: none` no `body`, e este
+            // painel é filho do body. Sem isto ele aparece na tela mas o clique
+            // atravessa e cai no que estiver embaixo — foi o que fazia o
+            // calendário "abrir e selecionar um input" em vez da data.
+            className="pointer-events-auto z-[60] overflow-hidden rounded-xl border border-border bg-popover shadow-elevated animate-lista-entra motion-reduce:animate-none"
           >
             {calendario}
           </div>

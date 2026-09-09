@@ -258,7 +258,7 @@ export function Dropdown({
         id={idDaLista}
         role="listbox"
         aria-label={rotulo ?? placeholder}
-        className={cn("overflow-y-auto p-1.5", ehGaveta ? "max-h-[55dvh]" : "max-h-72")}
+        className={cn("rolagem-sutil overflow-y-auto p-1.5", ehGaveta ? "max-h-[55dvh]" : "max-h-72")}
       >
         {filtradas.length === 0 && (
           <li className="px-3 py-6 text-center text-sm text-muted-foreground">
@@ -325,10 +325,13 @@ export function Dropdown({
         onClick={() => (aberto ? fechar() : abrir())}
         onKeyDown={aoTeclar}
         className={cn(
-          "flex h-11 w-full items-center justify-between gap-2 rounded-lg border border-border bg-background px-4 text-left text-base transition-colors",
-          "focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
+          // Mesma caixa do `.input` do design system — fundo, borda e raio.
+          // Com fundo diferente, o campo parecia desabilitado ao lado dos
+          // outros da mesma linha.
+          "flex min-h-11 w-full items-center justify-between gap-2 rounded-md border border-input bg-elevated px-3 text-left text-sm text-foreground transition-colors",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-50",
-          aberto && "border-primary ring-2 ring-primary/20",
+          aberto && "ring-2 ring-ring ring-offset-2",
           className,
         )}
       >
@@ -347,7 +350,7 @@ export function Dropdown({
           alcançado durante a renderização no servidor. */}
       {aberto && typeof document !== "undefined" && createPortal(
         ehGaveta ? (
-          <div className="fixed inset-0 z-[60] flex items-end justify-center">
+          <div data-camada-flutuante className="pointer-events-auto fixed inset-0 z-[60] flex items-end justify-center">
             <div
               className="absolute inset-0 bg-black/50 animate-fade-entra motion-reduce:animate-none"
               onClick={() => fechar(false)}
@@ -374,8 +377,14 @@ export function Dropdown({
         ) : (
           <div
             ref={painel}
+            data-camada-flutuante
             style={caixa ? ancorar(caixa, { alturaMaxima: 360 }).estilo : { display: "none" }}
-            className="z-[60] flex flex-col overflow-hidden rounded-xl border border-border bg-popover shadow-elevated animate-lista-entra motion-reduce:animate-none"
+            // `pointer-events-auto` é obrigatório: enquanto um diálogo modal
+            // está aberto, o Radix põe `pointer-events: none` no `body`, e este
+            // painel é filho do body. Sem isto ele aparece na tela mas o clique
+            // atravessa e cai no que estiver embaixo — foi o que fazia o
+            // calendário "abrir e selecionar um input" em vez da data.
+            className="pointer-events-auto z-[60] flex flex-col overflow-hidden rounded-xl border border-border bg-popover shadow-elevated animate-lista-entra motion-reduce:animate-none"
           >
             {lista}
           </div>

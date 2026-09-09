@@ -54,6 +54,21 @@ type ConteudoProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Conte
 };
 
 /**
+ * Marca as camadas que são "dentro" do diálogo mesmo estando fora do DOM dele.
+ *
+ * Dropdown e calendário abrem em portal no `body`, para escapar de ancestrais
+ * com `overflow`. Para o Radix isso é o mundo exterior: clicar numa opção
+ * contava como clique fora, e o diálogo devolvia o foco ao primeiro campo — o
+ * efeito visível era o calendário abrir e o clique "selecionar um input" em vez
+ * de escolher a data.
+ */
+const CAMADA_FLUTUANTE = "[data-camada-flutuante]";
+
+function veioDeCamadaFlutuante(alvo: EventTarget | null) {
+  return Boolean((alvo as Element | null)?.closest?.(CAMADA_FLUTUANTE));
+}
+
+/**
  * Conteúdo do diálogo — centralizado no desktop, gaveta no celular.
  *
  * A centralização é do flex do contêiner, e não de `translate(-50%, -50%)`.
@@ -116,19 +131,30 @@ const DialogContent = React.forwardRef<
             // metade da gaveta antes de a pessoa ler o que ela pergunta.
             if (ehGaveta) evento.preventDefault();
           }}
+          onPointerDownOutside={(evento) => {
+            if (veioDeCamadaFlutuante(evento.target)) evento.preventDefault();
+          }}
+          onInteractOutside={(evento) => {
+            if (veioDeCamadaFlutuante(evento.target)) evento.preventDefault();
+          }}
+          onFocusOutside={(evento) => {
+            if (veioDeCamadaFlutuante(evento.target)) evento.preventDefault();
+          }}
           style={arrasto ? { transform: `translateY(${arrasto}px)`, transition: 'none' } : undefined}
           className={cn(
-            'pointer-events-auto relative flex max-h-[90dvh] w-full flex-col gap-5 border border-border bg-background shadow-elevated',
+            // `overflow-hidden` aqui para os cantos arredondados cortarem o
+            // conteúdo. O padding fica no contêiner de rolagem, mais abaixo.
+            'pointer-events-auto relative flex max-h-[90dvh] w-full flex-col overflow-hidden border border-border bg-background shadow-elevated',
             'focus:outline-none',
             ehGaveta
               ? [
                   // Gaveta: colada embaixo, cantos superiores arredondados e
                   // respiro para a barra de gestos do aparelho.
-                  'max-w-none rounded-t-xl border-b-0 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-3',
+                  'max-w-none rounded-t-xl border-b-0',
                   'data-[state=open]:animate-gaveta-entra data-[state=closed]:animate-gaveta-sai',
                 ]
               : [
-                  'max-w-lg rounded-none p-8',
+                  'max-w-lg rounded-none',
                   'data-[state=open]:animate-dialogo-entra data-[state=closed]:animate-dialogo-sai',
                 ],
             'motion-reduce:animate-none',
@@ -142,13 +168,25 @@ const DialogContent = React.forwardRef<
               onPointerMove={aoMover}
               onPointerUp={aoSoltar}
               onPointerCancel={aoSoltar}
-              className="-mx-5 -mt-3 flex shrink-0 cursor-grab touch-none justify-center px-5 pb-2 pt-3 active:cursor-grabbing"
+              className="flex shrink-0 cursor-grab touch-none justify-center px-5 pb-1 pt-3 active:cursor-grabbing"
             >
               <span className="h-1.5 w-11 rounded-full bg-border" aria-hidden="true" />
             </div>
           )}
 
-          <div ref={conteudo} className="flex min-h-0 flex-col gap-5 overflow-y-auto">
+          {/*
+            O padding mora AQUI, dentro da área que rola — não no contêiner
+            externo. Com ele do lado de fora, o `overflow-y-auto` cortava o anel
+            de foco dos campos rente à borda, e parecia haver uma caixa por cima
+            comendo os inputs.
+          */}
+          <div
+            ref={conteudo}
+            className={cn(
+              'rolagem-sutil flex min-h-0 flex-col gap-5 overflow-y-auto',
+              ehGaveta ? 'px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-2' : 'p-8',
+            )}
+          >
             {children}
           </div>
 

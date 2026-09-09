@@ -5,6 +5,8 @@ import type { ButtonHTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes } 
 export { Dropdown } from "@/components/ui/dropdown";
 export type { OpcaoDoDropdown } from "@/components/ui/dropdown";
 export { CampoData } from "@/components/ui/campo-data";
+export { Checkbox, GrupoDeEscolha, AreaDeTexto } from "@/components/ui/marcacao";
+export type { OpcaoDeEscolha } from "@/components/ui/marcacao";
 
 export function Button(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   const { className = "", ...rest } = props;

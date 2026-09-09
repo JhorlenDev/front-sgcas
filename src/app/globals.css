@@ -113,6 +113,55 @@
     @apply min-h-28 resize-y;
   }
 
+  /*
+   * Rolagem discreta.
+   *
+   * A barra padrao do Windows e larga, cinza e some com o resto do desenho —
+   * num painel pequeno como o corpo de um dialogo ela pesa mais do que o
+   * conteudo. Aqui a pista some e o polegar so aparece quando o ponteiro esta
+   * sobre a area, o que mantem a pista de que da para rolar sem a barra
+   * ocupando espaco o tempo todo.
+   *
+   * `scrollbar-gutter: stable` reserva a calha: sem isso o conteudo salta
+   * alguns pixels para o lado no instante em que a barra aparece.
+   */
+  .rolagem-sutil {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    scrollbar-gutter: stable;
+  }
+
+  .rolagem-sutil:hover,
+  .rolagem-sutil:focus-within {
+    scrollbar-color: var(--pmt-color-line) transparent;
+  }
+
+  .rolagem-sutil::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .rolagem-sutil::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .rolagem-sutil::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 9999px;
+    /* A borda transparente afina o polegar sem estreitar a area de arrasto. */
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .rolagem-sutil:hover::-webkit-scrollbar-thumb,
+  .rolagem-sutil:focus-within::-webkit-scrollbar-thumb {
+    background-color: var(--pmt-color-line);
+  }
+
+  .rolagem-sutil::-webkit-scrollbar-thumb:hover {
+    background-color: var(--pmt-color-fg-muted);
+  }
+
   /* Todo campo tem rotulo visivel — placeholder nao e rotulo. */
   .field {
     @apply grid gap-2 text-sm font-semibold text-foreground;
