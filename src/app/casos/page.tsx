@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CalendarClock, CheckCircle2, ClipboardList, MapPin, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -12,35 +12,87 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, EmptyState, Field, PageHeader, SecondaryButton, Select } from "@/components/ui";
-import { api } from "@/lib/api";
-import type { Caso } from "@/types/sgcas";
+import { Paginacao } from "@/components/shared/paginacao";
+import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
+import { api, comQuery, paginadoVazio } from "@/lib/api";
+import type { Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
+
+const POR_PAGINA = 25;
+
+const SITUACOES = [
+  { value: "", label: "Todas as situações" },
+  { value: "EM_TRIAGEM", label: "Em triagem" },
+  { value: "EM_ATENDIMENTO", label: "Em atendimento" },
+  { value: "CONCLUIDO", label: "Concluído" },
+  { value: "ENCAMINHADO", label: "Encaminhado" },
+  { value: "CANCELADO", label: "Cancelado" },
+];
+
+const PRIORIDADES = [
+  { value: "", label: "Todas as prioridades" },
+  { value: "URGENTE", label: "Urgente" },
+  { value: "ALTA", label: "Alta" },
+  { value: "NORMAL", label: "Normal" },
+  { value: "BAIXA", label: "Baixa" },
+];
+
+const ORDENACOES = [
+  { value: "-aberto_em", label: "Mais recentes primeiro" },
+  { value: "aberto_em", label: "Mais antigos primeiro" },
+  { value: "-atualizado_em", label: "Mexidos por último" },
+  { value: "prioridade", label: "Prioridade" },
+];
+
+const FILTROS_VAZIOS = { situacao: "", prioridade: "", busca: "", de: "", ate: "", ordenar: "-aberto_em" };
 
 export default function CasosPage() {
-  const [casos, setCasos] = useState<Caso[]>([]);
+  const [pagina, setPagina] = useState<Paginado<Caso> | null>(null);
+  const [resumo, setResumo] = useState<ResumoDeCasos | null>(null);
+  const [filtros, setFiltros] = useState(FILTROS_VAZIOS);
+  const [numero, setNumero] = useState(1);
+  const [carregando, setCarregando] = useState(true);
+  const temporizadorDaBusca = useRef<number | undefined>(undefined);
   const [casoSelecionado, setCasoSelecionado] = useState<Caso | null>(null);
   const [mensagem, setMensagem] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [conclusao, setConclusao] = useState<{ situacao: FormDataEntryValue | null; relato: FormDataEntryValue | null } | null>(null);
 
-  async function carregar() {
-    const data = await api<Caso[]>("/cases/").catch(() => []);
-    setCasos(data);
-  }
+  const carregar = useCallback(async (pedida: number, aplicados: typeof FILTROS_VAZIOS) => {
+    setCarregando(true);
+    const params = { ...aplicados, page: pedida, limit: POR_PAGINA };
+    // Lista e contadores saem na mesma leva e com os mesmos filtros. Buscar em
+    // momentos diferentes deixaria o número do topo descrevendo um recorte que
+    // não é mais o da lista de baixo.
+    const [lista, contagem] = await Promise.all([
+      api<Paginado<Caso>>(comQuery("/cases/", params)).catch(() => paginadoVazio<Caso>(POR_PAGINA)),
+      api<ResumoDeCasos>(comQuery("/cases/resumo", aplicados)).catch(() => null),
+    ]);
+    setPagina(lista);
+    setResumo(contagem);
+    setCarregando(false);
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void carregar();
+      void carregar(numero, filtros);
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [carregar, numero, filtros]);
 
-  const resumo = useMemo(() => ({
-    triagem: casos.filter((caso) => caso.situacao === "EM_TRIAGEM").length,
-    atendimento: casos.filter((caso) => caso.situacao === "EM_ATENDIMENTO").length,
-    finalizados: casos.filter((caso) => ["CONCLUIDO", "ENCAMINHADO"].includes(caso.situacao)).length,
-  }), [casos]);
+  function aplicarFiltro(campo: keyof typeof FILTROS_VAZIOS, valor: string) {
+    // Volta para a primeira página: manter a página 7 depois de trocar o filtro
+    // costuma cair além do fim do novo resultado e mostrar uma lista vazia que
+    // parece "nada encontrado".
+    setNumero(1);
+    setFiltros((atual) => ({ ...atual, [campo]: valor }));
+  }
+
+  const casos = pagina?.itens ?? [];
+  const temFiltro = useMemo(
+    () => Object.entries(filtros).some(([campo, valor]) => valor && campo !== "ordenar"),
+    [filtros],
+  );
 
   function prepararConclusao(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -69,7 +121,7 @@ export default function CasosPage() {
       setCasoSelecionado(null);
       setConclusao(null);
       setConfirmOpen(false);
-      await carregar();
+      await carregar(numero, filtros);
     } catch {
       setMensagem("Não foi possível concluir o acompanhamento.");
     } finally {
@@ -88,21 +140,106 @@ export default function CasosPage() {
       <div style={{ height: 16 }} />
 
       <div className="grid gap-4 md:grid-cols-3">
-        <ResumoCard title="Em triagem" value={resumo.triagem} text="Criados pela recepção e aguardando chamada." tone="warn" />
-        <ResumoCard title="Em atendimento" value={resumo.atendimento} text="Já assumidos por um atendente." tone="bad" />
-        <ResumoCard title="Finalizados/encaminhados" value={resumo.finalizados} text="Casos com relato ou desfecho registrado." tone="good" />
+        <ResumoCard
+          title="Em triagem"
+          value={resumo?.por_situacao?.EM_TRIAGEM ?? 0}
+          text="Criados pela recepção e aguardando chamada."
+          tone="warn"
+        />
+        <ResumoCard
+          title="Em atendimento"
+          value={resumo?.por_situacao?.EM_ATENDIMENTO ?? 0}
+          text="Já assumidos por um atendente."
+          tone="bad"
+        />
+        <ResumoCard
+          title="Finalizados/encaminhados"
+          value={resumo?.finalizados ?? 0}
+          text="Casos com relato ou desfecho registrado."
+          tone="good"
+        />
       </div>
 
       <div style={{ height: 16 }} />
 
       <Card>
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <h2 className="!mb-0">Lista de acompanhamentos</h2>
-          <Badge tone="neutral">{casos.length}</Badge>
+          <Badge tone="neutral">{(pagina?.total ?? 0).toLocaleString("pt-BR")}</Badge>
         </div>
 
-        {casos.length === 0 ? (
-          <EmptyState title="Sem acompanhamentos" text="Quando a recepção gerar uma senha, o caso aparece aqui." />
+        <div className="mb-5 grid gap-4 border-b border-border/70 pb-5 md:grid-cols-2 xl:grid-cols-4">
+          <Field label="Buscar">
+            <Input
+              type="search"
+              placeholder="Protocolo ou nome do cidadão"
+              defaultValue={filtros.busca}
+              onChange={(event) => {
+                const valor = event.currentTarget.value;
+                window.clearTimeout(temporizadorDaBusca.current);
+                // Espera a pessoa parar de digitar: cada tecla dispararia uma
+                // consulta paginada e um resumo sobre 220 mil casos.
+                temporizadorDaBusca.current = window.setTimeout(
+                  () => aplicarFiltro("busca", valor),
+                  350,
+                );
+              }}
+            />
+          </Field>
+          <Field label="Situação">
+            <Select value={filtros.situacao} onChange={(e) => aplicarFiltro("situacao", e.target.value)}>
+              {SITUACOES.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Prioridade">
+            <Select value={filtros.prioridade} onChange={(e) => aplicarFiltro("prioridade", e.target.value)}>
+              {PRIORIDADES.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Ordenar por">
+            <Select value={filtros.ordenar} onChange={(e) => aplicarFiltro("ordenar", e.target.value)}>
+              {ORDENACOES.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Aberto de">
+            <Input type="date" value={filtros.de} onChange={(e) => aplicarFiltro("de", e.target.value)} />
+          </Field>
+          <Field label="Aberto até">
+            <Input type="date" value={filtros.ate} onChange={(e) => aplicarFiltro("ate", e.target.value)} />
+          </Field>
+          {temFiltro && (
+            <div className="flex items-end">
+              <SecondaryButton
+                type="button"
+                className="h-11"
+                onClick={() => {
+                  setNumero(1);
+                  setFiltros(FILTROS_VAZIOS);
+                }}
+              >
+                Limpar filtros
+              </SecondaryButton>
+            </div>
+          )}
+        </div>
+
+        {carregando && casos.length === 0 ? (
+          <EmptyState title="Carregando…" text="Buscando os acompanhamentos da sua unidade." />
+        ) : casos.length === 0 ? (
+          <EmptyState
+            title={temFiltro ? "Nada encontrado" : "Sem acompanhamentos"}
+            text={
+              temFiltro
+                ? "Nenhum caso corresponde aos filtros. Ajuste ou limpe os filtros para ver mais."
+                : "Quando a recepção gerar uma senha, o caso aparece aqui."
+            }
+          />
         ) : (
           <div className="grid gap-3">
             {casos.map((caso) => (
@@ -138,6 +275,15 @@ export default function CasosPage() {
             ))}
           </div>
         )}
+
+        <Paginacao
+          pagina={pagina?.pagina ?? 1}
+          paginas={pagina?.paginas ?? 1}
+          total={pagina?.total ?? 0}
+          porPagina={pagina?.por_pagina ?? POR_PAGINA}
+          onPagina={setNumero}
+          rotulo="acompanhamentos"
+        />
       </Card>
 
       <Dialog open={Boolean(casoSelecionado)} onOpenChange={(open) => !open && setCasoSelecionado(null)}>
