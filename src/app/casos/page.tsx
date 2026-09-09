@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Paginacao } from "@/components/shared/paginacao";
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
+import { Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
 
@@ -41,6 +41,11 @@ const ORDENACOES = [
   { value: "aberto_em", label: "Mais antigos primeiro" },
   { value: "-atualizado_em", label: "Mexidos por último" },
   { value: "prioridade", label: "Prioridade" },
+];
+
+const DESFECHOS = [
+  { value: "CONCLUIDO", label: "Concluído", hint: "O atendimento terminou aqui." },
+  { value: "ENCAMINHADO", label: "Encaminhado", hint: "Segue em outra unidade ou órgão." },
 ];
 
 const FILTROS_VAZIOS = { situacao: "", prioridade: "", busca: "", de: "", ate: "", ordenar: "-aberto_em" };
@@ -187,31 +192,44 @@ export default function CasosPage() {
             />
           </Field>
           <Field label="Situação">
-            <Select value={filtros.situacao} onChange={(e) => aplicarFiltro("situacao", e.target.value)}>
-              {SITUACOES.map((s) => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </Select>
+            <Dropdown
+              rotulo="Situação"
+              opcoes={SITUACOES}
+              value={filtros.situacao}
+              onChange={(v) => aplicarFiltro("situacao", v)}
+            />
           </Field>
           <Field label="Prioridade">
-            <Select value={filtros.prioridade} onChange={(e) => aplicarFiltro("prioridade", e.target.value)}>
-              {PRIORIDADES.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </Select>
+            <Dropdown
+              rotulo="Prioridade"
+              opcoes={PRIORIDADES}
+              value={filtros.prioridade}
+              onChange={(v) => aplicarFiltro("prioridade", v)}
+            />
           </Field>
           <Field label="Ordenar por">
-            <Select value={filtros.ordenar} onChange={(e) => aplicarFiltro("ordenar", e.target.value)}>
-              {ORDENACOES.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </Select>
+            <Dropdown
+              rotulo="Ordenar por"
+              opcoes={ORDENACOES}
+              value={filtros.ordenar}
+              onChange={(v) => aplicarFiltro("ordenar", v)}
+            />
           </Field>
           <Field label="Aberto de">
-            <Input type="date" value={filtros.de} onChange={(e) => aplicarFiltro("de", e.target.value)} />
+            <CampoData
+              rotulo="Aberto de"
+              value={filtros.de}
+              max={filtros.ate || undefined}
+              onChange={(v) => aplicarFiltro("de", v)}
+            />
           </Field>
           <Field label="Aberto até">
-            <Input type="date" value={filtros.ate} onChange={(e) => aplicarFiltro("ate", e.target.value)} />
+            <CampoData
+              rotulo="Aberto até"
+              value={filtros.ate}
+              min={filtros.de || undefined}
+              onChange={(v) => aplicarFiltro("ate", v)}
+            />
           </Field>
           {temFiltro && (
             <div className="flex items-end">
@@ -337,10 +355,12 @@ export default function CasosPage() {
                       </p>
                     </div>
                     <Field label="Situação final">
-                      <Select name="situacao" defaultValue="CONCLUIDO">
-                        <option value="CONCLUIDO">Concluído</option>
-                        <option value="ENCAMINHADO">Encaminhado</option>
-                      </Select>
+                      <Dropdown
+                        name="situacao"
+                        rotulo="Desfecho"
+                        defaultValue="CONCLUIDO"
+                        opcoes={DESFECHOS}
+                      />
                     </Field>
                     <Field label="Relato do atendimento">
                       <textarea

@@ -26,7 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
+import { Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, Paginado, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
 
@@ -357,24 +357,37 @@ export default function RecepcaoPage() {
 
           <div className="grid gap-4">
             <Field label="Serviço solicitado">
-              <Select value={servicoId} onChange={(event) => setServicoId(event.target.value)} required>
-                <option value="">Selecione o serviço</option>
-                {servicos.map((servico) => (
-                  <option key={servico.id} value={servico.id}>
-                    {servico.nome} — {servico.unidade_nome}
-                  </option>
-                ))}
-              </Select>
+              <Dropdown
+                rotulo="Serviço solicitado"
+                placeholder="Selecione o serviço"
+                required
+                value={servicoId}
+                onChange={setServicoId}
+                opcoes={servicos.map((s) => ({
+                  value: s.id,
+                  label: s.nome,
+                  // A unidade vai na segunda linha: o mesmo serviço existe em
+                  // várias, e no `<select>` nativo os dois nomes ficavam
+                  // espremidos na mesma linha, cortados pela largura do campo.
+                  hint: s.unidade_nome,
+                }))}
+              />
             </Field>
 
             {acao === "ENCAMINHADO" && (
               <Field label="Prioridade na fila">
-                <Select value={prioridade} onChange={(event) => setPrioridade(event.target.value)} required>
-                  <option value="BAIXA">Baixa</option>
-                  <option value="NORMAL">Normal</option>
-                  <option value="ALTA">Alta</option>
-                  <option value="URGENTE">Urgente</option>
-                </Select>
+                <Dropdown
+                  rotulo="Prioridade na fila"
+                  required
+                  value={prioridade}
+                  onChange={setPrioridade}
+                  opcoes={[
+                    { value: "BAIXA", label: "Baixa", hint: "Senha BX" },
+                    { value: "NORMAL", label: "Normal", hint: "Senha NR" },
+                    { value: "ALTA", label: "Alta", hint: "Senha PR — preferencial por lei" },
+                    { value: "URGENTE", label: "Urgente", hint: "Senha UR" },
+                  ]}
+                />
               </Field>
             )}
 

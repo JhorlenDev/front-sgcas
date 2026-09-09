@@ -3,7 +3,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, ShieldCheck, UserCog, UsersRound } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, Select } from "@/components/ui";
+import { Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader } from "@/components/ui";
 import { Paginacao } from "@/components/shared/paginacao";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Operador, Paginado, Papel, Unidade } from "@/types/sgcas";
@@ -50,6 +50,17 @@ export default function AdminPage() {
   }, [numero, buscaDeOperador]);
 
   const operadores = paginaDeOperadores?.itens ?? [];
+
+  // A dica de cada papel vira a segunda linha da opção — no `<select>` nativo
+  // ela não tinha onde caber e vivia solta embaixo do campo.
+  const opcoesDePapel = useMemo(
+    () => papeis.map((p) => ({ value: p.value, label: p.label, hint: p.hint })),
+    [],
+  );
+  const opcoesDeUnidade = useMemo(
+    () => [{ value: "", label: "Sem unidade" }, ...unidades.map((u) => ({ value: u.id, label: u.nome }))],
+    [unidades],
+  );
 
   useEffect(() => {
     // 350ms: a busca por nome é digitada, e cada tecla dispararia uma consulta.
@@ -177,21 +188,10 @@ export default function AdminPage() {
 
                   <div className="grid gap-3 md:grid-cols-2">
                     <Field label="Perfil">
-                      <Select name="papel" defaultValue="RECEPCIONISTA">
-                        {papeis.map((papel) => (
-                          <option key={papel.value} value={papel.value}>
-                            {papel.label}
-                          </option>
-                        ))}
-                      </Select>
+                      <Dropdown name="papel" rotulo="Perfil" defaultValue="RECEPCIONISTA" opcoes={opcoesDePapel} />
                     </Field>
                     <Field label="Unidade">
-                      <Select name="unidade_id" defaultValue="">
-                        <option value="">Sem unidade</option>
-                        {unidades.map((unidade) => (
-                          <option key={unidade.id} value={unidade.id}>{unidade.nome}</option>
-                        ))}
-                      </Select>
+                      <Dropdown name="unidade_id" rotulo="Unidade" defaultValue="" opcoes={opcoesDeUnidade} />
                     </Field>
                   </div>
 
@@ -258,21 +258,15 @@ export default function AdminPage() {
                       <Input name="nome" defaultValue={operador.nome} />
                     </Field>
                     <Field label="Perfil">
-                      <Select name="papel" defaultValue={operador.papel}>
-                        {papeis.map((papel) => (
-                          <option key={papel.value} value={papel.value}>
-                            {papel.label}
-                          </option>
-                        ))}
-                      </Select>
+                      <Dropdown name="papel" rotulo="Perfil" defaultValue={operador.papel} opcoes={opcoesDePapel} />
                     </Field>
                     <Field label="Unidade">
-                      <Select name="unidade_id" defaultValue={operador.unidade?.id ?? ""}>
-                        <option value="">Sem unidade</option>
-                        {unidades.map((unidade) => (
-                          <option key={unidade.id} value={unidade.id}>{unidade.nome}</option>
-                        ))}
-                      </Select>
+                      <Dropdown
+                        name="unidade_id"
+                        rotulo="Unidade"
+                        defaultValue={operador.unidade?.id ?? ""}
+                        opcoes={opcoesDeUnidade}
+                      />
                     </Field>
                     <label className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-secondary px-3 text-xs font-semibold text-foreground">
                       <input name="ativo" type="checkbox" defaultChecked={operador.ativo} />

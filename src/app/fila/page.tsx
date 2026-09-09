@@ -21,9 +21,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
+import { Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
+
+const SITUACOES_IDENTIFICADAS = [
+  { value: "Atualização cadastral ou orientação simples", label: "Atualização/orientação" },
+  { value: "Vulnerabilidade social relatada", label: "Vulnerabilidade social" },
+  { value: "Solicitação de benefício eventual", label: "Benefício eventual" },
+  { value: "Acompanhamento familiar em andamento", label: "Acompanhamento familiar" },
+  { value: "Violação de direitos ou risco social", label: "Risco/violação de direitos" },
+  { value: "Encaminhamento solicitado por outro órgão", label: "Encaminhamento de outro órgão" },
+];
+
+const PROVIDENCIAS = [
+  { value: "Orientação registrada", label: "Orientação registrada" },
+  { value: "Documentos conferidos", label: "Documentos conferidos" },
+  { value: "Benefício avaliado ou solicitado", label: "Benefício avaliado/solicitado" },
+  { value: "Encaminhamento preparado", label: "Encaminhamento preparado" },
+  { value: "Retorno combinado com o cidadão", label: "Retorno combinado" },
+  { value: "Atendimento concluído no setor", label: "Concluído no setor" },
+];
 
 type AtendimentoMontado = {
   senha: Senha;
@@ -502,17 +520,18 @@ export default function FilaPage() {
                   <form className="grid gap-4" onSubmit={encaminhar}>
                     <div className="grid gap-4 md:grid-cols-2">
                       <Field label="Unidade da rede">
-                        <Select value={unidadeDestinoId} onChange={(event) => {
-                          setUnidadeDestinoId(event.target.value);
-                          if (event.target.value) setDestinoExterno("");
-                        }}>
-                          <option value="">Encaminhamento externo</option>
-                          {unidades.map((unidade) => (
-                            <option key={unidade.id} value={unidade.id}>
-                              {unidade.nome}
-                            </option>
-                          ))}
-                        </Select>
+                        <Dropdown
+                          rotulo="Unidade da rede"
+                          value={unidadeDestinoId}
+                          onChange={(valor) => {
+                            setUnidadeDestinoId(valor);
+                            if (valor) setDestinoExterno("");
+                          }}
+                          opcoes={[
+                            { value: "", label: "Encaminhamento externo", hint: "Fora da rede socioassistencial" },
+                            ...unidades.map((u) => ({ value: u.id, label: u.nome })),
+                          ]}
+                        />
                       </Field>
                       <Field label="Destino externo">
                         <Input
@@ -674,42 +693,40 @@ function RegistroGuiado({
 
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Situação identificada">
-          <Select value={situacaoIdentificada} onChange={(event) => setSituacaoIdentificada(event.target.value)}>
-            <option value="">Selecione, se aplicável</option>
-            <option value="Atualização cadastral ou orientação simples">Atualização/orientação</option>
-            <option value="Vulnerabilidade social relatada">Vulnerabilidade social</option>
-            <option value="Solicitação de benefício eventual">Benefício eventual</option>
-            <option value="Acompanhamento familiar em andamento">Acompanhamento familiar</option>
-            <option value="Violação de direitos ou risco social">Risco/violação de direitos</option>
-            <option value="Encaminhamento solicitado por outro órgão">Encaminhamento de outro órgão</option>
-          </Select>
+          <Dropdown
+            rotulo="Situação identificada"
+            placeholder="Selecione, se aplicável"
+            value={situacaoIdentificada}
+            onChange={setSituacaoIdentificada}
+            opcoes={SITUACOES_IDENTIFICADAS}
+          />
         </Field>
 
         <Field label="Providência">
-          <Select value={providencia} onChange={(event) => setProvidencia(event.target.value)}>
-            <option value="">Selecione, se aplicável</option>
-            <option value="Orientação registrada">Orientação registrada</option>
-            <option value="Documentos conferidos">Documentos conferidos</option>
-            <option value="Benefício avaliado ou solicitado">Benefício avaliado/solicitado</option>
-            <option value="Encaminhamento preparado">Encaminhamento preparado</option>
-            <option value="Retorno combinado com o cidadão">Retorno combinado</option>
-            <option value="Atendimento concluído no setor">Concluído no setor</option>
-          </Select>
+          <Dropdown
+            rotulo="Providência"
+            placeholder="Selecione, se aplicável"
+            value={providencia}
+            onChange={setProvidencia}
+            opcoes={PROVIDENCIAS}
+          />
         </Field>
       </div>
 
       <div className="grid gap-4 md:grid-cols-[0.8fr_1fr]">
         <Field label="Retorno necessário?">
-          <Select value={retornoNecessario} onChange={(event) => setRetornoNecessario(event.target.value)}>
-            <option value="">Definir depois</option>
-            <option value="NAO">Não</option>
-            <option value="SIM">Sim</option>
-          </Select>
+          <Dropdown
+            rotulo="Retorno necessário?"
+            placeholder="Definir depois"
+            value={retornoNecessario}
+            onChange={setRetornoNecessario}
+            opcoes={[{ value: "NAO", label: "Não" }, { value: "SIM", label: "Sim" }]}
+          />
         </Field>
 
         {retornoNecessario === "SIM" && (
           <Field label="Data prevista">
-            <Input type="date" value={dataRetorno} onChange={(event) => setDataRetorno(event.target.value)} />
+            <CampoData rotulo="Data prevista de retorno" value={dataRetorno} onChange={setDataRetorno} />
           </Field>
         )}
       </div>

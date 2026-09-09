@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { Badge, Button, CampoData, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api } from "@/lib/api";
 import type {
   AcaoItinerante,
@@ -441,7 +441,7 @@ export default function AcoesItinerantesPage() {
                 <Input name="local" placeholder="Ex: Comunidade Caiambe" required />
               </Field>
               <Field label="Data">
-                <Input name="data" type="datetime-local" required />
+                <CampoData name="data" rotulo="Data e hora da ação" comHora required />
               </Field>
             </div>
 

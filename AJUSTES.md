@@ -21,6 +21,8 @@ Base da branch: `main` (`d695031`).
 | 3 | Paginação e filtros nas listagens | melhoria | [#2](https://github.com/JhorlenDev/front-sgcas/issues/2) |
 | 4 | Acentuação dos textos de interface | correção | [#3](https://github.com/JhorlenDev/front-sgcas/issues/3) |
 | 5 | Expor por túnel deixou de dar 403 | correção de dev | — |
+| 6 | `Dropdown` e `CampoData` próprios no lugar dos nativos | melhoria | — |
+| 7 | Diálogo: animação corrigida e gaveta no celular | correção | — |
 
 ---
 
@@ -127,6 +129,76 @@ não tem esse bloqueio nem WebSocket de HMR tentando reconectar contra o túnel.
 Está documentado no [README](README.md#expor-a-aplicação-por-um-túnel).
 
 ---
+
+## 6. Componentes de formulário próprios
+
+Os `<select>` nativos e os `<input type="date">` saíram das telas. Não é troca
+estética: o nativo não aceita descrição por opção, não tem busca, e muda de
+aparência, de idioma e de **ordem dos campos** conforme navegador e sistema — o
+`type="date"` aparece como `mm/dd/aaaa` para quem tem o sistema em inglês, o que
+numa tela em português é convite a registrar a data errada.
+
+### `Dropdown` (`src/components/ui/dropdown.tsx`)
+
+Substitui os **18** `<select>` do sistema.
+
+- **Busca automática acima de 7 opções.** Sete é o ponto em que a lista deixa de
+  ser lida de uma vez e passa a ser varrida. O caso que motivou o número: o
+  seletor de serviço da recepção tem 137 opções. A busca ignora acento
+  (`normalize("NFD")`), então "servico" encontra "Serviço".
+- **Segunda linha por opção** (`hint`), onde cabe o que antes ficava espremido:
+  a unidade do serviço, a dica do perfil, o prefixo da senha por prioridade.
+- **Teclado completo**: setas, Home, End, Enter, Esc, Tab, e digitar para pular
+  quando não há campo de busca — o comportamento que o nativo tinha e que se
+  perde em quase toda substituição.
+- **ARIA de combobox/listbox** com `aria-activedescendant`.
+- **Funciona nos dois modos de uso do sistema**: controlado (`value`/`onChange`)
+  e dentro de `<form>` lido por `FormData` — neste caso renderiza um input
+  oculto com o `name`, porque metade dos formulários é lida com
+  `new FormData(event.currentTarget)`.
+- A lista é `position: fixed` em portal, para escapar de qualquer ancestral com
+  `overflow` — e acompanha rolagem e redimensionamento enquanto aberta.
+
+### `CampoData` (`src/components/ui/campo-data.tsx`)
+
+Substitui os **6** campos de data.
+
+- Máscara `dd/mm/aaaa` sempre nessa ordem, mais calendário para escolher
+  olhando. Emite ISO.
+- Valida o dia contra o mês: `31/02` casa com a máscara e não existe.
+- **Nunca passa por `new Date(iso)`** para exibir. `new Date("2026-09-08")` é
+  lido como meia-noite UTC e, num fuso a oeste, volta como dia 7 — o campo
+  mostraria um dia a menos que o gravado.
+- `min`/`max` desabilitam o que está fora, atalhos "Hoje" e "Limpar", e `comHora`
+  para o caso do `datetime-local` das ações itinerantes.
+
+## 7. Diálogo: animação corrigida e gaveta no celular
+
+**Era:** o modal atravessava a tela na diagonal, do canto inferior direito até o
+meio.
+
+**Causa:** o conteúdo era centralizado com `translate(-50%, -50%)` e animado com
+`zoom-in-95` do `tailwindcss-animate`. Aquele utilitário anima a propriedade
+`transform` inteira — e, ao fazê-lo, apagava a centralização durante a animação.
+O modal partia da posição sem translate (canto inferior direito) e escorregava
+até o lugar.
+
+**Ficou:** a centralização é do flex do contêiner, então nenhum `transform` é
+necessário para posicionar, e a animação mexe só em opacidade e deslocamento
+vertical — o "fade in up" pedido.
+
+**No celular (< 640px) o diálogo é uma gaveta**: ancorada na borda inferior,
+cantos superiores arredondados, alça visível, sobe deslizando, respeita
+`env(safe-area-inset-bottom)` e **fecha arrastando para baixo**. O arrasto só
+começa quando o conteúdo já está no topo, senão roubaria a rolagem.
+
+Dois detalhes de comportamento: na gaveta o foco automático é suprimido
+(focar o primeiro campo abriria o teclado por cima do que a pessoa acabou de
+mandar abrir), e todas as animações respeitam `prefers-reduced-motion`.
+
+Os mesmos princípios valem para o dropdown e o calendário: no celular, os dois
+abrem como gaveta.
+
 
 ## Como revisar
 

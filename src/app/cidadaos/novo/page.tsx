@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button, Card, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { Button, CampoData, Card, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api } from "@/lib/api";
 import type { Cidadao } from "@/types/sgcas";
@@ -72,7 +72,7 @@ export default function NovoCidadaoPage() {
             <Input name="telefone" />
           </Field>
           <Field label="Nascimento">
-            <Input name="nascimento" type="date" />
+            <CampoData name="nascimento" rotulo="Data de nascimento" max={new Date().toISOString().slice(0, 10)} />
           </Field>
           <Field label="Bairro">
             <Input name="bairro" />

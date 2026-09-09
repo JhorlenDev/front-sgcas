@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { Badge, Button, CampoData, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Cidadao, CidadaoLista, Paginado } from "@/types/sgcas";
@@ -206,7 +206,7 @@ export default function CidadaosPage() {
                 <Input name="telefone" placeholder="(92) 99999-9999" />
               </Field>
               <Field label="Data de nascimento">
-                <Input name="nascimento" type="date" />
+                <CampoData name="nascimento" rotulo="Data de nascimento" max={new Date().toISOString().slice(0, 10)} />
               </Field>
               <Field label="Bairro">
                 <Input name="bairro" />

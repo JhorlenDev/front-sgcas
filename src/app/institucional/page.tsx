@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
+import { Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { Coordenacao, Demanda, Servico, Unidade } from "@/types/sgcas";
 
@@ -222,20 +222,25 @@ export default function InstitucionalPage() {
                 <Input name="sigla" placeholder="CRAS-CENTRO" required />
               </Field>
               <Field label="Tipo">
-                <Select name="tipo" defaultValue="CRAS" required>
-                  {tiposDeUnidade.map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </Select>
+                <Dropdown
+                  name="tipo"
+                  rotulo="Tipo"
+                  defaultValue="CRAS"
+                  required
+                  opcoes={tiposDeUnidade.map(([value, label]) => ({ value, label }))}
+                />
               </Field>
               {coordenacoes.length > 0 ? (
                 <Field label="Coordenação (opcional)">
-                  <Select name="coordenacao_id">
-                    <option value="">Sem coordenação</option>
-                    {coordenacoes.map((coordenacao) => (
-                      <option key={coordenacao.id} value={coordenacao.id}>{coordenacao.nome}</option>
-                    ))}
-                  </Select>
+                  <Dropdown
+                    name="coordenacao_id"
+                    rotulo="Coordenação"
+                    placeholder="Sem coordenação"
+                    opcoes={[
+                      { value: "", label: "Sem coordenação" },
+                      ...coordenacoes.map((c) => ({ value: c.id, label: c.nome, hint: c.sigla })),
+                    ]}
+                  />
                 </Field>
               ) : (
                 <input name="coordenacao_id" type="hidden" value="" />
@@ -276,20 +281,23 @@ export default function InstitucionalPage() {
               <Input name="nome" placeholder="Benefício eventual" required />
             </Field>
             <Field label="Unidade">
-              <Select name="unidade_id" required>
-                <option value="">Selecione</option>
-                {unidades.map((unidade) => (
-                  <option key={unidade.id} value={unidade.id}>{unidade.nome}</option>
-                ))}
-              </Select>
+              <Dropdown
+                name="unidade_id"
+                rotulo="Unidade"
+                required
+                opcoes={unidades.map((u) => ({ value: u.id, label: u.nome, hint: u.sigla }))}
+              />
             </Field>
             <Field label="Categoria municipal">
-              <Select name="demanda_id">
-                <option value="">Sem categoria</option>
-                {demandas.map((demanda) => (
-                  <option key={demanda.id} value={demanda.id}>{demanda.nome}</option>
-                ))}
-              </Select>
+              <Dropdown
+                name="demanda_id"
+                rotulo="Categoria municipal"
+                placeholder="Sem categoria"
+                opcoes={[
+                  { value: "", label: "Sem categoria" },
+                  ...demandas.map((d) => ({ value: d.id, label: d.nome })),
+                ]}
+              />
             </Field>
             <Field label="Descrição">
               <textarea className="input" name="descricao" placeholder="Descrição curta do serviço" />
