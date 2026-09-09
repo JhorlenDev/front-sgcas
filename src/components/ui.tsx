@@ -2,6 +2,10 @@
 
 import type { ButtonHTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes } from "react";
 
+export { Dropdown } from "@/components/ui/dropdown";
+export type { OpcaoDoDropdown } from "@/components/ui/dropdown";
+export { CampoData } from "@/components/ui/campo-data";
+
 export function Button(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   const { className = "", ...rest } = props;
   return <button className={`button ${className}`} {...rest} />;
@@ -22,6 +26,11 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input className={`input ${className}`} {...rest} />;
 }
 
+/**
+ * @deprecated Use `Dropdown`. O `<select>` nativo nao aceita descricao por
+ * opcao, nao tem busca e muda de aparencia entre navegadores. Mantido apenas
+ * enquanto houver uso nao migrado.
+ */
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   const { className = "", ...rest } = props;
   return <select className={`input ${className}`} {...rest} />;
