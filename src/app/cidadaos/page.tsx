@@ -4,6 +4,7 @@ import { ArrowRight, FileText, Search, UserPlus } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
+import { Paginacao } from "@/components/shared/paginacao";
 import {
   Dialog,
   DialogContent,
@@ -12,15 +13,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
-import { api } from "@/lib/api";
-import type { Cidadao, CidadaoLista } from "@/types/sgcas";
+import { api, comQuery, paginadoVazio } from "@/lib/api";
+import type { Cidadao, CidadaoLista, Paginado } from "@/types/sgcas";
+
+const POR_PAGINA = 25;
 
 export default function CidadaosPage() {
   const router = useRouter();
   const [busca, setBusca] = useState("");
-  const [resultados, setResultados] = useState<CidadaoLista[]>([]);
+  const [pagina, setPagina] = useState<Paginado<CidadaoLista> | null>(null);
+  const [numero, setNumero] = useState(1);
   const [buscou, setBuscou] = useState(false);
   const [carregando, setCarregando] = useState(true);
   const [modalAberto, setModalAberto] = useState(false);
@@ -30,21 +34,24 @@ export default function CidadaosPage() {
   const [termoLido, setTermoLido] = useState(false);
   const [criarAcesso, setCriarAcesso] = useState(true);
 
-  const carregarCidadaos = useCallback(async (termo = "") => {
+  const carregarCidadaos = useCallback(async (termo: string, pedida: number) => {
     setCarregando(true);
-    const query = termo.trim() ? `?busca=${encodeURIComponent(termo.trim())}` : "";
-    const data = await api<CidadaoLista[]>(`/citizens/${query}`).catch(() => []);
-    setResultados(data);
+    const data = await api<Paginado<CidadaoLista>>(
+      comQuery("/citizens/", { busca: termo.trim(), page: pedida, limit: POR_PAGINA }),
+    ).catch(() => paginadoVazio<CidadaoLista>(POR_PAGINA));
+    setPagina(data);
     setBuscou(true);
     setCarregando(false);
   }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void carregarCidadaos(busca);
+      void carregarCidadaos(busca, numero);
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [busca, carregarCidadaos]);
+  }, [busca, numero, carregarCidadaos]);
+
+  const resultados = pagina?.itens ?? [];
 
   async function salvarCidadao(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,15 +100,24 @@ export default function CidadaosPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-10"
+            type="search"
             value={busca}
-            onChange={(event) => setBusca(event.target.value)}
+            onChange={(event) => {
+              // Termo novo, contagem nova: manter a página anterior cairia além
+              // do fim do resultado e mostraria vazio como se nada casasse.
+              setNumero(1);
+              setBusca(event.target.value);
+            }}
             placeholder="Digite nome, CPF, NIS ou e-mail"
           />
         </div>
 
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="!mb-0">{busca.trim() && buscou ? "Resultado da busca" : "Cidadãos recentes"}</h2>
-          {carregando && <span className="text-sm text-muted-foreground">Carregando...</span>}
+          <div className="flex items-center gap-3">
+            {carregando && <span className="text-sm text-muted-foreground">Carregando…</span>}
+            <Badge tone="neutral">{(pagina?.total ?? 0).toLocaleString("pt-BR")}</Badge>
+          </div>
         </div>
 
         {resultados.length > 0 && (
@@ -151,6 +167,15 @@ export default function CidadaosPage() {
             text={busca.trim() ? "Confira o dado informado ou crie um novo cadastro." : "Quando houver cadastros, eles aparecem aqui automaticamente."}
           />
         )}
+
+        <Paginacao
+          pagina={pagina?.pagina ?? 1}
+          paginas={pagina?.paginas ?? 1}
+          total={pagina?.total ?? 0}
+          porPagina={pagina?.por_pagina ?? POR_PAGINA}
+          onPagina={setNumero}
+          rotulo="cidadãos"
+        />
       </Card>
 
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>

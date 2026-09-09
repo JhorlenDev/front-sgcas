@@ -27,8 +27,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
-import { api } from "@/lib/api";
-import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
+import { api, comQuery } from "@/lib/api";
+import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, Paginado, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
 
 type HistoricoResponse = {
   cidadao: CidadaoLista;
@@ -75,7 +75,9 @@ export default function RecepcaoPage() {
   }, []);
 
   async function carregarUltimosAtendimentos() {
-    const data = await api<AtendimentoRecepcao[]>("/reception/atendimentos").catch(() => []);
+    const data = await api<Paginado<AtendimentoRecepcao>>(comQuery("/reception/atendimentos", { limit: 20 }))
+      .then((r) => r.itens)
+      .catch(() => []);
     setUltimosAtendimentos(data);
   }
 
@@ -88,7 +90,9 @@ export default function RecepcaoPage() {
   }
 
   async function carregarFila() {
-    const data = await api<Senha[]>("/queues/").catch(() => []);
+    const data = await api<Paginado<Senha>>(comQuery("/queues/", { limit: 50 }))
+      .then((r) => r.itens)
+      .catch(() => []);
     setFila(data);
   }
 
@@ -99,7 +103,8 @@ export default function RecepcaoPage() {
     }
 
     const timer = window.setTimeout(() => {
-      void api<CidadaoLista[]>(`/citizens/?busca=${encodeURIComponent(termo)}`)
+      void api<Paginado<CidadaoLista>>(comQuery("/citizens/", { busca: termo, limit: 20 }))
+        .then((r) => r.itens)
         .then(setCidadaos)
         .catch(() => setCidadaos([]));
     }, 300);
@@ -124,7 +129,9 @@ export default function RecepcaoPage() {
   async function carregarDadosDoCidadao(selecionado: CidadaoLista) {
     const [historicoData, casosData] = await Promise.all([
       api<HistoricoResponse>(`/citizens/${selecionado.id}/historico`).catch(() => ({ cidadao: selecionado, entradas: [] })),
-      api<Caso[]>(`/cases/?cidadao=${selecionado.id}`).catch(() => []),
+      api<Paginado<Caso>>(comQuery("/cases/", { cidadao: selecionado.id, limit: 10 }))
+        .then((r) => r.itens)
+        .catch(() => []),
     ]);
 
     setHistorico(historicoData.entradas);

@@ -22,8 +22,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
-import { api } from "@/lib/api";
-import type { Cidadao, EntradaHistorico, Caso, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
+import { api, comQuery } from "@/lib/api";
+import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
 
 type AtendimentoMontado = {
   senha: Senha;
@@ -56,7 +56,9 @@ export default function FilaPage() {
 
   async function carregar() {
     const [filaData, painelData] = await Promise.all([
-      api<Senha[]>("/queues/").catch(() => []),
+      api<Paginado<Senha>>(comQuery("/queues/", { limit: 50 }))
+        .then((r) => r.itens)
+        .catch(() => []),
       api<PainelAtendente>("/queues/painel").catch(() => null),
     ]);
     setFila(filaData);

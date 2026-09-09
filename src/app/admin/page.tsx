@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock3, ShieldCheck, UserCog, UsersRound } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, Select } from "@/components/ui";
-import { api } from "@/lib/api";
-import type { Operador, Papel, Unidade } from "@/types/sgcas";
+import { Paginacao } from "@/components/shared/paginacao";
+import { api, comQuery, paginadoVazio } from "@/lib/api";
+import type { Operador, Paginado, Papel, Unidade } from "@/types/sgcas";
 
 type Pedido = {
   id: string;
@@ -25,29 +26,38 @@ const papeis: Array<{ value: Papel; label: string; hint: string }> = [
   { value: "ADMIN", label: "Administrador", hint: "Acesso total ao sistema." },
 ];
 
+const POR_PAGINA = 25;
+
 export default function AdminPage() {
-  const [operadores, setOperadores] = useState<Operador[]>([]);
+  const [paginaDeOperadores, setPaginaDeOperadores] = useState<Paginado<Operador> | null>(null);
+  const [numero, setNumero] = useState(1);
+  const [buscaDeOperador, setBuscaDeOperador] = useState("");
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [mensagem, setMensagem] = useState("");
 
-  async function carregar() {
+  const carregar = useCallback(async () => {
     const [users, requests, units] = await Promise.all([
-      api<Operador[]>("/users/").catch(() => []),
+      api<Paginado<Operador>>(
+        comQuery("/users/", { page: numero, limit: POR_PAGINA, busca: buscaDeOperador }),
+      ).catch(() => paginadoVazio<Operador>(POR_PAGINA)),
       api<Pedido[]>("/access-requests/").catch(() => []),
       api<Unidade[]>("/institutional/units").catch(() => []),
     ]);
-    setOperadores(users);
+    setPaginaDeOperadores(users);
     setPedidos(requests);
     setUnidades(units);
-  }
+  }, [numero, buscaDeOperador]);
+
+  const operadores = paginaDeOperadores?.itens ?? [];
 
   useEffect(() => {
+    // 350ms: a busca por nome é digitada, e cada tecla dispararia uma consulta.
     const timer = window.setTimeout(() => {
       void carregar();
-    }, 0);
+    }, 350);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [carregar]);
 
   useEffect(() => {
     if (!mensagem) return;
@@ -55,11 +65,24 @@ export default function AdminPage() {
     return () => window.clearTimeout(timer);
   }, [mensagem]);
 
+  // Os dois contadores de operador vêm de consultas próprias, com `total` do
+  // banco: contar a página exibida diria quantos couberam nela, não quantos são.
+  const [totais, setTotais] = useState({ ativos: 0, semUnidade: 0 });
+
+  useEffect(() => {
+    void Promise.all([
+      api<Paginado<Operador>>(comQuery("/users/", { ativo: "true", limit: 1 })),
+      api<Paginado<Operador>>(comQuery("/users/", { sem_unidade: "true", limit: 1 })),
+    ])
+      .then(([ativos, sem]) => setTotais({ ativos: ativos.total, semUnidade: sem.total }))
+      .catch(() => setTotais({ ativos: 0, semUnidade: 0 }));
+  }, [mensagem]);
+
   const resumo = useMemo(() => ({
     pendentes: pedidos.length,
-    ativos: operadores.filter((operador) => operador.ativo).length,
-    semUnidade: operadores.filter((operador) => operador.ativo && !operador.unidade).length,
-  }), [operadores, pedidos]);
+    ativos: totais.ativos,
+    semUnidade: totais.semUnidade,
+  }), [pedidos, totais]);
 
   async function aprovar(event: FormEvent<HTMLFormElement>, pedido: Pedido) {
     event.preventDefault();
@@ -192,7 +215,21 @@ export default function AdminPage() {
               <h2 className="!mb-1">Operadores cadastrados</h2>
               <p className="text-sm leading-6 text-muted-foreground">Ajuste perfil, lotação e status. O perfil é atualizado no Keycloak.</p>
             </div>
-            <Badge tone="neutral">{operadores.length}</Badge>
+            <Badge tone="neutral">{(paginaDeOperadores?.total ?? 0).toLocaleString("pt-BR")}</Badge>
+          </div>
+
+          <div className="mb-5">
+            <Field label="Buscar operador">
+              <Input
+                type="search"
+                placeholder="Nome ou e-mail"
+                value={buscaDeOperador}
+                onChange={(event) => {
+                  setNumero(1);
+                  setBuscaDeOperador(event.target.value);
+                }}
+              />
+            </Field>
           </div>
 
           {operadores.length === 0 ? (
@@ -254,6 +291,15 @@ export default function AdminPage() {
               ))}
             </div>
           )}
+
+          <Paginacao
+            pagina={paginaDeOperadores?.pagina ?? 1}
+            paginas={paginaDeOperadores?.paginas ?? 1}
+            total={paginaDeOperadores?.total ?? 0}
+            porPagina={paginaDeOperadores?.por_pagina ?? POR_PAGINA}
+            onPagina={setNumero}
+            rotulo="operadores"
+          />
         </Card>
       </div>
     </AppShell>
