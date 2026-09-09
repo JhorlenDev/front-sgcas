@@ -94,7 +94,7 @@ export default function FilaPage() {
       setModalOpen(true);
       await carregar();
     } catch {
-      setMensagem("Nao ha ninguem aguardando.");
+      setMensagem("Não há ninguém aguardando.");
     }
   }
 
@@ -269,7 +269,7 @@ export default function FilaPage() {
             <Badge tone={fila.length ? "warn" : "good"}>{fila.length}</Badge>
           </div>
           {fila.length === 0 ? (
-            <EmptyState title="Fila vazia" text="A recepcao ainda nao encaminhou atendimentos." />
+            <EmptyState title="Fila vazia" text="A recepção ainda não encaminhou atendimentos." />
           ) : (
             fila.map((senha) => (
               <div className="rounded-none border border-border bg-background p-4 transition-all hover:bg-white hover:" key={senha.id}>

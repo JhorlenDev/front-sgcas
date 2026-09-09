@@ -44,7 +44,7 @@ export default function NovoCidadaoPage() {
       });
       router.replace(`/cidadaos/${cidadao.id}`);
     } catch {
-      setErro("Nao foi possivel salvar. Confira os dados e o consentimento.");
+      setErro("Não foi possível salvar. Confira os dados e o consentimento.");
     } finally {
       setSalvando(false);
     }
@@ -83,7 +83,7 @@ export default function NovoCidadaoPage() {
           <Field label="UF">
             <Input name="uf" defaultValue="AM" />
           </Field>
-          <Field label="Endereco">
+          <Field label="Endereço">
             <Input name="endereco" />
           </Field>
 

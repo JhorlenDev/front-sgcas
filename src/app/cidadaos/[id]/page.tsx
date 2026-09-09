@@ -31,22 +31,22 @@ export default function ProntuarioPage() {
           <h2>Cadastro</h2>
           {cidadao && (
             <div className="grid">
-              <p><strong>Endereco:</strong> {[cidadao.endereco, cidadao.bairro, cidadao.cidade, cidadao.uf].filter(Boolean).join(", ") || "-"}</p>
+              <p><strong>Endereço:</strong> {[cidadao.endereco, cidadao.bairro, cidadao.cidade, cidadao.uf].filter(Boolean).join(", ") || "-"}</p>
               <p><strong>NIS:</strong> {cidadao.nis ?? "-"}</p>
-              <p><strong>Observacoes:</strong> {cidadao.observacoes ?? "-"}</p>
+              <p><strong>Observações:</strong> {cidadao.observacoes ?? "-"}</p>
             </div>
           )}
         </Card>
         <Card>
-          <h2>Historico municipal</h2>
+          <h2>Histórico municipal</h2>
           {historico.length === 0 ? (
-            <EmptyState title="Sem historico" text="Os atendimentos desta pessoa aparecem aqui." />
+            <EmptyState title="Sem histórico" text="Os atendimentos desta pessoa aparecem aqui." />
           ) : (
             historico.map((entrada, index) => (
               <div className="line-row" key={`${entrada.quando}-${index}`}>
                 <div className="row">
                   <strong>{entrada.o_que}</strong>
-                  {entrada.no_mes_corrente && <Badge tone="warn">Mes corrente</Badge>}
+                  {entrada.no_mes_corrente && <Badge tone="warn">Mês corrente</Badge>}
                 </div>
                 <small>{entrada.unidade} - {new Date(entrada.quando).toLocaleDateString("pt-BR")}</small>
                 {entrada.detalhe && <p>{entrada.detalhe}</p>}
