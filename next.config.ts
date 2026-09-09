@@ -1,8 +1,29 @@
 import type { NextConfig } from "next";
 
+/**
+ * Origens extras liberadas no servidor de desenvolvimento.
+ *
+ * Em desenvolvimento o Next recusa requisição de origem diferente daquela em
+ * que subiu — os arquivos de `/_next/*` voltam 403. Isso protege o dev server
+ * de ser lido por outro site, e é o que quebra quando a aplicação é exposta por
+ * um túnel (Cloudflare, ngrok) para alguém testar de fora: a página carrega e
+ * nenhum script vem junto.
+ *
+ * Não vale para `next start` — em produção não existe esse bloqueio.
+ *
+ *   NEXT_DEV_ORIGINS="*.trycloudflare.com,meu-tunel.exemplo" npm run dev
+ */
+const origensDeDesenvolvimento = (process.env.NEXT_DEV_ORIGINS ?? "")
+  .split(",")
+  .map((origem) => origem.trim())
+  .filter(Boolean);
+
 const nextConfig: NextConfig = {
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
+  ...(origensDeDesenvolvimento.length > 0
+    ? { allowedDevOrigins: origensDeDesenvolvimento }
+    : {}),
   turbopack: {
     root: __dirname,
   },

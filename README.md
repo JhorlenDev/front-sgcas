@@ -218,6 +218,35 @@ situação vazia e devolver nada — o filtro "todas" viraria "nenhuma". Trocar 
 filtro volta para a página 1, senão a página atual costuma cair além do fim do
 novo resultado e a tela mostra vazio como se nada casasse.
 
+## Expor a aplicação por um túnel
+
+Para alguém testar de fora (Cloudflare Tunnel, ngrok), sirva o **build de
+produção** — não o dev server:
+
+```bash
+npm run build
+npm start -- -p 3001
+cloudflared tunnel --url http://localhost:3001
+```
+
+O dev server recusa requisição vinda de outra origem e devolve **403 em
+`/_next/*`**: a página carrega e nenhum script vem junto. É proteção do próprio
+Next, e some em `next start`.
+
+Se precisar mesmo expor o dev server (para manter o hot reload), libere a origem:
+
+```bash
+NEXT_DEV_ORIGINS="*.trycloudflare.com" npm run dev -- -p 3001
+```
+
+Lembre que o backend precisa saber a URL pública, senão o retorno do login
+manda a pessoa de volta para `localhost`. No `api-sgcas/.env`:
+
+```env
+FRONTEND_URL=https://seu-tunel.trycloudflare.com
+CORS_ORIGIN=https://seu-tunel.trycloudflare.com
+```
+
 ## Scripts
 
 ```bash
