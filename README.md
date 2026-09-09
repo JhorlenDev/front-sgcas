@@ -4,6 +4,11 @@ Frontend Next.js do SGCAS — Sistema de Gestão de Casos da Assistência Social
 
 Este projeto consome a API Django do `api-sgcas` e entrega as telas de login, cidadãos, recepção, atendimento, acompanhamentos, institucional e usuários.
 
+> **Na branch `ajustes-marreira`:** o que foi corrigido e por quê está em
+> [`AJUSTES.md`](AJUSTES.md) — inclusive o que ficou de fora e o que exige
+> atenção antes de ir para produção.
+
+
 ## Stack
 
 - Next.js 16
