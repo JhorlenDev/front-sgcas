@@ -1,3 +1,18 @@
+/**
+ * Envelope das listagens paginadas da API.
+ *
+ * `total` é o número de registros que casam com o filtro — não o tamanho da
+ * página. É a distinção que faltava: antes a API cortava em 100 e a tela
+ * exibia `itens.length` como se fosse o total do município.
+ */
+export type Paginado<T> = {
+  itens: T[];
+  total: number;
+  pagina: number;
+  por_pagina: number;
+  paginas: number;
+};
+
 export type Papel =
   | "ADMIN"
   | "COORDENADOR"
@@ -40,7 +55,18 @@ export type Operador = {
   email: string;
   papel: Papel;
   ativo: boolean;
+  /** Objeto em /auth/me e em /users/ — os dois formatos foram unificados. */
   unidade: Unidade | null;
+  unidade_id?: string | null;
+  unidade_nome?: string | null;
+};
+
+/** Contagem por situação vinda de /cases/resumo. */
+export type ResumoDeCasos = {
+  total: number;
+  por_situacao: Record<string, number>;
+  em_acompanhamento: number;
+  finalizados: number;
 };
 
 export type CidadaoLista = {

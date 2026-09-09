@@ -1,5 +1,7 @@
 "use client";
 
+import type { Paginado } from "@/types/sgcas";
+
 type ApiOptions = RequestInit & {
   skipAuthRedirect?: boolean;
 };
@@ -74,6 +76,28 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   }
 
   return data as T;
+}
+
+/**
+ * Monta a query string ignorando o que está vazio.
+ *
+ * Enviar `?situacao=` faria a API filtrar por situação vazia e devolver lista
+ * vazia — o filtro "todos" viraria o filtro "nenhum". Chave sem valor não vai.
+ */
+export function comQuery(base: string, params: Record<string, string | number | undefined | null>) {
+  const busca = new URLSearchParams();
+  for (const [chave, valor] of Object.entries(params)) {
+    if (valor === undefined || valor === null) continue;
+    const texto = String(valor).trim();
+    if (texto) busca.set(chave, texto);
+  }
+  const query = busca.toString();
+  return query ? `${base}?${query}` : base;
+}
+
+/** Envelope vazio — usado como resultado de falha, para a tela não quebrar. */
+export function paginadoVazio<T>(porPagina = 25): Paginado<T> {
+  return { itens: [], total: 0, pagina: 1, por_pagina: porPagina, paginas: 1 };
 }
 
 export function loginWithTefeCidadao() {
