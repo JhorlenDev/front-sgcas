@@ -27,6 +27,7 @@ Base da branch: `main` (`d695031`).
 | 9 | `Checkbox`, `GrupoDeEscolha` e `AreaDeTexto` | melhoria | — |
 | 10 | Cantos arredondados seguindo a escala do design system | melhoria | — |
 | 11 | Nomes e protocolos viraram links, respeitando permissão | melhoria | — |
+| 12 | Prontuário do cidadão virou ficha completa | melhoria | — |
 
 ---
 
@@ -330,6 +331,49 @@ resultado da busca da recepção. Âncora dentro de botão é HTML inválido, e 
 casos o próprio cartão já navega: a lista de cidadãos abre o prontuário, e o
 cartão de caso abre o diálogo, onde o nome **é** link. Em `/casos` o protocolo
 também não vira link, porque levaria à mesma tela.
+
+
+## 12. Prontuário do cidadão virou ficha
+
+A tela mostrava três linhas — endereço, NIS e observações — enquanto a API
+devolvia trinta e poucos campos. Documento, escolaridade, raça/cor, perfil
+socioeconômico, composição familiar e consentimentos estavam no banco, viajavam
+na resposta e não apareciam em lugar nenhum.
+
+Agora são **10 seções**: identificação, contato, endereço, perfil
+socioeconômico, composição familiar, observações, consentimentos (LGPD),
+anexos, acompanhamentos e histórico municipal.
+
+### Valor de máquina não vai para a tela
+
+`src/lib/rotulos.ts` traduz o que o banco guarda: `FUNDAMENTAL_INCOMPLETO` vira
+"Fundamental incompleto", `NAO_DECLARADA` vira "Não declarada". Fica fora dos
+componentes porque os mesmos valores aparecem em outras telas, e rótulo
+divergente entre elas é o tipo de inconsistência que ninguém nota até alguém
+perguntar por quê.
+
+Quando o valor é desconhecido, o cru aparece **de propósito** — valor novo no
+banco fica feio na tela, o que é um aviso; sumir com ele esconderia a informação
+e o fato de a tradução ter ficado para trás.
+
+Também dali saem as máscaras (CPF, NIS, CEP, telefone), o dinheiro em reais e a
+idade. A idade compara mês e dia em vez de dividir milissegundos por 365 — a
+conta por subtração erra em ano bissexto e em quem faz aniversário hoje.
+
+### Campo vazio continua aparecendo
+
+Marcado como "Não informado", em cinza. Some com ele e a ficha ganha buracos
+irregulares — e, pior, esconde que o dado **falta**. Numa ficha de assistência
+social isso é informação: é o que diz à próxima pessoa o que ainda precisa ser
+perguntado.
+
+### O que a ficha ganhou além do cadastro
+
+- **Aviso no topo** quando há caso em aberto, deficiência declarada, cadastro
+  vindo de ação itinerante ou uso de imagem revogado.
+- **Acompanhamentos** da pessoa, com o protocolo levando à lista filtrada.
+- **Histórico municipal** com a marca de "mês corrente", que é o que a recepção
+  precisa ver antes de conceder de novo.
 
 
 ## Como revisar

@@ -78,22 +78,67 @@ export type CidadaoLista = {
   cidade?: string | null;
 };
 
+/** Uma pessoa da composição familiar, como o cadastro grava. */
+export type MembroDaFamilia = {
+  nome?: string | null;
+  parentesco?: string | null;
+  nascimento?: string | null;
+  rendaPropria?: number | null;
+};
+
+export type Socioeconomico = {
+  rendaFamiliar?: number | null;
+  rendaPerCapita?: number | null;
+  pessoasNoDomicilio?: number | null;
+  situacaoMoradia?: string | null;
+  tipoConstrucao?: string | null;
+  aguaEncanada?: boolean | null;
+  energiaEletrica?: boolean | null;
+  coletaDeLixo?: boolean | null;
+  beneficios?: string[] | null;
+};
+
+export type EnderecoDetalhado = {
+  logradouro?: string | null;
+  numero?: string | null;
+  bairro?: string | null;
+  municipio?: string | null;
+  uf?: string | null;
+  cep?: string | null;
+  zona?: string | null;
+  referencia?: string | null;
+};
+
 export type Cidadao = CidadaoLista & {
   nis?: string | null;
   rg?: string | null;
   email?: string | null;
   telefone?: string | null;
   endereco?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
   uf?: string | null;
   cep?: string | null;
+  sexo?: string | null;
+  naturalidade?: string | null;
+  escolaridade?: string | null;
+  identidade_de_genero?: string | null;
+  raca?: string | null;
+  tem_deficiencia?: boolean | null;
+  estado_civil?: string | null;
   observacoes?: string | null;
-  socioeconomico?: Record<string, unknown> | null;
-  membros_da_familia?: unknown[] | null;
-  anexos?: unknown[] | null;
+  documentos?: Record<string, string | null> | null;
+  endereco_detalhado?: EnderecoDetalhado | null;
+  socioeconomico?: Socioeconomico | null;
+  membros_da_familia?: MembroDaFamilia[] | null;
+  anexos?: { id?: string; nome?: string; tipo?: string; tamanho?: number }[] | null;
   autoriza_imagem?: boolean | null;
   imagem_aceita_em?: string | null;
   imagem_revogada_em?: string | null;
   consentiu_tefe_cidadao_em?: string | null;
+  acao_itinerante?: string | null;
+  criado_em?: string | null;
+  atualizado_em?: string | null;
 };
 
 export type Servico = {
