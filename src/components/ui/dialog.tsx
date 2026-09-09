@@ -154,7 +154,7 @@ const DialogContent = React.forwardRef<
                   'data-[state=open]:animate-gaveta-entra data-[state=closed]:animate-gaveta-sai',
                 ]
               : [
-                  'max-w-lg rounded-none',
+                  'max-w-lg rounded-xl',
                   'data-[state=open]:animate-dialogo-entra data-[state=closed]:animate-dialogo-sai',
                 ],
             'motion-reduce:animate-none',

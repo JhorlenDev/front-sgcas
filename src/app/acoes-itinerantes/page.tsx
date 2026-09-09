@@ -249,9 +249,9 @@ export default function AcoesItinerantesPage() {
         </Card>
 
         {/* Card Campo - próximo atendimento externo (aviso chamativo) */}
-        <div className={`relative overflow-hidden rounded-none border-2 bg-gradient-to-br from-warning/5 to-warning/10 p-5 transition-all ${proximaAcao ? "border-warning" : "border-border"}`}>
+        <div className={`relative overflow-hidden rounded-lg border-2 bg-gradient-to-br from-warning/5 to-warning/10 p-5 transition-all ${proximaAcao ? "border-warning" : "border-border"}`}>
           {proximaAcao && (
-            <div className="pointer-events-none absolute -inset-[3px] rounded-none border-2 border-warning animate-[pulse_2s_ease-in-out_infinite] opacity-70" />
+            <div className="pointer-events-none absolute -inset-[3px] rounded-lg border-2 border-warning animate-[pulse_2s_ease-in-out_infinite] opacity-70" />
           )}
           <div className="relative">
             <div className="flex items-start justify-between gap-3">

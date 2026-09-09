@@ -218,7 +218,7 @@ export default function RecepcaoPage() {
         }
       />
 
-      <div className="mb-5 flex flex-wrap gap-2 rounded-none border border-border bg-white p-2">
+      <div className="mb-5 flex flex-wrap gap-2 rounded-lg border border-border bg-white p-2">
         <AbaButton active={aba === "nova"} onClick={() => setAba("nova")}>
           <UserPlus size={17} />
           Nova recepção
@@ -392,7 +392,7 @@ export default function RecepcaoPage() {
             )}
 
             {servicoSelecionado && casosParecidos.length > 0 && (
-              <div className="rounded-none border border-[var(--pmt-color-warning)] bg-[var(--pmt-color-warning-soft)] p-4 text-[var(--pmt-color-warning-soft-fg)]">
+              <div className="rounded-lg border border-[var(--pmt-color-warning)] bg-[var(--pmt-color-warning-soft)] p-4 text-[var(--pmt-color-warning-soft-fg)]">
                 <div className="row">
                   <AlertTriangle size={18} />
                   <strong>Possível duplicidade</strong>
@@ -619,7 +619,7 @@ function PainelDoCidadao({ casos, historico }: { casos: Caso[]; historico: Entra
 
 function CasosRecentes({ casos }: { casos: Caso[] }) {
   return (
-    <div className="rounded-none border border-border bg-white p-4">
+    <div className="rounded-lg border border-border bg-white p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="row !justify-start">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -636,7 +636,7 @@ function CasosRecentes({ casos }: { casos: Caso[] }) {
         <div className="space-y-2.5">
           {casos.slice(0, 6).map((caso) => (
             <article
-              className="rounded-none border border-border bg-background p-3.5 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white hover:"
+              className="rounded-lg border border-border bg-background p-3.5 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-white hover:"
               key={caso.id}
             >
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -678,7 +678,7 @@ function CasosRecentes({ casos }: { casos: Caso[] }) {
 
 function HistoricoAtendimentos({ historico }: { historico: EntradaHistorico[] }) {
   return (
-    <div className="rounded-none border border-border bg-white p-4">
+    <div className="rounded-lg border border-border bg-white p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="row !justify-start">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -701,7 +701,7 @@ function HistoricoAtendimentos({ historico }: { historico: EntradaHistorico[] })
                 {entrada.o_que.toLowerCase().includes("finalizado") ? <CheckCircle2 size={15} /> : <ShieldAlert size={15} />}
               </span>
 
-              <div className="rounded-none border border-border bg-secondary p-3.5">
+              <div className="rounded-lg border border-border bg-secondary p-3.5">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <strong className="text-sm text-foreground">{entrada.o_que}</strong>
                   <Badge tone={entrada.e_de_outra_unidade ? "warn" : "neutral"}>
@@ -756,7 +756,7 @@ function UltimosAtendimentos({ atendimentos, completo = false }: { atendimentos:
       ) : (
         <div className="space-y-2.5">
           {atendimentos.slice(0, completo ? 20 : 6).map((atendimento) => (
-            <article className="rounded-none border border-border bg-white p-3.5" key={atendimento.id}>
+            <article className="rounded-lg border border-border bg-white p-3.5" key={atendimento.id}>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <strong className="text-sm text-foreground">{atendimento.cidadao_nome}</strong>
                 <Badge tone={atendimento.desfecho === "ENCAMINHADO" ? "warn" : "good"}>
@@ -812,12 +812,12 @@ function FilaSomenteLeitura({ fila, onAtualizar }: { fila: Senha[]; onAtualizar:
         <div className="grid gap-3">
           {fila.map((senha) => (
             <article
-              className="rounded-none border border-border bg-background p-4 transition-all hover:bg-white hover:"
+              className="rounded-lg border border-border bg-background p-4 transition-all hover:bg-white hover:"
               key={senha.id}
             >
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-start gap-3">
-                  <span className="flex h-12 min-w-16 items-center justify-center rounded-none bg-primary px-4 text-lg font-bold text-primary-foreground">
+                  <span className="flex h-12 min-w-16 items-center justify-center rounded-md bg-primary px-4 text-lg font-bold text-primary-foreground">
                     {senha.senha}
                   </span>
                   <div>

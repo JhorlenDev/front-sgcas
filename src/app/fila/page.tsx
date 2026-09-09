@@ -290,10 +290,10 @@ export default function FilaPage() {
             <EmptyState title="Fila vazia" text="A recepção ainda não encaminhou atendimentos." />
           ) : (
             fila.map((senha) => (
-              <div className="rounded-none border border-border bg-background p-4 transition-all hover:bg-white hover:" key={senha.id}>
+              <div className="rounded-lg border border-border bg-background p-4 transition-all hover:bg-white hover:" key={senha.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <strong className="flex h-11 min-w-14 items-center justify-center rounded-none bg-primary px-3 text-lg text-primary-foreground">
+                    <strong className="flex h-11 min-w-14 items-center justify-center rounded-md bg-primary px-3 text-lg text-primary-foreground">
                       {senha.senha}
                     </strong>
                     <div>
@@ -317,7 +317,7 @@ export default function FilaPage() {
             <EmptyState title="Nenhum atendimento iniciado" text="Use o botão chamar próximo para conferir a senha antes de iniciar." />
           ) : (
             <div className="grid">
-              <div className="rounded-none border border-border bg-background p-5">
+              <div className="rounded-lg border border-border bg-background p-5">
                 <div className="row">
                   <Badge tone="good">{atendimento.senha.senha}</Badge>
                   <Badge tone="warn">{atendimento.senha.prioridade}</Badge>
@@ -409,7 +409,7 @@ export default function FilaPage() {
         ) : (
           <div className="grid gap-3 md:grid-cols-2">
             {painel.ultimos_atendimentos.map((caso) => (
-              <article className="rounded-none border border-border bg-white p-4" key={caso.id}>
+              <article className="rounded-lg border border-border bg-white p-4" key={caso.id}>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <strong className="text-foreground">{caso.cidadao_nome}</strong>
                   <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
@@ -436,7 +436,7 @@ export default function FilaPage() {
               </DialogHeader>
 
               <div className="grid gap-4">
-                <div className="rounded-none border border-border bg-background p-5">
+                <div className="rounded-lg border border-border bg-background p-5">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <div className="mb-2 flex flex-wrap gap-2">
@@ -447,7 +447,7 @@ export default function FilaPage() {
                       <p className="mt-1 text-sm text-muted-foreground">{atendimento.senha.servico || "Serviço não informado"}</p>
                     </div>
                     {atendimento.caso && (
-                      <div className="rounded-none bg-white px-4 py-3 text-sm">
+                      <div className="rounded-lg bg-white px-4 py-3 text-sm">
                         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Caso</p>
                         <strong className="text-foreground">{atendimento.caso.protocolo}</strong>
                       </div>
@@ -586,7 +586,7 @@ export default function FilaPage() {
 
                 {modoModal === "naoCompareceu" && (
                   <form className="grid gap-4" onSubmit={marcarNaoCompareceu}>
-                    <div className="rounded-none border border-[var(--pmt-color-danger)] bg-[var(--pmt-color-danger-soft)] p-4">
+                    <div className="rounded-lg border border-[var(--pmt-color-danger)] bg-[var(--pmt-color-danger-soft)] p-4">
                       <div className="flex gap-3">
                         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-[var(--pmt-color-danger-soft-fg)]">
                           <UserX size={18} />
@@ -630,7 +630,7 @@ export default function FilaPage() {
 
 function ResumoHistorico({ historico }: { historico: EntradaHistorico[] }) {
   return (
-    <div className="rounded-none border border-border bg-white p-4">
+    <div className="rounded-lg border border-border bg-white p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
         <h3 className="!text-base">Histórico rápido</h3>
         <Badge tone="neutral">{historico.length}</Badge>
@@ -640,7 +640,7 @@ function ResumoHistorico({ historico }: { historico: EntradaHistorico[] }) {
       ) : (
         <div className="grid gap-2">
           {historico.slice(0, 4).map((entrada, index) => (
-            <div className="rounded-none bg-secondary p-3" key={`${entrada.quando}-${index}`}>
+            <div className="rounded-lg bg-secondary p-3" key={`${entrada.quando}-${index}`}>
               <strong className="block text-sm text-foreground">{entrada.o_que}</strong>
               <small className="mt-1 block text-xs leading-5 text-muted-foreground">
                 {formatarDataHora(entrada.quando)} · {entrada.unidade}{entrada.detalhe ? ` · ${entrada.detalhe}` : ""}
@@ -679,7 +679,7 @@ function RegistroGuiado({
   compacto?: boolean;
 }) {
   return (
-    <div className="grid gap-4 rounded-none border border-border bg-secondary p-4">
+    <div className="grid gap-4 rounded-lg border border-border bg-secondary p-4">
       <div>
         <h3 className="!text-base">Registro do atendimento</h3>
         <p className="mt-1 text-xs leading-5 text-muted-foreground">

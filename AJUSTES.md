@@ -25,6 +25,7 @@ Base da branch: `main` (`d695031`).
 | 7 | Diálogo: animação corrigida e gaveta no celular | correção | — |
 | 8 | Acertos nos componentes: clique no modal, rolagem, fundo, data antiga | correção | — |
 | 9 | `Checkbox`, `GrupoDeEscolha` e `AreaDeTexto` | melhoria | — |
+| 10 | Cantos arredondados seguindo a escala do design system | melhoria | — |
 
 ---
 
@@ -263,6 +264,28 @@ input nativo continua existindo, invisível, com a caixa desenhada por cima:
 é ele que carrega o valor no `FormData`, recebe foco e responde ao teclado, então
 nada de acessibilidade se perde. A caixa ainda aceita `descricao`, que é onde
 cabe a explicação que antes ficava solta embaixo.
+
+
+## 10. Cantos: a escala de raio do design system passou a valer
+
+Cartões, painéis, listas e estados vazios eram quadrados (`rounded-none`), ao
+lado de botões e campos arredondados. Não havia decisão por trás — o próprio
+`design-system/pmt-sem-reset.css` já anota a intenção de cada token, e ela não
+estava sendo seguida.
+
+| Token | Valor | Onde |
+| --- | --- | --- |
+| `--pmt-radius-md` | 7px | botão, campo, gatilho do dropdown, pastilha de senha |
+| `--pmt-radius-lg` | 8px | cartão, painel, seção, linha de lista, estado vazio |
+| `--pmt-radius-xl` | 14px | modal, dropdown aberto, calendário — as camadas flutuantes |
+
+O contêiner ficou com raio maior que o conteúdo, que é a hierarquia esperada:
+um campo de 7px dentro de um cartão de 8px acompanha a curva em vez de brigar
+com ela.
+
+Ficaram **sem** raio, de propósito: divisórias (`.line-row`, `.plain-row` — são
+linhas, não caixas), contêineres de tela cheia, a barra lateral (encosta na
+borda) e a variante `link` do botão, que não tem caixa nenhuma.
 
 
 ## Como revisar

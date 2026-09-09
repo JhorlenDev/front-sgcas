@@ -108,7 +108,7 @@ function Step({
   text: string;
 }) {
   return (
-    <div className="flex gap-3 rounded-none border border-border bg-background p-4">
+    <div className="flex gap-3 rounded-lg border border-border bg-background p-4">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Icon size={18} />
       </span>

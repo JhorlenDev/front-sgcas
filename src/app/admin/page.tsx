@@ -174,7 +174,7 @@ export default function AdminPage() {
             <div className="space-y-3">
               {pedidos.map((pedido) => (
                 <form
-                  className="rounded-none border border-border bg-background p-4"
+                  className="rounded-lg border border-border bg-background p-4"
                   key={pedido.id}
                   onSubmit={(event) => void aprovar(event, pedido)}
                 >
@@ -238,7 +238,7 @@ export default function AdminPage() {
             <div className="space-y-3">
               {operadores.map((operador) => (
                 <form
-                  className="rounded-none border border-border bg-white p-4"
+                  className="rounded-lg border border-border bg-white p-4"
                   key={operador.id}
                   onSubmit={(event) => void atualizarOperador(event, operador)}
                 >

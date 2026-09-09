@@ -262,7 +262,7 @@ export default function CasosPage() {
           <div className="grid gap-3">
             {casos.map((caso) => (
               <button
-                className="rounded-none border border-border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background"
+                className="rounded-lg border border-border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background"
                 key={caso.id}
                 onClick={() => setCasoSelecionado(caso)}
               >
@@ -314,7 +314,7 @@ export default function CasosPage() {
               </DialogHeader>
 
               <div className="grid gap-4">
-                <div className="rounded-none border border-border bg-background p-5">
+                <div className="rounded-lg border border-border bg-background p-5">
                   <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Cidadão</p>
@@ -337,7 +337,7 @@ export default function CasosPage() {
                   </div>
                 </div>
 
-                <div className="rounded-none border border-border bg-white p-5">
+                <div className="rounded-lg border border-border bg-white p-5">
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                     {["CONCLUIDO", "ENCAMINHADO"].includes(casoSelecionado.situacao) ? "Relato/desfecho" : "Dados da triagem"}
                   </p>
@@ -347,7 +347,7 @@ export default function CasosPage() {
                 </div>
 
                 {!["CONCLUIDO", "CANCELADO", "ENCAMINHADO"].includes(casoSelecionado.situacao) && (
-                  <form className="grid gap-4 rounded-none border border-border bg-secondary p-5" onSubmit={prepararConclusao}>
+                  <form className="grid gap-4 rounded-lg border border-border bg-secondary p-5" onSubmit={prepararConclusao}>
                     <div>
                       <h3>Registrar finalização</h3>
                       <p className="mt-1 text-sm leading-6 text-muted-foreground">
@@ -424,7 +424,7 @@ function ResumoCard({
 
 function Info({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div className="rounded-none bg-white p-4">
+    <div className="rounded-lg bg-white p-4">
       <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
         <Icon size={14} />
         {label}
