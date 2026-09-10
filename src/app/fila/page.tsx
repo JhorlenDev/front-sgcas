@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -23,7 +23,19 @@ import {
 } from "@/components/ui/dialog";
 import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
 import { api } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import type { Cidadao, EntradaHistorico, Caso, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
+
+const indicadores = {
+  atendidos_hoje: { titulo: "Atendidos hoje", descricao: "Senhas finalizadas por você hoje nesta unidade." },
+  aguardando_na_fila: { titulo: "Aguardando na fila", descricao: "Senhas aguardando nesta unidade, por prioridade e ordem de chegada." },
+  finalizados_hoje: { titulo: "Finalizados", descricao: "Casos concluídos ou encaminhados por você hoje nesta unidade." },
+  casos_em_acompanhamento: { titulo: "Acompanhamento", descricao: "Casos da unidade que não estão concluídos nem cancelados." },
+};
+type Indicador = keyof typeof indicadores;
+type DetalhesIndicador = { tipo: "senhas"; registros: Senha[] } | { tipo: "casos"; registros: Caso[] };
+
+type SenhaAberta = Senha & { operador_nome: string | null; pode_retomar: boolean };
 
 type AtendimentoMontado = {
   senha: Senha;
@@ -33,6 +45,23 @@ type AtendimentoMontado = {
 };
 
 export default function FilaPage() {
+  const { user } = useAuth();
+  const unidadeId = user?.unidade?.id;
+  const podeChamar = Boolean(user && ["ADMIN", "COORDENADOR", "ASSISTENTE_SOCIAL", "TECNICO", "GESTOR_ACOES_ITINERANTES"].includes(user.papel));
+  const [indicador, setIndicador] = useState<Indicador | null>(null);
+  const [detalhes, setDetalhes] = useState<DetalhesIndicador | null>(null);
+  const [erroDetalhes, setErroDetalhes] = useState("");
+  const detalheVersao = useRef(0);
+  const [listaOpen, setListaOpen] = useState(false);
+  const [abertos, setAbertos] = useState<SenhaAberta[]>([]);
+  const [carregandoAbertos, setCarregandoAbertos] = useState(false);
+  const [erroAbertos, setErroAbertos] = useState("");
+  const [retomando, setRetomando] = useState<string | null>(null);
+  const recuperacaoVersao = useRef(0);
+  const [recuperando, setRecuperando] = useState(true);
+  const [chamando, setChamando] = useState(false);
+  const chamadaEmCurso = useRef(false);
+  const [erroCarga, setErroCarga] = useState("");
   const [fila, setFila] = useState<Senha[]>([]);
   const [painel, setPainel] = useState<PainelAtendente | null>(null);
   const [atendimento, setAtendimento] = useState<AtendimentoMontado | null>(null);
@@ -54,14 +83,18 @@ export default function FilaPage() {
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("");
 
-  async function carregar() {
-    const [filaData, painelData] = await Promise.all([
-      api<Senha[]>("/queues/").catch(() => []),
-      api<PainelAtendente>("/queues/painel").catch(() => null),
+  const carregar = useCallback(async () => {
+    if (!unidadeId) return;
+    const [filaResult, painelResult] = await Promise.allSettled([
+      api<Senha[]>(`/queues/?unidade=${encodeURIComponent(unidadeId)}`),
+      api<PainelAtendente>("/queues/painel"),
     ]);
-    setFila(filaData);
-    setPainel(painelData);
-  }
+    setFila(filaResult.status === "fulfilled" ? filaResult.value : []);
+    setPainel(painelResult.status === "fulfilled" ? painelResult.value : null);
+    setErroCarga(filaResult.status === "rejected" || painelResult.status === "rejected"
+      ? "Não foi possível atualizar a fila ou o painel. Tente atualizar novamente."
+      : "");
+  }, [unidadeId]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -69,9 +102,88 @@ export default function FilaPage() {
       void api<Unidade[]>("/institutional/units").then(setUnidades).catch(() => setUnidades([]));
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [carregar]);
+
+  useEffect(() => {
+    if (!user || !unidadeId || !podeChamar) return;
+    let cancelado = false;
+    const versao = ++recuperacaoVersao.current;
+    const recuperar = async () => {
+      try {
+        const atual = await api<AtendimentoMontado | null>("/queues/atendimento-atual");
+        if (cancelado || versao !== recuperacaoVersao.current) return;
+        setAtendimento(atual);
+        setAtendimentoIniciado(false);
+        setRecuperando(false);
+      } catch {
+        if (!cancelado && versao === recuperacaoVersao.current) {
+          setMensagem("Não foi possível recuperar seu atendimento atual. Recarregue a página para tentar novamente.");
+        }
+      }
+    };
+    void recuperar();
+    return () => { cancelado = true; };
+  }, [user, unidadeId, podeChamar]);
+
+  async function abrirIndicador(grupo: Indicador) {
+    const versao = ++detalheVersao.current;
+    setIndicador(grupo);
+    setDetalhes(null);
+    setErroDetalhes("");
+    try {
+      const dados = await api<DetalhesIndicador>(`/queues/painel/${grupo}`);
+      if (versao === detalheVersao.current) setDetalhes(dados);
+    } catch (error) {
+      if (versao === detalheVersao.current) setErroDetalhes(error instanceof Error ? error.message : "Não foi possível carregar os registros.");
+    }
+  }
+
+  async function listarAbertos() {
+    setListaOpen(true);
+    setCarregandoAbertos(true);
+    setErroAbertos("");
+    try {
+      setAbertos(await api<SenhaAberta[]>("/queues/em-atendimento"));
+    } catch (error) {
+      setErroAbertos(error instanceof Error ? error.message : "Não foi possível listar os atendimentos.");
+    } finally {
+      setCarregandoAbertos(false);
+    }
+  }
+
+  async function retomar(senhaId: string) {
+    if (retomando) return;
+    setRetomando(senhaId);
+    setErroAbertos("");
+    try {
+      const atual = await api<AtendimentoMontado>(`/queues/${encodeURIComponent(senhaId)}/retomar`);
+      recuperacaoVersao.current++;
+      setAtendimento(atual);
+      setAtendimentoIniciado(false);
+      setRecuperando(false);
+      setObservacao("");
+      setRelato("");
+      setSituacaoIdentificada("");
+      setProvidencia("");
+      setRetornoNecessario("");
+      setDataRetorno("");
+      setModoModal("inicio");
+      setListaOpen(false);
+      setModalOpen(false);
+      setMensagem(`Senha ${atual.senha.senha} recuperada em Atendimento atual.`);
+      window.requestAnimationFrame(() => document.getElementById("atendimento-atual")?.scrollIntoView({ behavior: "smooth", block: "center" }));
+      await carregar();
+    } catch (error) {
+      setErroAbertos(error instanceof Error ? error.message : "Não foi possível retomar este atendimento.");
+    } finally {
+      setRetomando(null);
+    }
+  }
 
   async function chamar() {
+    if (recuperando || chamadaEmCurso.current || atendimento || !unidadeId || !podeChamar) return;
+    chamadaEmCurso.current = true;
+    setChamando(true);
     setMensagem("");
     try {
       const data = await api<AtendimentoMontado>("/queues/chamar-proximo", { method: "POST" });
@@ -91,8 +203,12 @@ export default function FilaPage() {
       setMotivoNaoCompareceu("");
       setModalOpen(true);
       await carregar();
-    } catch {
-      setMensagem("Nao ha ninguem aguardando.");
+    } catch (error) {
+      setMensagem(error instanceof Error ? error.message : "Não foi possível chamar o próximo. Tente novamente.");
+      await carregar();
+    } finally {
+      chamadaEmCurso.current = false;
+      setChamando(false);
     }
   }
 
@@ -244,18 +360,21 @@ export default function FilaPage() {
       <PageHeader
         title="Atendimento"
         description="Painel do atendente: acompanhe a fila, inicie o próximo caso e registre a conclusão."
-        action={<Button onClick={chamar}>Chamar próximo</Button>}
+        action={<Button onClick={chamar} disabled={recuperando || chamando || Boolean(atendimento) || !unidadeId || !podeChamar}>{chamando ? "Chamando..." : "Chamar próximo"}</Button>}
       />
 
-      {mensagem && <div className="notice">{mensagem}</div>}
+      {!unidadeId && <div className="notice">Seu usuário não tem unidade de lotação definida. Solicite o vínculo a um administrador para chamar senhas.</div>}
+      {user && !podeChamar && <div className="notice">Seu perfil não tem permissão para chamar senhas.</div>}
+      {erroCarga && <div className="notice" role="alert">{erroCarga}</div>}
+      {mensagem && <div className="notice" role="status">{mensagem}</div>}
       <div style={{ height: 16 }} />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <MiniStat title="Atendidos hoje" value={painel?.atendidos_hoje ?? 0} detail="Finalizados pelo atendente" icon={CheckCircle2} tone="good" />
-        <MiniStat title="Aguardando na fila" value={painel?.aguardando_na_fila ?? fila.length} detail="Próximas chamadas" icon={ListChecks} tone="warn" />
-        <MiniStat title="Em atendimento" value={painel?.em_atendimento ?? 0} detail="Senhas já chamadas" icon={Stethoscope} tone="primary" />
-        <MiniStat title="Finalizados" value={painel?.finalizados_hoje ?? 0} detail="Casos fechados hoje" icon={Clock3} tone="neutral" />
-        <MiniStat title="Acompanhamento" value={painel?.casos_em_acompanhamento ?? 0} detail="Casos ativos na unidade" icon={FolderOpen} tone="bad" />
+        <MiniStat onClick={() => void abrirIndicador("atendidos_hoje")} title="Atendidos hoje" value={painel?.atendidos_hoje ?? 0} detail="Finalizados pelo atendente" icon={CheckCircle2} tone="good" />
+        <MiniStat onClick={() => void abrirIndicador("aguardando_na_fila")} title="Aguardando na fila" value={painel?.aguardando_na_fila ?? fila.length} detail="Próximas chamadas" icon={ListChecks} tone="warn" />
+        <MiniStat onClick={() => void listarAbertos()} title="Em atendimento" value={painel?.em_atendimento ?? 0} detail="Senhas já chamadas" icon={Stethoscope} tone="primary" />
+        <MiniStat onClick={() => void abrirIndicador("finalizados_hoje")} title="Finalizados" value={painel?.finalizados_hoje ?? 0} detail="Casos fechados hoje" icon={Clock3} tone="neutral" />
+        <MiniStat onClick={() => void abrirIndicador("casos_em_acompanhamento")} title="Acompanhamento" value={painel?.casos_em_acompanhamento ?? 0} detail="Casos ativos na unidade" icon={FolderOpen} tone="bad" />
       </div>
 
       <div style={{ height: 16 }} />
@@ -263,7 +382,8 @@ export default function FilaPage() {
       <div className="grid two">
         <Card>
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="!mb-0">Fila</h2>
+            <div><h2 className="!mb-0">Fila</h2><small>{user?.unidade?.nome}</small></div>
+            <SecondaryButton onClick={() => void carregar()} disabled={!unidadeId}>Atualizar fila</SecondaryButton>
             <Badge tone={fila.length ? "warn" : "good"}>{fila.length}</Badge>
           </div>
           {fila.length === 0 ? (
@@ -292,9 +412,9 @@ export default function FilaPage() {
         </Card>
 
         <Card>
-          <h2>Atendimento atual</h2>
+          <h2 id="atendimento-atual">Atendimento atual</h2>
           {!atendimento ? (
-            <EmptyState title="Nenhum atendimento iniciado" text="Use o botão chamar próximo para conferir a senha antes de iniciar." />
+            <EmptyState title={recuperando && podeChamar && unidadeId ? "Recuperando atendimento..." : "Nenhum atendimento iniciado"} text="Use o botão chamar próximo para conferir a senha antes de iniciar." />
           ) : (
             <div className="grid">
               <div className="rounded-feature border border-meta-divider bg-meta-warm-gray p-5">
@@ -405,6 +525,57 @@ export default function FilaPage() {
           </div>
         )}
       </Card>
+
+      <Dialog open={indicador !== null} onOpenChange={(open) => { if (!open) { detalheVersao.current++; setIndicador(null); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{indicador ? indicadores[indicador].titulo : "Registros"}</DialogTitle>
+            <DialogDescription>{indicador ? indicadores[indicador].descricao : ""}</DialogDescription>
+          </DialogHeader>
+          {erroDetalhes ? <div role="alert"><p>{erroDetalhes}</p><SecondaryButton onClick={() => indicador && void abrirIndicador(indicador)}>Tentar novamente</SecondaryButton></div>
+            : !detalhes ? <p>Carregando registros...</p>
+            : detalhes.registros.length === 0 ? <p>Nenhum registro neste indicador.</p>
+            : <div className="grid gap-3 max-h-[60vh] overflow-y-auto">
+              <p className="text-sm text-meta-slate">{detalhes.registros.length} registro(s)</p>
+              {detalhes.tipo === "senhas" ? detalhes.registros.map((senha) => (
+                <article key={senha.id} className="rounded-card border p-4">
+                  <strong>{senha.senha} · {senha.cidadao_nome}</strong>
+                  <p>{senha.servico || "Serviço não informado"}</p>
+                  <small>{rotuloPrioridade(senha.prioridade)} · {formatarDataHora(senha.criado_em)}</small>
+                </article>
+              )) : detalhes.registros.map((caso) => (
+                <article key={caso.id} className="rounded-card border p-4">
+                  <strong>{caso.protocolo} · {caso.cidadao_nome}</strong>
+                  <p>{caso.servico_nome || caso.descricao || "Serviço não informado"}</p>
+                  <p>{rotuloSituacao(caso.situacao)}</p>
+                  <small>{caso.tecnico_nome || "Sem técnico responsável"} · {caso.unidade_nome}</small>
+                </article>
+              ))}
+            </div>}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={listaOpen} onOpenChange={setListaOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Senhas em atendimento</DialogTitle>
+            <DialogDescription>Selecione uma senha sua para reabrir em Atendimento atual. As demais mostram quem está atendendo.</DialogDescription>
+          </DialogHeader>
+          {carregandoAbertos ? <p>Carregando atendimentos...</p> : erroAbertos ? (
+            <div role="alert"><p>{erroAbertos}</p><SecondaryButton onClick={() => void listarAbertos()}>Tentar novamente</SecondaryButton></div>
+          ) : abertos.length === 0 ? <p>Nenhuma senha em atendimento nesta unidade.</p> : (
+            <div className="grid gap-3 max-h-[60vh] overflow-y-auto">
+              {abertos.map((senha) => (
+                <button key={senha.id} type="button" className="rounded-card border p-4 text-left disabled:opacity-60 hover:bg-meta-soft-gray" disabled={!senha.pode_retomar || retomando !== null} onClick={() => void retomar(senha.id)}>
+                  <strong>{senha.senha} · {senha.cidadao_nome}</strong>
+                  <p>{senha.servico}</p>
+                  <small>{senha.operador_nome ?? "Sem atendente"} · {retomando === senha.id ? "Abrindo..." : senha.pode_retomar ? "Retomar atendimento" : "Com outro atendente"}</small>
+                </button>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
@@ -730,7 +901,9 @@ function MiniStat({
   detail,
   icon: Icon,
   tone,
+  onClick,
 }: {
+  onClick?: () => void;
   title: string;
   value: number;
   detail: string;
@@ -745,13 +918,14 @@ function MiniStat({
     bad: "bg-destructive/10 text-destructive",
   }[tone];
 
-  return (
-    <Card className="!p-4">
+  const content = (
+    <Card className="h-full !p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">{title}</p>
           <strong className="mt-2 block text-3xl text-meta-charcoal">{value.toLocaleString("pt-BR")}</strong>
           <small className="mt-1 block text-meta-slate">{detail}</small>
+          {onClick && <span className="mt-2 block text-xs font-semibold text-primary">Ver registros →</span>}
         </div>
         <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-pill ${toneClass}`}>
           <Icon size={18} />
@@ -759,6 +933,7 @@ function MiniStat({
       </div>
     </Card>
   );
+  return onClick ? <button type="button" onClick={onClick} aria-label={`Ver ${title.toLowerCase()}`} className="h-full text-left rounded-card transition-shadow hover:shadow-lift focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">{content}</button> : content;
 }
 
 function formatarDataHora(value: string) {

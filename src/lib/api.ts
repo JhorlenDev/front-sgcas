@@ -17,7 +17,10 @@ export class ApiError extends Error {
   data: unknown;
 
   constructor(status: number, data: unknown) {
-    super(typeof data === "string" ? data : `Erro ${status}`);
+    const detail = data && typeof data === "object"
+      ? (data as Record<string, unknown>).detalhe ?? (data as Record<string, unknown>).detail
+      : data;
+    super(typeof detail === "string" ? detail : `Erro ${status}`);
     this.status = status;
     this.data = data;
   }
@@ -64,7 +67,12 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   });
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: unknown = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    throw new ApiError(response.status, "O servidor retornou uma resposta inválida. Tente novamente.");
+  }
 
   if (!response.ok) {
     if (response.status === 401 && !options.skipAuthRedirect) {

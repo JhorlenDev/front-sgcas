@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowRight,
+  ArrowLeftRight,
+  IdCard,
+  UserRound,
   CheckCircle2,
   Clock3,
   ClipboardList,
@@ -26,8 +30,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton, Select } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, Field, Input, SecondaryButton, Select } from "@/components/ui";
 import { api } from "@/lib/api";
+import { formatCPF } from "@/lib/utils";
 import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
 
 type HistoricoResponse = {
@@ -198,23 +203,21 @@ export default function RecepcaoPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Recepção"
-        description="Organize o balcão: nova recepção, atendimentos recentes e fila apenas para consulta."
-        action={
-          <Link href="/cidadaos">
-            <Button type="button">
-              <UserPlus size={18} />
-              Novo cidadão
-            </Button>
-          </Link>
-        }
-      />
+      <div className="mb-5">
+        <PainelResumoRecepcao painel={painel} />
+      </div>
 
       <div className="mb-5 flex flex-wrap gap-2 rounded-card border border-meta-divider bg-white p-2 shadow-lift">
-        <AbaButton active={aba === "nova"} onClick={() => setAba("nova")}>
-          <UserPlus size={17} />
-          Nova recepção
+        <AbaButton active={aba === "nova"} onClick={() => {
+          setAba("nova");
+          window.requestAnimationFrame(() => {
+            const input = document.getElementById("busca-cidadao-recepcao");
+            input?.focus({ preventScroll: true });
+            input?.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
+        }}>
+          <Search size={17} />
+          Buscar cidadão
         </AbaButton>
         <AbaButton active={aba === "recentes"} onClick={() => setAba("recentes")}>
           <Clock3 size={17} />
@@ -232,16 +235,22 @@ export default function RecepcaoPage() {
       </div>
 
       <div className="grid gap-5">
-        <PainelResumoRecepcao painel={painel} />
-
         {aba === "nova" && (
           <>
-            <Card>
-              <h2>Buscar cidadão</h2>
+            <Card className="border-primary/25">
+              <div className="mb-4 flex items-start gap-3">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-pill bg-primary/10 text-primary"><Search size={22} /></span>
+                <div>
+                  <h2 className="!mb-1">Quem você vai atender?</h2>
+                  <p className="text-sm text-meta-slate">Primeiro, encontre o cidadão. Depois, confira o histórico e escolha como registrar a recepção.</p>
+                </div>
+              </div>
+              <label htmlFor="busca-cidadao-recepcao" className="mb-2 block text-sm font-semibold text-meta-charcoal">Buscar por nome, CPF, NIS ou e-mail</label>
               <div className="relative mb-5">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-meta-slate" />
                 <Input
-                  className="pl-10"
+                  id="busca-cidadao-recepcao"
+                  className="!h-12 pl-10"
                   value={busca}
                   onChange={(event) => {
                     const value = event.target.value;
@@ -258,29 +267,37 @@ export default function RecepcaoPage() {
               </div>
 
               {!cidadao && busca.trim().length < 2 && (
-                <EmptyState title="Comece pela busca" text="Digite pelo menos 2 caracteres para localizar o cidadão." />
+                <p className="mb-4 text-sm text-meta-slate">Digite pelo menos 2 caracteres e selecione o cidadão nos resultados.</p>
               )}
 
               {!cidadao && cidadaos.map((item) => (
-                <button className="plain-row" key={item.id} onClick={() => void selecionarCidadao(item)}>
-                  <span className="min-w-0">
-                    <strong>{item.nome}</strong>
-                    <small className="block">{item.cpf ?? [item.bairro, item.cidade].filter(Boolean).join(" - ")}</small>
+                <button type="button" className="group mb-3 flex w-full flex-col gap-3 rounded-card border border-meta-divider bg-white p-4 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary sm:flex-row sm:items-center sm:justify-between" key={item.id} onClick={() => void selecionarCidadao(item)} aria-label={`Selecionar ${item.nome}`}>
+                  <span className="flex min-w-0 items-start gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><UserRound size={22} aria-hidden="true" /></span>
+                    <span className="min-w-0">
+                      <strong className="block break-words text-base font-semibold text-meta-charcoal">{item.nome}</strong>
+                      <DadosCidadao cidadao={item} />
+                    </span>
                   </span>
-                  <span className="inline-flex shrink-0 items-center rounded-pill bg-primary px-4 py-2 text-sm font-semibold !text-white shadow-lift">
-                    Selecionar
+                  <span className="inline-flex shrink-0 items-center justify-center gap-2 self-end rounded-pill bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-white sm:self-center">
+                    Selecionar <ArrowRight size={16} aria-hidden="true" />
                   </span>
                 </button>
               ))}
 
+              {!cidadao && (
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-meta-divider pt-4 text-sm text-meta-slate">
+                  <span>Não encontrou o cidadão?</span>
+                  <Link href="/cidadaos/novo" className="inline-flex items-center gap-1.5 font-semibold text-primary underline-offset-4 hover:underline">
+                    <UserPlus size={16} /> Cadastrar cidadão
+                  </Link>
+                </div>
+              )}
+
               {cidadao && <CidadaoSelecionado cidadao={cidadao} onTrocar={() => setCidadao(null)} />}
             </Card>
 
-            {!cidadao ? (
-              <Card>
-                <EmptyState title="Aguardando seleção" text="Selecione um cidadão acima para iniciar o atendimento guiado." />
-              </Card>
-            ) : (
+            {cidadao && (
               <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem]">
                 <Card className="min-w-0">
                   <PainelDoCidadao casos={casos} historico={historico} />
@@ -335,6 +352,7 @@ export default function RecepcaoPage() {
         {aba === "recentes" && <UltimosAtendimentos atendimentos={ultimosAtendimentos} completo />}
 
         {aba === "fila" && <FilaSomenteLeitura fila={fila} onAtualizar={() => void carregarFila()} />}
+
       </div>
 
       <Dialog open={acaoOpen} onOpenChange={setAcaoOpen}>
@@ -491,7 +509,7 @@ function AbaButton({
 
 function PainelResumoRecepcao({ painel }: { painel: PainelRecepcao | null }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 rounded-card border border-meta-divider bg-white p-2 sm:grid-cols-5" aria-label="Resumo da recepção">
       <MiniStat
         title="Atendidos hoje"
         value={painel?.atendimentos_hoje ?? 0}
@@ -553,18 +571,16 @@ function MiniStat({
   }[tone];
 
   return (
-    <Card className="!p-3.5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-meta-slate">{title}</p>
-          <strong className="mt-1.5 block text-2xl text-meta-charcoal">{value.toLocaleString("pt-BR")}</strong>
-          <small className="mt-0.5 block text-xs text-meta-slate">{detail}</small>
-        </div>
-        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-pill ${toneClass}`}>
-          <Icon size={16} />
+    <div className="min-w-0 rounded-lg bg-meta-soft-gray/60 px-3 py-3" title={detail}>
+      <div className="mb-2 flex items-center gap-2.5">
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${toneClass}`}>
+          <Icon size={20} aria-hidden="true" />
         </span>
+        <strong className="text-3xl leading-none tabular-nums text-meta-charcoal">{value.toLocaleString("pt-BR")}</strong>
       </div>
-    </Card>
+      <p className="text-sm font-semibold leading-5 text-meta-slate">{title}</p>
+      <span className="sr-only">{detail}</span>
+    </div>
   );
 }
 
@@ -822,13 +838,20 @@ function FilaSomenteLeitura({ fila, onAtualizar }: { fila: Senha[]; onAtualizar:
   );
 }
 
-function CidadaoSelecionado({ cidadao, onTrocar }: { cidadao: CidadaoLista; onTrocar: () => void }) {
-  const dados = [
-    cidadao.cpf ? `CPF ${cidadao.cpf}` : null,
-    cidadao.bairro,
-    cidadao.cidade,
-  ].filter(Boolean);
+function DadosCidadao({ cidadao }: { cidadao: CidadaoLista }) {
+  const local = [cidadao.bairro, cidadao.cidade].filter(Boolean).join(" · ");
+  return (
+    <span className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-meta-slate">
+      <span className="inline-flex items-center gap-1.5 rounded-lg border border-meta-divider bg-meta-soft-gray/70 px-2 py-1 tabular-nums">
+        <IdCard size={16} className="shrink-0" aria-hidden="true" />
+        {cidadao.cpf ? `CPF ${formatCPF(cidadao.cpf)}` : "CPF não informado"}
+      </span>
+      {local && <span className="inline-flex items-center gap-1.5"><MapPin size={16} className="shrink-0" aria-hidden="true" />{local}</span>}
+    </span>
+  );
+}
 
+function CidadaoSelecionado({ cidadao, onTrocar }: { cidadao: CidadaoLista; onTrocar: () => void }) {
   return (
     <div className="rounded-2xl border border-primary/15 bg-gradient-to-br from-primary/10 via-white to-meta-warm-gray px-4 py-3 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -838,20 +861,8 @@ function CidadaoSelecionado({ cidadao, onTrocar }: { cidadao: CidadaoLista; onTr
           </span>
           <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary/75">Selecionado</p>
-            <h3 className="mt-0.5 truncate text-[15px] font-semibold text-meta-charcoal">{cidadao.nome}</h3>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
-              {dados.length ? (
-                dados.map((item) => (
-                  <span key={item} className="rounded-pill border border-meta-divider bg-white/80 px-2 py-0.5 text-[11px] font-medium text-meta-slate">
-                    {item}
-                  </span>
-                ))
-              ) : (
-                <span className="rounded-pill border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700">
-                  Cadastro sem documento/bairro
-                </span>
-              )}
-            </div>
+            <h3 className="mt-0.5 break-words text-base font-semibold text-meta-charcoal">{cidadao.nome}</h3>
+            <DadosCidadao cidadao={cidadao} />
           </div>
         </div>
         <button
@@ -859,7 +870,8 @@ function CidadaoSelecionado({ cidadao, onTrocar }: { cidadao: CidadaoLista; onTr
           className="inline-flex h-8 shrink-0 items-center justify-center rounded-pill border border-meta-divider bg-white px-3 text-xs font-semibold text-meta-charcoal shadow-sm transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
           onClick={onTrocar}
         >
-          Trocar
+          <ArrowLeftRight size={14} className="mr-1.5" aria-hidden="true" />
+          Trocar cidadão
         </button>
       </div>
     </div>

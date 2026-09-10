@@ -106,8 +106,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
 
           <div className="flex min-w-0 items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            <span className="truncate text-sm font-semibold text-meta-charcoal">{pageTitle}</span>
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
+            <span className="truncate text-base font-semibold text-meta-charcoal md:text-lg">{pageTitle}</span>
           </div>
 
           <div className="flex-1" />

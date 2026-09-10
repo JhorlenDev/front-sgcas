@@ -2,11 +2,34 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { FolderOpen, Headset, Users } from "lucide-react";
+import { CheckCircle2, ClipboardList, FolderOpen, Headset, Send, Stethoscope, Users, XCircle } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button, Card, EmptyState, PageHeader } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { Caso, Senha } from "@/types/sgcas";
+
+const situacoesDosCasos: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
+  EM_TRIAGEM: { label: "Em triagem", icon: ClipboardList, className: "border-blue-200 bg-blue-50 !text-blue-800" },
+  EM_ATENDIMENTO: { label: "Em atendimento", icon: Stethoscope, className: "border-amber-200 bg-amber-50 !text-amber-800" },
+  CONCLUIDO: { label: "Concluído", icon: CheckCircle2, className: "border-green-200 bg-green-50 !text-green-800" },
+  ENCAMINHADO: { label: "Encaminhado", icon: Send, className: "border-violet-200 bg-violet-50 !text-violet-800" },
+  CANCELADO: { label: "Cancelado", icon: XCircle, className: "border-red-200 bg-red-50 !text-red-800" },
+};
+
+function SituacaoDoCaso({ value }: { value: string }) {
+  const situacao = situacoesDosCasos[value] ?? {
+    label: value.replaceAll("_", " ").toLocaleLowerCase("pt-BR"),
+    icon: FolderOpen,
+    className: "border-slate-200 bg-slate-50 !text-slate-700",
+  };
+  const Icon = situacao.icon;
+  return (
+    <small className={`inline-flex shrink-0 items-center gap-1.5 rounded-pill border px-3 py-1 font-medium ${situacao.className}`}>
+      <Icon size={14} aria-hidden="true" />
+      {situacao.label}
+    </small>
+  );
+}
 
 export default function DashboardPage() {
   const [fila, setFila] = useState<Senha[]>([]);
@@ -57,9 +80,9 @@ export default function DashboardPage() {
             <EmptyState title="Sem casos" text="Os atendimentos encaminhados aparecem nesta lista." />
           ) : (
             casos.slice(0, 6).map((caso) => (
-              <div className="row line-row" key={caso.id}>
-                <span>{caso.cidadao_nome}</span>
-                <small>{caso.situacao}</small>
+              <div className="line-row flex flex-wrap items-center justify-between gap-x-4 gap-y-2" key={caso.id}>
+                <span className="min-w-0 break-words">{caso.cidadao_nome}</span>
+                <SituacaoDoCaso value={caso.situacao} />
               </div>
             ))
           )}

@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowRight, FileText, Search, UserPlus } from "lucide-react";
+import { ArrowRight, FileText, IdCard, MapPin, Search, UserPlus, Users, UserRound } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import {
@@ -15,6 +16,7 @@ import {
 import { Button, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api } from "@/lib/api";
+import { formatCPF } from "@/lib/utils";
 import type { Cidadao, CidadaoLista } from "@/types/sgcas";
 
 export default function CidadaosPage() {
@@ -100,17 +102,24 @@ export default function CidadaosPage() {
         </div>
 
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="!mb-0">{busca.trim() && buscou ? "Resultado da busca" : "Cidadãos recentes"}</h2>
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-pill bg-primary/10 text-primary"><Users size={20} aria-hidden="true" /></span>
+            <div>
+              <h2 className="!mb-0">{busca.trim() && buscou ? "Resultado da busca" : "Cidadãos recentes"}</h2>
+              <p className="mt-1 text-xs text-meta-slate">Abra o cadastro para consultar os dados e o histórico.</p>
+            </div>
+          </div>
           {carregando && <span className="text-sm text-meta-slate">Carregando...</span>}
         </div>
 
         {resultados.length > 0 && (
+          <div className="overflow-x-auto rounded-card border border-meta-divider">
           <table className="table">
-            <thead>
+            <thead className="bg-meta-soft-gray/70">
               <tr>
                 <th>Nome</th>
                 <th>CPF</th>
-                <th>Endereço</th>
+                <th>Bairro / Cidade</th>
                 <th>Ação</th>
               </tr>
             </thead>
@@ -120,29 +129,37 @@ export default function CidadaosPage() {
                   className="clickable-row group"
                   key={cidadao.id}
                   onClick={() => router.push(`/cidadaos/${cidadao.id}`)}
-                  tabIndex={0}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      router.push(`/cidadaos/${cidadao.id}`);
-                    }
-                  }}
+
                 >
                   <td>
-                    <strong>{cidadao.nome}</strong>
+                    <div className="flex min-w-48 items-center gap-3 py-1">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><UserRound size={18} aria-hidden="true" /></span>
+                      <strong>{cidadao.nome}</strong>
+                    </div>
                   </td>
-                  <td>{cidadao.cpf ?? "-"}</td>
-                  <td>{[cidadao.bairro, cidadao.cidade].filter(Boolean).join(" - ") || "-"}</td>
                   <td>
-                    <span className="inline-flex items-center gap-1.5 rounded-pill bg-primary px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors group-hover:bg-primary-hover">
-                      Abrir
-                      <ArrowRight className="h-3.5 w-3.5" />
+                    <span className="inline-flex items-center gap-2 whitespace-nowrap rounded-lg bg-meta-soft-gray px-2.5 py-1.5 tabular-nums">
+                      <IdCard size={16} className="shrink-0 text-meta-slate" aria-hidden="true" />
+                      {cidadao.cpf ? formatCPF(cidadao.cpf) : "Não informado"}
                     </span>
+                  </td>
+                  <td>
+                    <span className="inline-flex min-w-40 items-center gap-2 text-meta-slate">
+                      <MapPin size={16} className="shrink-0" aria-hidden="true" />
+                      {[cidadao.bairro, cidadao.cidade].filter(Boolean).join(" · ") || "Não informado"}
+                    </span>
+                  </td>
+                  <td>
+                    <Link href={`/cidadaos/${cidadao.id}`} onClick={(event) => event.stopPropagation()} aria-label={`Abrir cadastro de ${cidadao.nome}`} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-pill bg-primary/10 px-3 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">
+                      Abrir cadastro
+                      <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         {!carregando && buscou && resultados.length === 0 && (
