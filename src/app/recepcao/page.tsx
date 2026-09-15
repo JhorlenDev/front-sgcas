@@ -214,14 +214,7 @@ export default function RecepcaoPage() {
       <PageHeader
         title="Recepção"
         description="Organize o balcão: nova recepção, atendimentos recentes e fila apenas para consulta."
-        action={
-          <Link href="/cidadaos">
-            <Button type="button">
-              <UserPlus size={18} />
-              Novo cidadão
-            </Button>
-          </Link>
-        }
+        acoes={[{ rotulo: "Novo cidadão", icone: UserPlus, href: "/cidadaos" }]}
       />
 
       <div className="mb-5 flex flex-wrap gap-2 rounded-lg border border-border bg-white p-2">

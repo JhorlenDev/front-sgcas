@@ -122,18 +122,23 @@ export default function InstitucionalPage() {
       <PageHeader
         title="Institucional"
         description="Gerencie unidades da rede e serviços disponíveis para atendimento."
-        action={
-          <div className="row">
-            <SecondaryButton type="button" onClick={() => setModalUnidade(true)}>
-              <Building2 size={18} />
-              Nova unidade
-            </SecondaryButton>
-            <Button type="button" onClick={() => setModalServico(true)} disabled={unidades.length === 0}>
-              <Plus size={18} />
-              Novo serviço
-            </Button>
-          </div>
-        }
+        rotuloDasAcoes="Cadastrar"
+        acoes={[
+          {
+            rotulo: "Nova unidade",
+            icone: Building2,
+            secundaria: true,
+            descricao: "CRAS, CREAS, Centro POP ou outra unidade da rede.",
+            onClick: () => setModalUnidade(true),
+          },
+          {
+            rotulo: "Novo serviço",
+            icone: Plus,
+            descricao: unidades.length === 0 ? "Cadastre uma unidade antes." : "Serviço ofertado por uma unidade.",
+            desabilitada: unidades.length === 0,
+            onClick: () => setModalServico(true),
+          },
+        ]}
       />
 
       {mensagem && <div className="notice mb-5">{mensagem}</div>}

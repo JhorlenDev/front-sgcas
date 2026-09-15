@@ -88,12 +88,7 @@ export default function CidadaosPage() {
       <PageHeader
         title="Buscar cidadão"
         description="Lista de cidadãos recentes e busca municipal por CPF, NIS, e-mail ou nome."
-        action={
-          <Button type="button" onClick={() => setModalAberto(true)}>
-            <UserPlus size={18} />
-            Novo cadastro
-          </Button>
-        }
+        acoes={[{ rotulo: "Novo cadastro", icone: UserPlus, onClick: () => setModalAberto(true) }]}
       />
 
       <Card>

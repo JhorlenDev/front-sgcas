@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import type { ButtonHTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes } from "react";
+import { BotaoFlutuante, type AcaoDaTela } from "@/components/ui/botao-flutuante";
 
 export { Dropdown } from "@/components/ui/dropdown";
 export type { OpcaoDoDropdown } from "@/components/ui/dropdown";
 export { CampoData } from "@/components/ui/campo-data";
+export type { AcaoDaTela } from "@/components/ui/botao-flutuante";
 export { Checkbox, GrupoDeEscolha, AreaDeTexto } from "@/components/ui/marcacao";
 export type { OpcaoDeEscolha } from "@/components/ui/marcacao";
 
@@ -70,22 +73,55 @@ export function Field({ label, children }: { label: string; children: React.Reac
   );
 }
 
+/**
+ * Cabeçalho da página.
+ *
+ * `acoes` é declarada uma vez: no desktop vira botões ao lado do título, no
+ * celular vira o botão flutuante sobre a barra inferior (`BotaoFlutuante`).
+ */
 export function PageHeader({
   title,
   description,
-  action,
+  acoes = [],
+  rotuloDasAcoes,
 }: {
   title: string;
   description?: string;
-  action?: React.ReactNode;
+  acoes?: AcaoDaTela[];
+  /** Rótulo do botão flutuante quando há mais de uma ação. */
+  rotuloDasAcoes?: string;
 }) {
   return (
-    <div className="page-header">
-      <div>
-        <h1>{title}</h1>
-        {description && <p>{description}</p>}
+    <>
+      <div className="page-header">
+        <div>
+          <h1>{title}</h1>
+          {description && <p>{description}</p>}
+        </div>
+        {acoes.length > 0 && (
+          <div className="page-action max-md:hidden">
+            {acoes.map((acao) => {
+              const Componente = acao.secundaria ? SecondaryButton : Button;
+              const conteudo = (
+                <>
+                  <acao.icone size={18} aria-hidden="true" />
+                  {acao.rotulo}
+                </>
+              );
+              return acao.href && !acao.desabilitada ? (
+                <Link key={acao.rotulo} href={acao.href} className={acao.secundaria ? "button secondary" : "button"}>
+                  {conteudo}
+                </Link>
+              ) : (
+                <Componente key={acao.rotulo} type="button" onClick={acao.onClick} disabled={acao.desabilitada}>
+                  {conteudo}
+                </Componente>
+              );
+            })}
+          </div>
+        )}
       </div>
-      {action && <div className="page-action">{action}</div>}
-    </div>
+      <BotaoFlutuante acoes={acoes} rotulo={rotuloDasAcoes} />
+    </>
   );
 }

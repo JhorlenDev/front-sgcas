@@ -8,6 +8,7 @@ import {
   ClipboardEdit,
   FolderOpen,
   ListChecks,
+  Megaphone,
   Send,
   Stethoscope,
   UserX,
@@ -269,7 +270,7 @@ export default function FilaPage() {
       <PageHeader
         title="Atendimento"
         description="Painel do atendente: acompanhe a fila, inicie o próximo caso e registre a conclusão."
-        action={<Button onClick={chamar}>Chamar próximo</Button>}
+        acoes={[{ rotulo: "Chamar próximo", icone: Megaphone, onClick: () => void chamar() }]}
       />
 
       {mensagem && <div className="notice">{mensagem}</div>}

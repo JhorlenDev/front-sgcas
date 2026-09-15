@@ -209,12 +209,7 @@ export default function AcoesItinerantesPage() {
       <PageHeader
         title="Ações itinerantes"
         description="Área reservada para atendimentos fora da sede, em comunidades, distritos e ações externas."
-        action={
-          <Button type="button" onClick={() => setModalNovaAberto(true)}>
-            <Plus size={18} />
-            Nova ação
-          </Button>
-        }
+        acoes={[{ rotulo: "Nova ação", icone: Plus, onClick: () => setModalNovaAberto(true) }]}
       />
 
       {carregando ? (
