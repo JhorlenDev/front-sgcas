@@ -7,42 +7,93 @@ import {
   ChevronRight,
   ClipboardList,
   Building2,
+  Ellipsis,
   MapPinned,
   Headset,
   LayoutDashboard,
   LogOut,
-  Menu,
   Search,
   Shield,
   Sparkles,
   Stethoscope,
   Users,
-  X,
+  type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConteudoFalso } from "@/components/skeletons/blocos";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { defaultRouteForRole, useAuth } from "@/lib/auth";
+import { rotuloDoPapel } from "@/lib/rotulos";
 
-const navItems = [
-  { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
-  { href: "/cidadaos", label: "Cidadãos", icon: Search },
-  { href: "/recepcao", label: "Recepção", icon: Headset },
-  { href: "/fila", label: "Atendimento", icon: Stethoscope },
-  { href: "/casos", label: "Acompanhamentos", icon: ClipboardList },
-  { href: "/acoes-itinerantes", label: "Ações itinerantes", icon: MapPinned, roles: ["ADMIN", "GESTOR_ACOES_ITINERANTES"] },
-  { href: "/institucional", label: "Institucional", icon: Building2, roles: ["ADMIN", "COORDENADOR"] },
-  { href: "/admin", label: "Usuários", icon: Users, roles: ["ADMIN", "COORDENADOR"] },
+type ItemDeNavegacao = {
+  href: string;
+  label: string;
+  /** Rótulo da barra inferior do celular, onde cada aba tem ~75px. */
+  curto: string;
+  icon: LucideIcon;
+  roles?: string[];
+};
+
+const navItems: ItemDeNavegacao[] = [
+  { href: "/dashboard", label: "Painel", curto: "Painel", icon: LayoutDashboard },
+  { href: "/cidadaos", label: "Cidadãos", curto: "Cidadãos", icon: Search },
+  { href: "/recepcao", label: "Recepção", curto: "Recepção", icon: Headset },
+  { href: "/fila", label: "Atendimento", curto: "Atender", icon: Stethoscope },
+  { href: "/casos", label: "Acompanhamentos", curto: "Casos", icon: ClipboardList },
+  { href: "/acoes-itinerantes", label: "Ações itinerantes", curto: "Ações", icon: MapPinned, roles: ["ADMIN", "GESTOR_ACOES_ITINERANTES"] },
+  { href: "/institucional", label: "Institucional", curto: "Institucional", icon: Building2, roles: ["ADMIN", "COORDENADOR"] },
+  { href: "/admin", label: "Usuários", curto: "Usuários", icon: Users, roles: ["ADMIN", "COORDENADOR"] },
 ];
+
+/**
+ * As 4 abas da barra inferior, por papel — cada um vê primeiro o que mais usa.
+ *
+ * A barra de um app comporta 5 posições, e a quinta é "Mais". O resto dos
+ * itens do papel vai para a gaveta que ela abre. A ordem aqui é de uso, não a
+ * da barra lateral: a recepcionista abre o sistema para o balcão, não para o
+ * painel.
+ */
+const ABAS_POR_PAPEL: Record<string, string[]> = {
+  ADMIN: ["/dashboard", "/cidadaos", "/recepcao", "/fila"],
+  COORDENADOR: ["/dashboard", "/casos", "/fila", "/cidadaos"],
+  ASSISTENTE_SOCIAL: ["/fila", "/casos", "/cidadaos", "/dashboard"],
+  TECNICO: ["/fila", "/casos", "/cidadaos", "/dashboard"],
+  RECEPCIONISTA: ["/recepcao", "/cidadaos", "/fila", "/dashboard"],
+  GESTOR_ACOES_ITINERANTES: ["/acoes-itinerantes", "/cidadaos", "/dashboard", "/casos"],
+  VISUALIZADOR: ["/cidadaos", "/dashboard", "/casos", "/fila"],
+};
+
+const ABAS_NA_BARRA = 4;
+
+function itensDoPapel(role: string) {
+  return navItems.filter((item) => !item.roles || item.roles.includes(role));
+}
+
+/** Separa o que vai na barra do que vai na gaveta "Mais". */
+function distribuirNavegacao(role: string) {
+  const visiveis = itensDoPapel(role);
+  const preferidas = (ABAS_POR_PAPEL[role] ?? [])
+    .map((href) => visiveis.find((item) => item.href === href))
+    .filter((item): item is ItemDeNavegacao => Boolean(item));
+  // Papel sem mapa (ou mapa apontando para item que ele não vê) completa pela
+  // ordem da barra lateral, para a barra nunca nascer com buraco.
+  const abas = [...preferidas, ...visiveis.filter((item) => !preferidas.includes(item))].slice(0, ABAS_NA_BARRA);
+  return { abas, mais: visiveis.filter((item) => !abas.includes(item)) };
+}
+
+function estaAtivo(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [maisAberto, setMaisAberto] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
@@ -96,17 +147,28 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <div className={cn("transition-[padding] duration-300", sidebarCollapsed ? "md:pl-20" : "md:pl-64")}>
-          <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border/70 bg-elevated px-4 md:px-8">
+          <header className="sticky top-0 z-20 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-4 border-b border-border/70 bg-elevated px-4 pt-[env(safe-area-inset-top)] md:px-8">
             <Skeleton className="h-4 w-32" />
             <div className="flex-1" />
-            <Skeleton className="h-6 w-28 rounded-full" />
+            <Skeleton className="hidden h-6 w-28 rounded-full sm:block" />
             <Skeleton className="h-9 w-9 rounded-full" />
           </header>
 
-          <main className="mx-auto max-w-[1440px] p-4 md:p-8" aria-busy="true">
+          <main className="mx-auto max-w-[1440px] overflow-x-clip p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:p-8" aria-busy="true">
             <span className="sr-only" role="status">Carregando a sessão…</span>
             <ConteudoFalso />
           </main>
+        </div>
+
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-elevated pb-[env(safe-area-inset-bottom)] md:hidden" aria-hidden="true">
+          <div className="grid h-16 grid-cols-5">
+            {Array.from({ length: ABAS_NA_BARRA + 1 }, (_, i) => (
+              <div key={i} className="flex flex-col items-center justify-center gap-1.5">
+                <Skeleton className="h-6 w-6 rounded-full" />
+                <Skeleton className="h-2.5 w-10" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -123,8 +185,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       .slice(0, 2)
       .join("")
       .toUpperCase() || "??";
-  const current = navItems.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+  const current = navItems.find((item) => estaAtivo(pathname, item.href));
   const pageTitle = current?.label ?? "SGCAS";
+  const { abas, mais } = distribuirNavegacao(user.papel);
 
   return (
     <div className="min-h-screen bg-background">
@@ -135,22 +198,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         collapsed={sidebarCollapsed}
         onToggle={toggleSidebar}
       />
-      <MobileSidebar
-        pathname={pathname}
-        homeHref={defaultRouteForRole(user.papel)}
-        role={user.papel}
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-      />
 
       <div className={cn("transition-[padding] duration-300", sidebarCollapsed ? "md:pl-20" : "md:pl-64")}>
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border/70 px-4 bg-elevated md:px-8">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)}>
-            <Menu className="h-5 w-5" />
-          </Button>
-
+        <header className="sticky top-0 z-20 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-4 border-b border-border/70 bg-elevated px-4 pt-[env(safe-area-inset-top)] md:px-8">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-success" />
+            <span className="h-2 w-2 shrink-0 rounded-full bg-success" />
             <span className="truncate text-sm font-semibold text-foreground">{pageTitle}</span>
           </div>
 
@@ -168,27 +220,249 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </span>
             )}
 
-            <div className="flex items-center gap-3">
+            {/* No celular o avatar é botão: abre a mesma gaveta do "Mais", que
+                é onde moram o perfil e o Sair. */}
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-full md:hidden"
+              onClick={() => setMaisAberto(true)}
+              aria-label="Abrir perfil e menu"
+            >
               <Avatar className="h-9 w-9 ring-2 ring-white">
                 <AvatarFallback className="bg-primary text-xs font-medium text-primary-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <div className="hidden sm:block">
+            </button>
+
+            <div className="hidden items-center gap-3 md:flex">
+              <Avatar className="h-9 w-9 ring-2 ring-white">
+                <AvatarFallback className="bg-primary text-xs font-medium text-primary-foreground">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div>
                 <p className="text-sm font-medium leading-tight text-foreground">{user.nome}</p>
-                <p className="text-xs tracking-tight text-muted-foreground">{user.papel}</p>
+                <p className="text-xs tracking-tight text-muted-foreground">{rotuloDoPapel(user.papel)}</p>
               </div>
             </div>
 
-            <Button variant="ghost" size="icon" onClick={() => void logout()} title="Sair">
+            <Button variant="ghost" size="icon" className="hidden md:inline-flex" onClick={() => void logout()} title="Sair">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </header>
 
-        <main className="mx-auto max-w-[1440px] p-4 md:p-8">{children}</main>
+        {/* `overflow-x-clip`, e não `hidden`: é a rede de segurança contra
+            estouro lateral que não transforma o `main` em contêiner de
+            rolagem — `hidden` faria isso e deixaria inerte todo `sticky` dentro
+            dele. O `pb` do celular reserva a altura da barra inferior, e mais
+            a do botão flutuante quando a página tem um. */}
+        <main
+          id="conteudo"
+          className={cn(
+            "mx-auto max-w-[1440px] overflow-x-clip p-4 pb-[calc(6rem+env(safe-area-inset-bottom))] md:p-8",
+            "has-[[data-fab]]:pb-[calc(10.5rem+env(safe-area-inset-bottom))] md:has-[[data-fab]]:pb-8",
+          )}
+        >
+          {children}
+        </main>
       </div>
+
+      <BarraInferior pathname={pathname} abas={abas} maisAtivo={mais.some((item) => estaAtivo(pathname, item.href))} onMais={() => setMaisAberto(true)} />
+
+      <GavetaMais
+        aberta={maisAberto}
+        onAberta={setMaisAberto}
+        pathname={pathname}
+        itens={mais}
+        nome={user.nome}
+        email={user.email}
+        papel={rotuloDoPapel(user.papel)}
+        unidade={user.unidade?.nome}
+        initials={initials}
+        onSair={() => void logout()}
+      />
     </div>
+  );
+}
+
+/**
+ * Barra de abas do celular, no lugar do menu hambúrguer.
+ *
+ * Hambúrguer esconde a navegação atrás de dois toques e fica no canto de cima,
+ * longe do polegar. A barra deixa os destinos do papel sempre à vista, na zona
+ * que a mão alcança — é o que dá à tela a cara de app.
+ */
+function BarraInferior({
+  pathname,
+  abas,
+  maisAtivo,
+  onMais,
+}: {
+  pathname: string;
+  abas: ItemDeNavegacao[];
+  maisAtivo: boolean;
+  onMais: () => void;
+}) {
+  return (
+    <nav
+      aria-label="Navegação principal"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-elevated/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+    >
+      <ul className="grid h-16 grid-cols-5">
+        {abas.map((item) => (
+          <li key={item.href} className="min-w-0">
+            <AbaDaBarra
+              href={item.href}
+              icon={item.icon}
+              rotulo={item.curto}
+              ativo={estaAtivo(pathname, item.href)}
+            />
+          </li>
+        ))}
+        <li className="min-w-0">
+          <AbaDaBarra icon={Ellipsis} rotulo="Mais" ativo={maisAtivo} onClick={onMais} />
+        </li>
+      </ul>
+    </nav>
+  );
+}
+
+function AbaDaBarra({
+  href,
+  icon: Icon,
+  rotulo,
+  ativo,
+  onClick,
+}: {
+  href?: string;
+  icon: LucideIcon;
+  rotulo: string;
+  ativo: boolean;
+  onClick?: () => void;
+}) {
+  const classes = cn(
+    "flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-[11px] font-semibold tracking-tight transition-colors",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+    ativo ? "text-primary" : "text-muted-foreground",
+  );
+  const conteudo = (
+    <>
+      {/* A pílula atrás do ícone marca a aba atual sem depender só da cor. */}
+      <span className={cn(
+        "flex h-7 w-12 items-center justify-center rounded-full transition-colors",
+        ativo && "bg-primary-soft",
+      )}>
+        <Icon className="h-5 w-5" strokeWidth={ativo ? 2.4 : 2} aria-hidden="true" />
+      </span>
+      <span className="max-w-full truncate">{rotulo}</span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className={classes} aria-current={ativo ? "page" : undefined}>
+        {conteudo}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" className={classes} onClick={onClick} aria-haspopup="dialog">
+      {conteudo}
+    </button>
+  );
+}
+
+/** Gaveta do "Mais": perfil de quem está logado, o resto do menu e o Sair. */
+function GavetaMais({
+  aberta,
+  onAberta,
+  pathname,
+  itens,
+  nome,
+  email,
+  papel,
+  unidade,
+  initials,
+  onSair,
+}: {
+  aberta: boolean;
+  onAberta: (aberta: boolean) => void;
+  pathname: string;
+  itens: ItemDeNavegacao[];
+  nome: string;
+  email?: string | null;
+  papel: string;
+  unidade?: string | null;
+  initials: string;
+  onSair: () => void;
+}) {
+  return (
+    <Dialog open={aberta} onOpenChange={onAberta}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="sr-only">Menu</DialogTitle>
+          <DialogDescription className="sr-only">Perfil, demais telas do sistema e saída.</DialogDescription>
+          <div className="flex min-w-0 items-center gap-3">
+            <Avatar className="h-12 w-12 shrink-0">
+              <AvatarFallback className="bg-primary text-sm font-medium text-primary-foreground">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-foreground">{nome}</p>
+              <p className="truncate text-sm text-muted-foreground">{email || papel}</p>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary">{papel}</span>
+            <span className={cn(
+              "rounded-full px-3 py-1 text-xs font-medium",
+              unidade ? "bg-secondary text-muted-foreground" : "bg-[var(--pmt-color-warning-soft)] text-[var(--pmt-color-warning-soft-fg)]",
+            )}>
+              {unidade ?? "Sem unidade vinculada"}
+            </span>
+          </div>
+        </DialogHeader>
+
+        {itens.length > 0 && (
+          <nav aria-label="Outras telas" className="flex flex-col gap-1">
+            {itens.map((item) => {
+              const ativo = estaAtivo(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => onAberta(false)}
+                  aria-current={ativo ? "page" : undefined}
+                  className={cn(
+                    "flex min-h-12 items-center gap-3 rounded-lg px-3 text-base font-medium transition-colors",
+                    ativo ? "bg-primary text-primary-foreground" : "text-foreground hover:bg-secondary",
+                  )}
+                >
+                  <item.icon className={cn("h-5 w-5 shrink-0", !ativo && "text-muted-foreground")} aria-hidden="true" />
+                  <span className="flex-1">{item.label}</span>
+                  <ChevronRight className={cn("h-4 w-4", !ativo && "text-muted-foreground")} aria-hidden="true" />
+                </Link>
+              );
+            })}
+          </nav>
+        )}
+
+        <div className="flex flex-col gap-3 border-t border-border pt-4">
+          <button
+            type="button"
+            onClick={onSair}
+            className="flex min-h-12 items-center gap-3 rounded-lg px-3 text-base font-medium text-destructive transition-colors hover:bg-destructive/10"
+          >
+            <LogOut className="h-5 w-5" aria-hidden="true" />
+            Sair
+          </button>
+          <p className="text-center text-xs text-muted-foreground">SGCAS v0.1.0 · Desenvolvido por SEDECTI</p>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -233,40 +507,6 @@ function Sidebar({
   );
 }
 
-function MobileSidebar({
-  pathname,
-  homeHref,
-  role,
-  open,
-  onClose,
-}: {
-  pathname: string;
-  homeHref: string;
-  role: string;
-  open: boolean;
-  onClose: () => void;
-}) {
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 md:hidden">
-      <button className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-label="Fechar menu" />
-      <aside className="relative flex h-full w-72 max-w-[84vw] flex-col overflow-y-auto border-r border-border bg-white pt-5 shadow-elevated">
-        <div className="mb-4 flex items-center justify-between px-5">
-          <Brand href={homeHref} />
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-        <div onClick={onClose}>
-          <Nav pathname={pathname} role={role} />
-        </div>
-        <Footer />
-      </aside>
-    </div>
-  );
-}
-
 function Brand({ href, hideText = false }: { href: string; hideText?: boolean }) {
   return (
     // Sem margem nem padding próprios: quem posiciona a marca é o cabeçalho que
@@ -285,12 +525,10 @@ function Brand({ href, hideText = false }: { href: string; hideText?: boolean })
 }
 
 function Nav({ pathname, role, compact = false }: { pathname: string; role: string; compact?: boolean }) {
-  const visibleItems = navItems.filter((item) => !item.roles || item.roles.includes(role));
-
   return (
-    <nav className={cn("flex-1 space-y-1", compact ? "px-3" : "px-3")}>
-      {visibleItems.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+    <nav className="flex-1 space-y-1 px-3">
+      {itensDoPapel(role).map((item) => {
+        const isActive = estaAtivo(pathname, item.href);
         return (
           <Link
             key={item.href}
