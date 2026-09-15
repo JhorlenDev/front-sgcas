@@ -177,7 +177,7 @@ export default function CidadaosPage() {
       </Card>
 
       <Dialog open={modalAberto} onOpenChange={setModalAberto}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Cadastrar novo cidadão</DialogTitle>
             <DialogDescription>
@@ -269,7 +269,7 @@ export default function CidadaosPage() {
       </Dialog>
 
       <Dialog open={mostrarTermo} onOpenChange={setMostrarTermo}>
-        <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Termo de Consentimento LGPD</DialogTitle>
             <DialogDescription>

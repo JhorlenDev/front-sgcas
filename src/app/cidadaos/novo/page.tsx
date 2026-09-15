@@ -131,7 +131,7 @@ export default function NovoCidadaoPage() {
       </Card>
 
       <Dialog open={mostrarTermo} onOpenChange={setMostrarTermo}>
-        <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Termo de Consentimento LGPD</DialogTitle>
             <DialogDescription>

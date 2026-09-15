@@ -426,7 +426,7 @@ export default function AcoesItinerantesPage() {
 
       {/* Modal Nova Ação */}
       <Dialog open={modalNovaAberto} onOpenChange={setModalNovaAberto}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Nova ação itinerante</DialogTitle>
             <DialogDescription>
@@ -470,7 +470,7 @@ export default function AcoesItinerantesPage() {
 
       {/* Modal Concluir Ação */}
       <Dialog open={modalConcluirAberto} onOpenChange={setModalConcluirAberto}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Concluir ação</DialogTitle>
             <DialogDescription>
@@ -543,7 +543,7 @@ export default function AcoesItinerantesPage() {
 
       {/* Modal Balanço / Dashboard da Ação */}
       <Dialog open={modalBalancoAberto} onOpenChange={setModalBalancoAberto}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Balanço da ação</DialogTitle>
             {balancoDetalhe && (

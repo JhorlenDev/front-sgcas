@@ -445,7 +445,7 @@ export default function FilaPage() {
       </Card>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogContent className="max-w-3xl">
           {atendimento && (
             <>
               <DialogHeader>
