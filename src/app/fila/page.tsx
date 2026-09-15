@@ -28,7 +28,19 @@ import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Fiel
 import { api, comQuery, mensagemDeErro } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ehEquipeDeAtendimento } from "@/lib/permissoes";
-import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, SenhaEmAtendimento, Unidade } from "@/types/sgcas";
+import type {
+  Caso,
+  Cidadao,
+  DetalheDoIndicador,
+  EntradaHistorico,
+  GrupoDoPainel,
+  Paginado,
+  PainelAtendente,
+  Senha,
+  SenhaEmAtendimento,
+  Unidade,
+} from "@/types/sgcas";
+import { Paginacao } from "@/components/shared/paginacao";
 import { LinkDoCaso, LinkDoCidadao } from "@/components/shared/links";
 import { CartaoDeCasoFalso, FaixaDeResumosFalsa, ListaFalsa } from "@/components/skeletons/blocos";
 
@@ -49,6 +61,15 @@ const PROVIDENCIAS = [
   { value: "Retorno combinado com o cidadão", label: "Retorno combinado" },
   { value: "Atendimento concluído no setor", label: "Concluído no setor" },
 ];
+
+const INDICADORES: Record<GrupoDoPainel, { titulo: string; descricao: string }> = {
+  atendidos_hoje: { titulo: "Atendidos hoje", descricao: "Senhas finalizadas por você hoje nesta unidade." },
+  aguardando_na_fila: { titulo: "Aguardando na fila", descricao: "Senhas aguardando nesta unidade, por prioridade e ordem de chegada." },
+  finalizados_hoje: { titulo: "Finalizados hoje", descricao: "Casos concluídos ou encaminhados por você hoje nesta unidade." },
+  casos_em_acompanhamento: { titulo: "Em acompanhamento", descricao: "Casos da unidade que não foram concluídos nem cancelados." },
+};
+
+const POR_PAGINA_DO_DETALHE = 10;
 
 type AtendimentoMontado = {
   senha: Senha;
@@ -104,6 +125,32 @@ export default function FilaPage() {
   const [abertos, setAbertos] = useState<SenhaEmAtendimento[] | null>(null);
   const [erroAbertos, setErroAbertos] = useState("");
   const [retomando, setRetomando] = useState<string | null>(null);
+
+  // Detalhe dos indicadores — também da atualização-jhorlen, lendo o envelope
+  // paginado que a API passou a devolver.
+  const [indicador, setIndicador] = useState<GrupoDoPainel | null>(null);
+  const [detalhe, setDetalhe] = useState<DetalheDoIndicador | null>(null);
+  const [erroDetalhe, setErroDetalhe] = useState("");
+  // Descarta resposta atrasada: trocar de indicador ou de página antes da
+  // anterior chegar mostraria a lista errada por baixo do título certo.
+  const versaoDoDetalhe = useRef(0);
+
+  async function abrirIndicador(grupo: GrupoDoPainel, pagina = 1) {
+    const versao = ++versaoDoDetalhe.current;
+    setIndicador(grupo);
+    setErroDetalhe("");
+    if (pagina === 1) setDetalhe(null);
+    try {
+      const dados = await api<DetalheDoIndicador>(
+        comQuery(`/queues/painel/${grupo}`, { page: pagina, limit: POR_PAGINA_DO_DETALHE }),
+      );
+      if (versao === versaoDoDetalhe.current) setDetalhe(dados);
+    } catch (erro) {
+      if (versao === versaoDoDetalhe.current) {
+        setErroDetalhe(mensagemDeErro(erro, "Não foi possível carregar os registros"));
+      }
+    }
+  }
 
   const carregar = useCallback(async () => {
     // O painel do atendente é `EquipeDeAtendimento`: para a recepção ele
@@ -412,11 +459,13 @@ export default function FilaPage() {
         <FaixaDeResumosFalsa quantidade={5} colunas="md:grid-cols-2 xl:grid-cols-5" />
       ) : (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <MiniStat title="Atendidos hoje" value={painel?.atendidos_hoje ?? 0} detail="Finalizados pelo atendente" icon={CheckCircle2} tone="good" />
-        <MiniStat title="Aguardando na fila" value={painel?.aguardando_na_fila ?? fila.length} detail="Próximas chamadas" icon={ListChecks} tone="warn" />
-        <MiniStat title="Em atendimento" value={painel?.em_atendimento ?? 0} detail="Senhas já chamadas" icon={Stethoscope} tone="primary" />
-        <MiniStat title="Finalizados" value={painel?.finalizados_hoje ?? 0} detail="Casos fechados hoje" icon={Clock3} tone="neutral" />
-        <MiniStat title="Acompanhamento" value={painel?.casos_em_acompanhamento ?? 0} detail="Casos ativos na unidade" icon={FolderOpen} tone="bad" />
+        {/* Clicáveis só para quem tem o painel: a rota de detalhe é da equipe
+            de atendimento, como o próprio painel. */}
+        <MiniStat title="Atendidos hoje" value={painel?.atendidos_hoje ?? 0} detail="Finalizados pelo atendente" icon={CheckCircle2} tone="good" onClick={painel ? () => void abrirIndicador("atendidos_hoje") : undefined} />
+        <MiniStat title="Aguardando na fila" value={painel?.aguardando_na_fila ?? fila.length} detail="Próximas chamadas" icon={ListChecks} tone="warn" onClick={painel ? () => void abrirIndicador("aguardando_na_fila") : undefined} />
+        <MiniStat title="Em atendimento" value={painel?.em_atendimento ?? 0} detail="Senhas já chamadas" icon={Stethoscope} tone="primary" onClick={painel && unidadeId ? () => void listarAbertos() : undefined} />
+        <MiniStat title="Finalizados" value={painel?.finalizados_hoje ?? 0} detail="Casos fechados hoje" icon={Clock3} tone="neutral" onClick={painel ? () => void abrirIndicador("finalizados_hoje") : undefined} />
+        <MiniStat title="Acompanhamento" value={painel?.casos_em_acompanhamento ?? 0} detail="Casos ativos na unidade" icon={FolderOpen} tone="bad" onClick={painel ? () => void abrirIndicador("casos_em_acompanhamento") : undefined} />
       </div>
       )}
 
@@ -597,6 +646,87 @@ export default function FilaPage() {
           </div>
         )}
       </Card>
+
+      <Dialog
+        open={indicador !== null}
+        onOpenChange={(aberto) => {
+          if (aberto) return;
+          versaoDoDetalhe.current++;
+          setIndicador(null);
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{indicador ? INDICADORES[indicador].titulo : "Registros"}</DialogTitle>
+            <DialogDescription>{indicador ? INDICADORES[indicador].descricao : ""}</DialogDescription>
+          </DialogHeader>
+
+          {erroDetalhe ? (
+            <div className="notice flex flex-wrap items-center justify-between gap-3" role="alert">
+              <span>{erroDetalhe}</span>
+              <SecondaryButton
+                type="button"
+                className="h-10 px-4 text-xs"
+                onClick={() => indicador && void abrirIndicador(indicador, detalhe?.pagina ?? 1)}
+              >
+                Tentar de novo
+              </SecondaryButton>
+            </div>
+          ) : !detalhe ? (
+            <ListaFalsa itens={4} linhas={2} espaco="gap-3" />
+          ) : detalhe.itens.length === 0 ? (
+            <EmptyState title="Nenhum registro" text="Não há nada por trás deste número agora." />
+          ) : (
+            <ul className="flex flex-col gap-3" aria-live="polite">
+              {detalhe.tipo === "senhas"
+                ? detalhe.itens.map((senha) => (
+                    <li key={senha.id} className="flex items-center gap-3 rounded-lg border border-border bg-elevated p-4">
+                      <strong className="flex h-11 min-w-14 shrink-0 items-center justify-center rounded-md bg-primary px-3 text-lg text-primary-foreground">
+                        {senha.senha}
+                      </strong>
+                      <span className="min-w-0 flex-1">
+                        <LinkDoCidadao id={senha.cidadao} nome={senha.cidadao_nome} className="block truncate font-semibold text-foreground" />
+                        <span className="block truncate text-sm text-muted-foreground">{senha.servico || "Serviço não informado"}</span>
+                        <span className="mt-2 flex flex-wrap gap-2">
+                          <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloPrioridade(senha.prioridade)}</Badge>
+                          <Badge tone="neutral">{formatarDataHora(senha.criado_em)}</Badge>
+                        </span>
+                      </span>
+                    </li>
+                  ))
+                : detalhe.itens.map((caso) => (
+                    <li key={caso.id} className="rounded-lg border border-border bg-elevated p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <LinkDoCidadao id={caso.cidadao} nome={caso.cidadao_nome} className="font-semibold text-foreground" />
+                        <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
+                      </div>
+                      <p className="mt-1 text-sm text-foreground">{caso.servico_nome || caso.descricao || "Serviço não informado"}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        <LinkDoCaso protocolo={caso.protocolo} /> · {caso.tecnico_nome || "Sem técnico responsável"} · {caso.unidade_nome}
+                      </p>
+                    </li>
+                  ))}
+            </ul>
+          )}
+
+          {detalhe && indicador && (
+            <Paginacao
+              pagina={detalhe.pagina}
+              paginas={detalhe.paginas}
+              total={detalhe.total}
+              porPagina={detalhe.por_pagina}
+              onPagina={(pagina) => void abrirIndicador(indicador, pagina)}
+              rotulo={detalhe.tipo === "senhas" ? "senhas" : "casos"}
+            />
+          )}
+
+          <DialogFooter>
+            <SecondaryButton type="button" onClick={() => setIndicador(null)}>
+              Fechar
+            </SecondaryButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={abertosVisivel} onOpenChange={setAbertosVisivel}>
         <DialogContent className="max-w-2xl">
@@ -973,18 +1103,28 @@ function RegistroGuiado({
   );
 }
 
+/**
+ * Indicador do painel. Com `onClick`, o cartão inteiro vira botão e abre os
+ * registros por trás do número.
+ *
+ * O botão é o próprio cartão (classe `.card`), com `<span>` por dentro — e não
+ * um `<Card>` embrulhado num `<button>`: `<section>` e `<p>` não podem ficar
+ * dentro de botão, e leitor de tela lê esse aninhamento de forma imprevisível.
+ */
 function MiniStat({
   title,
   value,
   detail,
   icon: Icon,
   tone,
+  onClick,
 }: {
   title: string;
   value: number;
   detail: string;
   icon: React.ElementType;
   tone: "primary" | "neutral" | "good" | "warn" | "bad";
+  onClick?: () => void;
 }) {
   const toneClass = {
     primary: "bg-primary/10 text-primary",
@@ -994,19 +1134,36 @@ function MiniStat({
     bad: "bg-destructive/10 text-destructive",
   }[tone];
 
+  const conteudo = (
+    <span className="flex items-start justify-between gap-3">
+      <span className="block">
+        <span className="block text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</span>
+        <strong className="mt-2 block text-3xl text-foreground">{value.toLocaleString("pt-BR")}</strong>
+        <small className="mt-1 block text-muted-foreground">{detail}</small>
+        {onClick && (
+          <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+            Ver registros
+            <ArrowRight size={13} aria-hidden="true" />
+          </span>
+        )}
+      </span>
+      <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${toneClass}`}>
+        <Icon size={18} aria-hidden="true" />
+      </span>
+    </span>
+  );
+
+  if (!onClick) {
+    return <div className="card !p-4">{conteudo}</div>;
+  }
   return (
-    <Card className="!p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</p>
-          <strong className="mt-2 block text-3xl text-foreground">{value.toLocaleString("pt-BR")}</strong>
-          <small className="mt-1 block text-muted-foreground">{detail}</small>
-        </div>
-        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${toneClass}`}>
-          <Icon size={18} />
-        </span>
-      </div>
-    </Card>
+    <button
+      type="button"
+      onClick={onClick}
+      className="card !p-4 w-full text-left hover:border-primary/40 hover:bg-primary-soft/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
+      {conteudo}
+    </button>
   );
 }
 

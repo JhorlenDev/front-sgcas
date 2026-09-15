@@ -163,6 +163,14 @@ export type Senha = {
   criado_em: string;
 };
 
+/** Indicadores do painel do atendente que têm lista de registros por trás. */
+export type GrupoDoPainel = "atendidos_hoje" | "aguardando_na_fila" | "finalizados_hoje" | "casos_em_acompanhamento";
+
+/** `GET /queues/painel/:grupo` — envelope paginado com o tipo dos itens. */
+export type DetalheDoIndicador =
+  | ({ tipo: "senhas" } & Paginado<Senha>)
+  | ({ tipo: "casos" } & Paginado<Caso>);
+
 /** Item de `GET /queues/em-atendimento`: a senha, quem atende e se é sua. */
 export type SenhaEmAtendimento = Senha & {
   operador_nome: string | null;
