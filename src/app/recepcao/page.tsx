@@ -217,24 +217,33 @@ export default function RecepcaoPage() {
         acoes={[{ rotulo: "Novo cidadão", icone: UserPlus, href: "/cidadaos" }]}
       />
 
-      <div className="mb-5 flex flex-wrap gap-2 rounded-lg border border-border bg-white p-2">
-        <AbaButton active={aba === "nova"} onClick={() => setAba("nova")}>
-          <UserPlus size={17} />
-          Nova recepção
-        </AbaButton>
-        <AbaButton active={aba === "recentes"} onClick={() => setAba("recentes")}>
-          <Clock3 size={17} />
-          Atendimentos recentes
-          <Badge tone="neutral">{ultimosAtendimentos.length}</Badge>
-        </AbaButton>
-        <AbaButton active={aba === "fila"} onClick={() => {
-          setAba("fila");
-          void carregarFila();
-        }}>
-          <ListChecks size={17} />
-          Fila
-          <Badge tone={fila.length ? "warn" : "good"}>{fila.length}</Badge>
-        </AbaButton>
+      <div role="tablist" aria-label="Seções da recepção" className="mb-5 grid grid-cols-3 gap-1.5 rounded-lg border border-border bg-white p-1.5 sm:flex sm:flex-wrap sm:gap-2 sm:p-2">
+        <AbaButton
+          active={aba === "nova"}
+          onClick={() => setAba("nova")}
+          icone={UserPlus}
+          rotulo="Nova recepção"
+          curto="Nova"
+        />
+        <AbaButton
+          active={aba === "recentes"}
+          onClick={() => setAba("recentes")}
+          icone={Clock3}
+          rotulo="Atendimentos recentes"
+          curto="Recentes"
+          contagem={<Badge tone="neutral">{ultimosAtendimentos.length}</Badge>}
+        />
+        <AbaButton
+          active={aba === "fila"}
+          onClick={() => {
+            setAba("fila");
+            void carregarFila();
+          }}
+          icone={ListChecks}
+          rotulo="Fila"
+          curto="Fila"
+          contagem={<Badge tone={fila.length ? "warn" : "good"}>{fila.length}</Badge>}
+        />
       </div>
 
       <div className="grid gap-5">
@@ -482,26 +491,46 @@ export default function RecepcaoPage() {
   );
 }
 
+/**
+ * Aba da recepção.
+ *
+ * No celular as três dividem a linha em colunas iguais, com ícone sobre o
+ * rótulo curto — soltas com `flex-wrap`, empilhavam uma por linha e ocupavam
+ * a primeira dobra inteira antes de qualquer conteúdo.
+ */
 function AbaButton({
   active,
   onClick,
-  children,
+  icone: Icone,
+  rotulo,
+  curto,
+  contagem,
 }: {
   active: boolean;
   onClick: () => void;
-  children: React.ReactNode;
+  icone: React.ElementType;
+  rotulo: string;
+  curto: string;
+  contagem?: React.ReactNode;
 }) {
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={active}
       onClick={onClick}
-      className={`inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+      className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-md px-2 py-2 text-xs font-semibold transition-all sm:min-h-11 sm:flex-row sm:gap-2 sm:rounded-full sm:px-4 sm:text-sm ${
         active
           ? "bg-primary text-primary-foreground"
           : "bg-secondary text-foreground hover:bg-background"
       }`}
     >
-      {children}
+      <span className="flex items-center gap-1.5">
+        <Icone size={17} aria-hidden="true" />
+        {contagem}
+      </span>
+      <span className="sm:hidden">{curto}</span>
+      <span className="hidden sm:inline">{rotulo}</span>
     </button>
   );
 }
