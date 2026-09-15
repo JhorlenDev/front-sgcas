@@ -58,8 +58,19 @@
     @apply flex min-h-screen items-center justify-center bg-background p-5 text-foreground;
   }
 
+  /*
+   * `minmax(0, 1fr)` explícito, e não a coluna implícita.
+   *
+   * Sem `grid-cols-*`, o grid cria uma coluna `auto`, que cresce até a largura
+   * mínima do conteúdo mais largo — e texto com `truncate` conta a largura
+   * inteira nesse cálculo. Em /admin, o rótulo de um `Dropdown` esticava o
+   * cartão para 479px num celular de 390px. O mesmo valia para todo
+   * `grid md:grid-cols-2` abaixo de `md`. Os `grid-cols-*` continuam vencendo:
+   * utilitário vem depois de componente.
+   */
   .grid {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 1.25rem;
   }
 
