@@ -16,6 +16,7 @@ import {
 import { Badge, Button, CampoData, Card, Checkbox, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api, comQuery, mensagemDeErro, paginadoVazio } from "@/lib/api";
+import { formatCPF } from "@/lib/utils";
 import type { Cidadao, CidadaoLista, Paginado } from "@/types/sgcas";
 import { TabelaFalsa } from "@/components/skeletons/blocos";
 
@@ -146,7 +147,7 @@ export default function CidadaosPage() {
                   <td data-papel="titulo">
                     <strong>{cidadao.nome}</strong>
                   </td>
-                  <td data-rotulo="CPF">{cidadao.cpf ?? "-"}</td>
+                  <td data-rotulo="CPF" className="tabular-nums">{cidadao.cpf ? formatCPF(cidadao.cpf) : "Não informado"}</td>
                   <td data-rotulo="Endereço">{[cidadao.bairro, cidadao.cidade].filter(Boolean).join(" - ") || "-"}</td>
                   <td data-papel="acoes">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors group-hover:bg-primary-hover">

@@ -216,7 +216,7 @@ export default function RecepcaoPage() {
       <PageHeader
         title="Recepção"
         description="Organize o balcão: nova recepção, atendimentos recentes e fila apenas para consulta."
-        acoes={[{ rotulo: "Novo cidadão", icone: UserPlus, href: "/cidadaos" }]}
+        acoes={[{ rotulo: "Novo cidadão", icone: UserPlus, href: "/cidadaos/novo" }]}
       />
 
       <div role="tablist" aria-label="Seções da recepção" className="mb-5 grid grid-cols-3 gap-1.5 rounded-lg border border-border bg-white p-1.5 sm:flex sm:flex-wrap sm:gap-2 sm:p-2">
@@ -282,13 +282,31 @@ export default function RecepcaoPage() {
                 <button className="plain-row" key={item.id} onClick={() => void selecionarCidadao(item)}>
                   <span className="min-w-0">
                     <strong>{item.nome}</strong>
-                    <small className="block">{item.cpf ?? [item.bairro, item.cidade].filter(Boolean).join(" - ")}</small>
+                    {/* CPF e bairro juntos: antes, havendo CPF, o bairro sumia — e é
+                        o bairro que separa dois homônimos no balcão. */}
+                    <small className="block">
+                      {[item.cpf ? `CPF ${formatCPF(item.cpf)}` : null, [item.bairro, item.cidade].filter(Boolean).join(" - ")]
+                        .filter(Boolean)
+                        .join(" · ") || "Sem CPF e sem endereço no cadastro"}
+                    </small>
                   </span>
                   <span className="inline-flex shrink-0 items-center rounded-full bg-primary px-4 py-2 text-sm font-semibold !text-white">
                     Selecionar
                   </span>
                 </button>
               ))}
+
+              {/* Portado da atualização-jhorlen (a1af3f3): quem não aparece na
+                  busca precisava sair da recepção e achar o cadastro sozinho. */}
+              {!cidadao && busca.trim().length >= 2 && (
+                <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border pt-4 text-sm text-muted-foreground">
+                  <span>Não encontrou o cidadão?</span>
+                  <Link href="/cidadaos/novo" className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-primary underline-offset-4 hover:underline">
+                    <UserPlus size={16} aria-hidden="true" />
+                    Cadastrar cidadão
+                  </Link>
+                </div>
+              )}
 
               {cidadao && <CidadaoSelecionado cidadao={cidadao} onTrocar={() => setCidadao(null)} />}
             </Card>
@@ -889,7 +907,7 @@ function FilaSomenteLeitura({ fila, onAtualizar }: { fila: Senha[]; onAtualizar:
 
 function CidadaoSelecionado({ cidadao, onTrocar }: { cidadao: CidadaoLista; onTrocar: () => void }) {
   const dados = [
-    cidadao.cpf ? `CPF ${cidadao.cpf}` : null,
+    cidadao.cpf ? `CPF ${formatCPF(cidadao.cpf)}` : null,
     cidadao.bairro,
     cidadao.cidade,
   ].filter(Boolean);
@@ -921,10 +939,10 @@ function CidadaoSelecionado({ cidadao, onTrocar }: { cidadao: CidadaoLista; onTr
         </div>
         <button
           type="button"
-          className="inline-flex h-8 shrink-0 items-center justify-center rounded-full border border-border bg-white px-3 text-xs font-semibold text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
+          className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-border bg-white px-4 text-xs font-semibold text-foreground transition-all hover:border-primary/30 hover:bg-primary/5 hover:text-primary"
           onClick={onTrocar}
         >
-          Trocar
+          Trocar cidadão
         </button>
       </div>
     </div>
