@@ -260,7 +260,13 @@ export function LinhasDivididasFalsas({ itens = 6 }: { itens?: number }) {
   );
 }
 
-/** Tabela com o mesmo número de colunas da real, para as larguras baterem. */
+/**
+ * Tabela com o mesmo número de colunas da real, para as larguras baterem.
+ *
+ * Usa o mesmo `.tabela-responsiva` das tabelas reais: onde a real vira lista de
+ * cartões, o esqueleto vira cartão também — senão o celular mostraria uma
+ * tabela falsa espremida e, ao chegar o dado, a tela trocaria de forma.
+ */
 export function TabelaFalsa({
   colunas = 4,
   linhas = 8,
@@ -272,7 +278,7 @@ export function TabelaFalsa({
   subtituloNaPrimeira?: boolean;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="tabela-responsiva">
       <table className="table">
         <thead>
           <tr>
@@ -285,7 +291,9 @@ export function TabelaFalsa({
           {Array.from({ length: linhas }, (_, l) => (
             <tr key={l}>
               {Array.from({ length: colunas }, (_, c) => (
-                <td key={c}>
+                // Rótulo de um espaço: no cartão, a coluna do rótulo existe e
+                // fica vazia, e a barra cai onde o valor real vai cair.
+                <td key={c} data-papel={c === 0 ? "titulo" : undefined} data-rotulo={c === 0 ? undefined : " "}>
                   <Skeleton className={cn("h-4", c === 0 ? "w-40" : "w-24")} />
                   {c === 0 && subtituloNaPrimeira && <Skeleton className="mt-1.5 h-3 w-28" />}
                 </td>

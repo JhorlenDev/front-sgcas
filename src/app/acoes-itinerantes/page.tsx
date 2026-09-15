@@ -350,7 +350,7 @@ export default function AcoesItinerantesPage() {
           </div>
         </div>
 
-        {carregando && <TabelaFalsa colunas={7} linhas={5} />}
+        {carregando && <TabelaFalsa colunas={5} linhas={5} subtituloNaPrimeira />}
 
         {!carregando && acoesOrdenadas.length === 0 && (
           <EmptyState
@@ -360,29 +360,33 @@ export default function AcoesItinerantesPage() {
         )}
 
         {!carregando && acoesOrdenadas.length > 0 && (
+          // Eram 7 colunas e a tabela pedia 985px mesmo com o texto quebrando.
+          // Local mora sob o título e unidade sob o responsável: são o
+          // complemento de quem está acima, não uma coluna própria.
+          <div className="tabela-responsiva">
           <table className="table">
             <thead>
               <tr>
-                <th>Título</th>
-                <th>Local</th>
+                <th>Ação</th>
                 <th>Data</th>
                 <th>Responsável</th>
-                <th>Unidade</th>
                 <th>Situação</th>
-                <th>Ação</th>
+                <th><span className="sr-only">Opções</span></th>
               </tr>
             </thead>
             <tbody>
               {acoesOrdenadas.map((acao) => (
                 <tr className="clickable-row group" key={acao.id}>
-                  <td>
+                  <td data-papel="titulo">
                     <strong>{acao.titulo}</strong>
+                    <small className="block text-muted-foreground">{acao.local}</small>
                   </td>
-                  <td>{acao.local}</td>
-                  <td>{formatarData(acao.data)}</td>
-                  <td><LinkDoOperador nome={acao.responsavel_nome} /></td>
-                  <td>{acao.unidade_nome}</td>
-                  <td>
+                  <td data-rotulo="Data">{formatarData(acao.data)}</td>
+                  <td data-rotulo="Responsável">
+                    <LinkDoOperador nome={acao.responsavel_nome} />
+                    <small className="block text-muted-foreground">{acao.unidade_nome}</small>
+                  </td>
+                  <td data-rotulo="Situação">
                     {acao.concluida ? (
                       <Badge tone="good">Concluída</Badge>
                     ) : new Date(acao.data) < agora ? (
@@ -391,8 +395,8 @@ export default function AcoesItinerantesPage() {
                       <Badge>Agendada</Badge>
                     )}
                   </td>
-                  <td>
-                    <div className="flex items-center gap-2">
+                  <td data-papel="acoes">
+                    <div className="flex items-center justify-end gap-2">
                       {acao.concluida ? (
                         <button
                           type="button"
@@ -437,6 +441,7 @@ export default function AcoesItinerantesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </Card>
 

@@ -155,6 +155,7 @@ export default function InstitucionalPage() {
           ) : unidades.length === 0 ? (
             <EmptyState title="Nenhuma unidade" text="Cadastre a primeira unidade para vincular serviços e operadores." />
           ) : (
+            <div className="tabela-responsiva">
             <table className="table">
               <thead>
                 <tr>
@@ -167,13 +168,13 @@ export default function InstitucionalPage() {
               <tbody>
                 {unidades.map((unidade) => (
                   <tr key={unidade.id}>
-                    <td>
+                    <td data-papel="titulo">
                       <strong>{unidade.nome}</strong>
                       {unidade.coordenacao && <small className="block text-muted-foreground">{unidade.coordenacao}</small>}
                     </td>
-                    <td>{unidade.tipo ?? "-"}</td>
-                    <td>{unidade.sigla ?? "-"}</td>
-                    <td>
+                    <td data-rotulo="Tipo">{unidade.tipo ?? "-"}</td>
+                    <td data-rotulo="Sigla">{unidade.sigla ?? "-"}</td>
+                    <td data-rotulo="Status">
                       <Badge tone={unidade.ativa === false ? "bad" : "good"}>
                         {unidade.ativa === false ? "Inativa" : "Ativa"}
                       </Badge>
@@ -182,6 +183,7 @@ export default function InstitucionalPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
 
@@ -196,6 +198,7 @@ export default function InstitucionalPage() {
           ) : servicos.length === 0 ? (
             <EmptyState title="Nenhum serviço" text="Cadastre os serviços que aparecem na recepção e no encaminhamento." />
           ) : (
+            <div className="tabela-responsiva">
             <table className="table">
               <thead>
                 <tr>
@@ -207,16 +210,17 @@ export default function InstitucionalPage() {
               <tbody>
                 {servicos.map((servico) => (
                   <tr key={servico.id}>
-                    <td>
+                    <td data-papel="titulo">
                       <strong>{servico.nome}</strong>
                       {servico.descricao && <small className="block text-muted-foreground">{servico.descricao}</small>}
                     </td>
-                    <td>{servico.unidade_nome}</td>
-                    <td>{servico.demanda_nome ?? "Sem categoria"}</td>
+                    <td data-rotulo="Unidade">{servico.unidade_nome}</td>
+                    <td data-rotulo="Categoria">{servico.demanda_nome ?? "Sem categoria"}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </Card>
       </div>

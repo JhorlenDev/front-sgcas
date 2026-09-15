@@ -119,6 +119,7 @@ export default function CidadaosPage() {
         {carregando && resultados.length === 0 && <TabelaFalsa colunas={4} linhas={8} />}
 
         {resultados.length > 0 && (
+          <div className="tabela-responsiva">
           <table className="table">
             <thead>
               <tr>
@@ -142,12 +143,12 @@ export default function CidadaosPage() {
                     }
                   }}
                 >
-                  <td>
+                  <td data-papel="titulo">
                     <strong>{cidadao.nome}</strong>
                   </td>
-                  <td>{cidadao.cpf ?? "-"}</td>
-                  <td>{[cidadao.bairro, cidadao.cidade].filter(Boolean).join(" - ") || "-"}</td>
-                  <td>
+                  <td data-rotulo="CPF">{cidadao.cpf ?? "-"}</td>
+                  <td data-rotulo="Endereço">{[cidadao.bairro, cidadao.cidade].filter(Boolean).join(" - ") || "-"}</td>
+                  <td data-papel="acoes">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-white transition-colors group-hover:bg-primary-hover">
                       Abrir
                       <ArrowRight className="h-3.5 w-3.5" />
@@ -157,6 +158,7 @@ export default function CidadaosPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         {!carregando && buscou && resultados.length === 0 && (

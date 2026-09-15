@@ -199,7 +199,7 @@ export default function ProntuarioPage() {
                 Nenhum membro registrado no cadastro.
               </p>
             ) : (
-              <div className="col-span-full overflow-x-auto">
+              <div className="tabela-responsiva col-span-full">
                 <table className="table">
                   <thead>
                     <tr><th>Nome</th><th>Parentesco</th><th>Nascimento</th></tr>
@@ -207,9 +207,9 @@ export default function ProntuarioPage() {
                   <tbody>
                     {familia.map((membro, i) => (
                       <tr key={`${membro.nome}-${i}`}>
-                        <td>{membro.nome ?? "—"}</td>
-                        <td>{rotular("parentesco", membro.parentesco) ?? "—"}</td>
-                        <td>{membro.nascimento ? formatDateOnly(membro.nascimento) : "—"}</td>
+                        <td data-papel="titulo">{membro.nome ?? "—"}</td>
+                        <td data-rotulo="Parentesco">{rotular("parentesco", membro.parentesco) ?? "—"}</td>
+                        <td data-rotulo="Nascimento">{membro.nascimento ? formatDateOnly(membro.nascimento) : "—"}</td>
                       </tr>
                     ))}
                   </tbody>

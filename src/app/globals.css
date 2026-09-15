@@ -302,6 +302,27 @@
     @apply font-bold text-foreground;
   }
 
+  /*
+   * Contêiner de tabela que vira lista de cartões quando o espaço acaba.
+   *
+   * O corte é pela largura do PRÓPRIO contêiner (container query), não da
+   * tela: a mesma tabela fica apertada num celular, numa coluna de `grid two`
+   * no desktop ou num tablet com a barra lateral aberta — e em todos esses
+   * casos rolar para o lado é a pior leitura possível.
+   *
+   * Cada `<td>` declara `data-rotulo` (o texto do cabeçalho, que no cartão
+   * aparece à esquerda do valor). Dois papéis especiais:
+   *   data-papel="titulo" → linha de destaque no topo, sem rótulo;
+   *   data-papel="acoes"  → faixa de botões no pé do cartão, sem rótulo.
+   *
+   * `overflow-x: auto` segura o caso que sobra: tabela larga num contêiner
+   * que ainda passa do corte.
+   */
+  .tabela-responsiva {
+    container-type: inline-size;
+    @apply overflow-x-auto;
+  }
+
   .dashboard-stats .stat {
     @apply min-h-40;
   }
@@ -344,5 +365,58 @@
 
   .action-stat {
     @apply flex flex-col justify-between;
+  }
+}
+
+/* Fora do @layer: container query não entra na ordenação das camadas do
+   Tailwind, e estas regras precisam vencer as de `.table` acima.
+
+   48rem: com 36rem, a tabela de ações itinerantes num tablet (contêiner de
+   ~700px) ainda passava da largura e cortava o botão de excluir. */
+@container (max-width: 48rem) {
+  /* O cabeçalho sai da vista, mas não da árvore de acessibilidade. */
+  .tabela-responsiva .table thead {
+    @apply sr-only;
+  }
+
+  .tabela-responsiva .table,
+  .tabela-responsiva .table tbody {
+    @apply block;
+  }
+
+  .tabela-responsiva .table tbody {
+    @apply flex flex-col gap-3;
+  }
+
+  .tabela-responsiva .table tr {
+    @apply flex flex-col gap-2.5 rounded-lg border border-border bg-elevated p-4;
+  }
+
+  .tabela-responsiva .table td {
+    @apply grid grid-cols-[6.5rem_minmax(0,1fr)] items-baseline gap-3 border-0 p-0;
+    overflow-wrap: anywhere;
+  }
+
+  .tabela-responsiva .table td::before {
+    content: attr(data-rotulo);
+    @apply text-[0.6875rem] font-bold uppercase tracking-eyebrow text-muted-foreground;
+  }
+
+  .tabela-responsiva .table td[data-papel="titulo"] {
+    @apply block text-base;
+  }
+
+  .tabela-responsiva .table td[data-papel="acoes"] {
+    @apply mt-1 flex flex-wrap items-center justify-end gap-2 border-t border-border pt-3;
+  }
+
+  .tabela-responsiva .table td[data-papel="titulo"]::before,
+  .tabela-responsiva .table td[data-papel="acoes"]::before {
+    content: none;
+  }
+
+  /* Botão de 28px serve ao mouse; ao polegar, não. */
+  .tabela-responsiva .table td[data-papel="acoes"] :is(a, button) {
+    @apply min-h-11;
   }
 }
