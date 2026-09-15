@@ -7,7 +7,8 @@ import { AppShell } from "@/components/app-shell";
 import { Badge, Button, Card, Checkbox, Dropdown, EmptyState, Field, Input, PageHeader } from "@/components/ui";
 import { Paginacao } from "@/components/shared/paginacao";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
-import type { Operador, Paginado, Papel, Unidade } from "@/types/sgcas";
+import { descricaoDoPapel, PAPEIS, rotuloDoPapel } from "@/lib/rotulos";
+import type { Operador, Paginado, Unidade } from "@/types/sgcas";
 import { CartaoFalso, FaixaDeResumosFalsa, ListaFalsa } from "@/components/skeletons/blocos";
 
 type Pedido = {
@@ -17,16 +18,6 @@ type Pedido = {
   situacao: string;
   pedido_em: string;
 };
-
-const papeis: Array<{ value: Papel; label: string; hint: string }> = [
-  { value: "RECEPCIONISTA", label: "Recepcionista", hint: "Balcão, busca cidadão e gera senha." },
-  { value: "TECNICO", label: "Técnico", hint: "Chama fila e registra atendimento." },
-  { value: "ASSISTENTE_SOCIAL", label: "Assistente social", hint: "Atendimento técnico/social." },
-  { value: "COORDENADOR", label: "Coordenador", hint: "Acompanha unidade e equipe." },
-  { value: "GESTOR_ACOES_ITINERANTES", label: "Gestor de ações", hint: "Ações itinerantes em campo." },
-  { value: "VISUALIZADOR", label: "Visualizador", hint: "Somente consulta." },
-  { value: "ADMIN", label: "Administrador", hint: "Acesso total ao sistema." },
-];
 
 const POR_PAGINA = 25;
 
@@ -61,7 +52,7 @@ function UsuariosComBusca() {
   // A dica de cada papel vira a segunda linha da opção — no `<select>` nativo
   // ela não tinha onde caber e vivia solta embaixo do campo.
   const opcoesDePapel = useMemo(
-    () => papeis.map((p) => ({ value: p.value, label: p.label, hint: p.hint })),
+    () => PAPEIS.map((p) => ({ value: p.value, label: p.label, hint: p.hint })),
     [],
   );
   const opcoesDeUnidade = useMemo(
@@ -264,7 +255,7 @@ function UsuariosComBusca() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge tone={operador.ativo ? "good" : "bad"}>{operador.ativo ? "Ativo" : "Inativo"}</Badge>
-                      <Badge tone="neutral">{rotuloPapel(operador.papel)}</Badge>
+                      <Badge tone="neutral">{rotuloDoPapel(operador.papel)}</Badge>
                     </div>
                   </div>
 
@@ -289,7 +280,7 @@ function UsuariosComBusca() {
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-xs leading-5 text-muted-foreground">{descricaoPapel(operador.papel)}</p>
+                    <p className="text-xs leading-5 text-muted-foreground">{descricaoDoPapel(operador.papel)}</p>
                     <Button className="h-9 px-4 text-xs" type="submit">
                       <UserCog size={15} />
                       Salvar
@@ -369,14 +360,6 @@ function ResumoCard({
       </div>
     </Card>
   );
-}
-
-function rotuloPapel(papel: Papel) {
-  return papeis.find((item) => item.value === papel)?.label ?? papel;
-}
-
-function descricaoPapel(papel: Papel) {
-  return papeis.find((item) => item.value === papel)?.hint ?? "Perfil do operador.";
 }
 
 function formatarDataCurta(value: string) {

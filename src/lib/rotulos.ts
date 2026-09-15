@@ -11,6 +11,8 @@
  * "Não informada".
  */
 
+import type { Papel } from "@/types/sgcas";
+
 const SEXO: Record<string, string> = {
   MASCULINO: "Masculino",
   FEMININO: "Feminino",
@@ -115,6 +117,31 @@ export function rotular(
 ): string | null {
   if (!valor) return null;
   return DICIONARIOS[dicionario][valor] ?? valor;
+}
+
+/**
+ * Papéis do operador, na ordem em que aparecem no seletor de perfil.
+ *
+ * Morava dentro de `/admin`; saiu daqui quando o cabeçalho e o menu do celular
+ * passaram a mostrar o papel de quem está logado — "RECEPCIONISTA" cru no topo
+ * da tela é constante de banco, não texto de interface.
+ */
+export const PAPEIS: ReadonlyArray<{ value: Papel; label: string; hint: string }> = [
+  { value: "RECEPCIONISTA", label: "Recepcionista", hint: "Balcão, busca cidadão e gera senha." },
+  { value: "TECNICO", label: "Técnico", hint: "Chama fila e registra atendimento." },
+  { value: "ASSISTENTE_SOCIAL", label: "Assistente social", hint: "Atendimento técnico/social." },
+  { value: "COORDENADOR", label: "Coordenador", hint: "Acompanha unidade e equipe." },
+  { value: "GESTOR_ACOES_ITINERANTES", label: "Gestor de ações", hint: "Ações itinerantes em campo." },
+  { value: "VISUALIZADOR", label: "Visualizador", hint: "Somente consulta." },
+  { value: "ADMIN", label: "Administrador", hint: "Acesso total ao sistema." },
+];
+
+export function rotuloDoPapel(papel?: string | null): string {
+  return PAPEIS.find((item) => item.value === papel)?.label ?? papel ?? "";
+}
+
+export function descricaoDoPapel(papel?: string | null): string {
+  return PAPEIS.find((item) => item.value === papel)?.hint ?? "Perfil do operador.";
 }
 
 export function formatarNIS(nis?: string | null): string | null {
