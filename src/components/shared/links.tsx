@@ -2,30 +2,19 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
+import { ehEquipeDeAtendimento, ehSupervisao } from "@/lib/permissoes";
 import { cn } from "@/lib/utils";
-import type { Papel } from "@/types/sgcas";
 
-/**
- * Quem pode abrir o prontuário.
- *
- * Espelha `EquipeDeAtendimento` na API (`apps/contas/permissoes.py`), que é
- * quem `GET /api/citizens/:id` aceita. **Recepção e visualizador ficam de
- * fora** — eles alcançam o histórico municipal, não o prontuário.
+/*
+ * Quem pode abrir o prontuário: `EquipeDeAtendimento` na API, que é quem
+ * `GET /api/citizens/:id` aceita. **Recepção e visualizador ficam de fora** —
+ * eles alcançam o histórico municipal, não o prontuário. Quem vê operadores:
+ * `Supervisao`. As duas listas moram em `lib/permissoes.ts`.
  *
  * Por isso o nome não vira link para todo mundo: para quem não pode abrir, o
  * link levaria a uma tela de erro. Um link que falha é pior do que texto, porque
  * promete uma coisa e entrega outra.
  */
-const PODE_ABRIR_PRONTUARIO: Papel[] = [
-  "ADMIN",
-  "COORDENADOR",
-  "ASSISTENTE_SOCIAL",
-  "TECNICO",
-  "GESTOR_ACOES_ITINERANTES",
-];
-
-/** Quem enxerga a tela de operadores — `Supervisao` na API. */
-const PODE_VER_OPERADORES: Papel[] = ["ADMIN", "COORDENADOR"];
 
 const ESTILO_DE_LINK =
   "rounded-sm underline decoration-transparent underline-offset-2 transition-colors " +
@@ -50,7 +39,7 @@ export function LinkDoCidadao({ id, nome, className, vazio = "—" }: PropsDoCid
   const { user } = useAuth();
 
   if (!nome) return <span className={className}>{vazio}</span>;
-  if (!id || !user || !PODE_ABRIR_PRONTUARIO.includes(user.papel)) {
+  if (!id || !user || !ehEquipeDeAtendimento(user.papel)) {
     return <span className={className}>{nome}</span>;
   }
 
@@ -84,7 +73,7 @@ export function LinkDoOperador({
   const { user } = useAuth();
 
   if (!nome) return <span className={className}>{vazio}</span>;
-  if (!user || !PODE_VER_OPERADORES.includes(user.papel)) {
+  if (!user || !ehSupervisao(user.papel)) {
     return <span className={className}>{nome}</span>;
   }
 
