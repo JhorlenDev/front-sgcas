@@ -220,12 +220,16 @@ const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
  * cancelam o padding do contêiner de rolagem, para a faixa encostar nas bordas
  * e cobrir o conteúdo que passa por baixo. Os botões ficam lado a lado —
  * empilhados, a faixa fixa comeria um terço da gaveta.
+ *
+ * O `bottom` é negativo, e não `0`, porque `sticky` para no fim do CONTEÚDO do
+ * contêiner de rolagem, descontado o padding: com `bottom-0` sobrava uma faixa
+ * de 20px abaixo dos botões por onde o formulário aparecia passando.
  */
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
       'flex shrink-0 flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end',
-      'max-sm:sticky max-sm:bottom-0 max-sm:z-10 max-sm:-mx-5 max-sm:mt-1 max-sm:flex-row max-sm:border-t max-sm:border-border',
+      'max-sm:sticky max-sm:-bottom-[calc(1.25rem+env(safe-area-inset-bottom))] max-sm:z-10 max-sm:-mx-5 max-sm:mt-1 max-sm:flex-row max-sm:border-t max-sm:border-border',
       'max-sm:-mb-[calc(1.25rem+env(safe-area-inset-bottom))] max-sm:bg-background max-sm:px-5 max-sm:pt-3',
       'max-sm:pb-[calc(0.75rem+env(safe-area-inset-bottom))] max-sm:[&>*]:flex-1',
       className,
