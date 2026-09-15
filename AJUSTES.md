@@ -30,6 +30,9 @@ Base da branch: `main` (`d695031`).
 | 12 | Prontuário do cidadão virou ficha completa | melhoria | — |
 | 13 | Cabeçalho da barra lateral parou de estourar | correção | — |
 | 14 | Esqueletos de carregamento no lugar de "Carregando…" | melhoria | — |
+| 15 | Celular com cara de app: barra inferior, botão flutuante, cartões, gavetas | melhoria | — |
+| 16 | Grid sem colunas declaradas estourava a largura no celular | correção | — |
+| 17 | Exclusão de ação itinerante pelo `ConfirmDialog`, não `confirm()` | correção | — |
 
 ---
 
@@ -425,6 +428,115 @@ seu esqueleto.
   `prefers-reduced-motion`, a barra fica parada.
 
 
+## 15. Celular com cara de app
+
+Abaixo de `md` (768px) o sistema deixou de ser o site de desktop espremido.
+Antes: menu hambúrguer no canto de cima, ação principal que sumia ao rolar,
+tabelas estourando a tela (até 985px num celular de 390px) e modal com o
+"Salvar" escondido no fim do formulário.
+
+| Peça | Onde | O que faz |
+| --- | --- | --- |
+| Barra inferior | `src/components/app-shell.tsx` | 4 abas por papel + "Mais", fixa no pé, respeitando a barra de gestos |
+| Gaveta "Mais" | `app-shell.tsx` (`GavetaMais`) | resto do menu, perfil (papel e unidade) e Sair; o avatar abre a mesma |
+| Botão flutuante | `src/components/ui/botao-flutuante.tsx` | ação principal da tela acima da barra; com 2+ ações, abre gaveta de escolha |
+| Cartões | `.tabela-responsiva` em `src/app/globals.css` | cada linha de tabela vira cartão quando o contêiner fica estreito |
+| Rodapé da gaveta | `DialogFooter` em `src/components/ui/dialog.tsx` | botões grudados no pé da gaveta, lado a lado |
+| Filtros na gaveta | `src/components/shared/filtros-na-gaveta.tsx` | em `/casos`, a busca fica à vista e o resto vira botão "Filtros e ordem" |
+| Abas da Recepção | `src/app/recepcao/page.tsx` | três colunas iguais com rótulo curto, em vez de empilhadas |
+
+### Abas por papel
+
+A barra comporta 5 posições; a quinta é "Mais". As 4 primeiras seguem o uso de
+cada papel (`ABAS_POR_PAPEL`), não a ordem da barra lateral:
+
+| Papel | Abas |
+| --- | --- |
+| ADMIN | Painel · Cidadãos · Recepção · Atender |
+| COORDENADOR | Painel · Casos · Atender · Cidadãos |
+| ASSISTENTE_SOCIAL, TECNICO | Atender · Casos · Cidadãos · Painel |
+| RECEPCIONISTA | Recepção · Cidadãos · Atender · Painel |
+| GESTOR_ACOES_ITINERANTES | Ações · Cidadãos · Painel · Casos |
+| VISUALIZADOR | Cidadãos · Painel · Casos · Atender |
+
+Item que o papel não enxerga é pulado e a barra completa pela ordem da lateral,
+para nunca nascer com buraco. Quando a tela atual mora na gaveta, a aba "Mais"
+fica marcada.
+
+### A ação da tela é declarada uma vez
+
+`PageHeader` recebe `acoes={[{ rotulo, icone, onClick | href }]}` e desenha as
+duas formas: botões no cabeçalho do desktop, botão flutuante no celular. A prop
+`action`, que recebia JSX solto, saiu — com ela cada página teria de escrever as
+duas formas à mão, e uma delas ficaria para trás na primeira mudança de regra. O
+`main` reserva espaço para o botão com `has-[[data-fab]]`, para ele não cobrir
+o último item da lista.
+
+### Tabela → cartão
+
+O corte é por **container query** (`48rem`), não por breakpoint de tela: a
+mesma tabela aperta num celular, num tablet com a barra lateral aberta e numa
+coluna de `grid two` no desktop. Toda `<td>` declara `data-rotulo` (o texto do
+cabeçalho); `data-papel="titulo"` e `data-papel="acoes"` marcam a linha de
+destaque e a faixa de botões.
+
+```tsx
+<div className="tabela-responsiva">
+  <table className="table">
+    …
+    <td data-papel="titulo"><strong>{nome}</strong></td>
+    <td data-rotulo="CPF">{cpf}</td>
+    <td data-papel="acoes">…botões…</td>
+```
+
+A tabela de ações itinerantes caiu de 7 para 5 colunas: local foi para baixo do
+título e unidade para baixo do responsável.
+
+### De quebra
+
+- `viewport-fit=cover` no layout — sem ele, `env(safe-area-inset-*)` vale zero
+  e a barra inferior encosta na barra de gestos do iPhone.
+- O link "Pular para o conteúdo" apontava para `#conteudo`, que não existia.
+- A Recepção tinha `<Link><button>`, elemento interativo dentro de outro.
+- O papel aparece como "Administrador", não `ADMIN`. A lista de papéis saiu de
+  `/admin` para `src/lib/rotulos.ts` (`PAPEIS`, `rotuloDoPapel`).
+
+**Como conferir:** abrir qualquer tela com a janela em 390px (DevTools, modo
+dispositivo). `document.documentElement.scrollWidth` deve dar 390 em todas; em
+`/cidadaos` e `/acoes-itinerantes` as linhas aparecem como cartões; o botão
+"Novo cadastro" flutua sobre a barra; ao abri-lo, "Salvar cadastro" fica visível
+no pé da gaveta sem rolar. Em 768px (tablet) a tabela de ações também vira
+cartão; em 1366px tudo volta à tabela, com os botões no cabeçalho.
+
+
+## 16. Grid sem colunas estourava a largura
+
+Em `/admin`, num celular de 390px, os cartões de solicitações e operadores
+mediam 479px e o lado direito ficava fora da tela.
+
+Causa: `grid` sem `grid-cols-*` cria uma coluna `auto`, que cresce até a largura
+mínima do conteúdo mais largo — e texto com `truncate` (o rótulo do `Dropdown`)
+conta a largura inteira nesse cálculo. Não era só `/admin`: valia para as 38
+grades `grid md:grid-cols-2` abaixo de `md`, que são justamente as de formulário
+dentro dos modais.
+
+A correção fica no `.grid` do projeto (`grid-template-columns: minmax(0, 1fr)`),
+não grade a grade. Não existe `grid-flow-col` no código, então uma coluna
+explícita não muda o arranjo de tela nenhuma; `grid-cols-*` continua vencendo
+por ser utilitário.
+
+
+## 17. Exclusão de ação itinerante pelo `ConfirmDialog`
+
+`/acoes-itinerantes` excluía com `confirm()` e avisava erro com `alert()`: caixa
+do navegador, fora da identidade visual, sem gaveta no celular, e o erro não
+dizia o que tinha acontecido. Agora é o `ConfirmDialog` do projeto, que mostra a
+mensagem da API e fica aberto para tentar de novo.
+
+O texto diz o que o endpoint faz: a exclusão é **lógica** (`excluida_em`), o
+registro continua no banco, mas nenhuma tela restaura.
+
+
 ## Como revisar
 
 ```bash
@@ -444,3 +556,16 @@ A API precisa estar na branch `ajustes-marreira` do `api-sgcas`, com
 Nenhuma tela ganhou estado de erro visível quando a chamada falha: `paginadoVazio()`
 faz a lista aparecer vazia, que é indistinguível de "não há registros". Vale
 tratar, mas era mudança de escopo maior do que o que estava sendo corrigido.
+
+Da versão de celular (item 15):
+
+- **Não é PWA.** Não há `manifest.json` nem ícone de instalação: a cara de app é
+  de layout, a pessoa ainda abre pelo navegador.
+- **Entre 640px e 767px** a barra inferior já aparece, mas o diálogo ainda abre
+  centralizado (a gaveta vale abaixo de `sm`). É a faixa de tablet pequeno em
+  retrato, rara no uso real.
+- **No desktop, as tabelas de `/institucional` aparecem como cartões**: cada uma
+  mora numa coluna de `grid two`, que fica abaixo do corte de 48rem. Não é
+  efeito colateral escondido — era ali que as tabelas de 4 colunas apertavam.
+- **Nenhum guard verifica `data-rotulo`.** Uma `<td>` nova sem o atributo vira
+  linha sem rótulo no cartão; hoje depende de revisão.
