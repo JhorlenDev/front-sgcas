@@ -307,15 +307,20 @@ export function TabelaFalsa({
 }
 
 /** Barra de filtros — mesma grade e a altura `h-11` dos campos reais. */
+/**
+ * Faixa de filtros. No celular espelha `FiltrosNaGaveta`: a busca continua à
+ * vista e o resto vira o botão "Filtros e ordem".
+ */
 export function FiltrosFalsos({ campos = 4 }: { campos?: number }) {
   return (
     <div className="mb-5 grid gap-4 border-b border-border/70 pb-5 md:grid-cols-2 xl:grid-cols-4">
       {Array.from({ length: campos }, (_, i) => (
-        <div key={i}>
+        <div key={i} className={cn(i > 0 && "max-md:hidden")}>
           <Skeleton className="h-3 w-24" />
           <Skeleton className="mt-2 h-11 w-full" />
         </div>
       ))}
+      {campos > 1 && <Skeleton className="h-11 w-full md:hidden" />}
     </div>
   );
 }

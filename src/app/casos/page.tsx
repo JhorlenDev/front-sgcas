@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CalendarClock, CheckCircle2, ClipboardList, MapPin, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { FiltrosNaGaveta } from "@/components/shared/filtros-na-gaveta";
 import {
   Dialog,
   DialogContent,
@@ -118,6 +119,12 @@ function CasosComFiltros() {
     () => Object.entries(filtros).some(([campo, valor]) => valor && campo !== "ordenar"),
     [filtros],
   );
+  // Selo do botão de filtros no celular. A busca fica fora da conta porque
+  // continua visível acima dele.
+  const filtrosLigados = useMemo(
+    () => Object.entries(filtros).filter(([campo, valor]) => valor && campo !== "ordenar" && campo !== "busca").length,
+    [filtros],
+  );
 
   function prepararConclusao(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -215,48 +222,57 @@ function CasosComFiltros() {
               }}
             />
           </Field>
-          <Field label="Situação">
-            <Dropdown
-              rotulo="Situação"
-              opcoes={SITUACOES}
-              value={filtros.situacao}
-              onChange={(v) => aplicarFiltro("situacao", v)}
-            />
-          </Field>
-          <Field label="Prioridade">
-            <Dropdown
-              rotulo="Prioridade"
-              opcoes={PRIORIDADES}
-              value={filtros.prioridade}
-              onChange={(v) => aplicarFiltro("prioridade", v)}
-            />
-          </Field>
-          <Field label="Ordenar por">
-            <Dropdown
-              rotulo="Ordenar por"
-              opcoes={ORDENACOES}
-              value={filtros.ordenar}
-              onChange={(v) => aplicarFiltro("ordenar", v)}
-            />
-          </Field>
-          <Field label="Aberto de">
-            <CampoData
-              rotulo="Aberto de"
-              value={filtros.de}
-              max={filtros.ate || undefined}
-              onChange={(v) => aplicarFiltro("de", v)}
-            />
-          </Field>
-          <Field label="Aberto até">
-            <CampoData
-              rotulo="Aberto até"
-              value={filtros.ate}
-              min={filtros.de || undefined}
-              onChange={(v) => aplicarFiltro("ate", v)}
-            />
-          </Field>
+          <FiltrosNaGaveta
+            ativos={filtrosLigados}
+            resultado={`Ver ${(pagina?.total ?? 0).toLocaleString("pt-BR")} ${pagina?.total === 1 ? "caso" : "casos"}`}
+            onLimpar={() => {
+              setNumero(1);
+              setFiltros(FILTROS_VAZIOS);
+            }}
+          >
+            <Field label="Situação">
+              <Dropdown
+                rotulo="Situação"
+                opcoes={SITUACOES}
+                value={filtros.situacao}
+                onChange={(v) => aplicarFiltro("situacao", v)}
+              />
+            </Field>
+            <Field label="Prioridade">
+              <Dropdown
+                rotulo="Prioridade"
+                opcoes={PRIORIDADES}
+                value={filtros.prioridade}
+                onChange={(v) => aplicarFiltro("prioridade", v)}
+              />
+            </Field>
+            <Field label="Ordenar por">
+              <Dropdown
+                rotulo="Ordenar por"
+                opcoes={ORDENACOES}
+                value={filtros.ordenar}
+                onChange={(v) => aplicarFiltro("ordenar", v)}
+              />
+            </Field>
+            <Field label="Aberto de">
+              <CampoData
+                rotulo="Aberto de"
+                value={filtros.de}
+                max={filtros.ate || undefined}
+                onChange={(v) => aplicarFiltro("de", v)}
+              />
+            </Field>
+            <Field label="Aberto até">
+              <CampoData
+                rotulo="Aberto até"
+                value={filtros.ate}
+                min={filtros.de || undefined}
+                onChange={(v) => aplicarFiltro("ate", v)}
+              />
+            </Field>
+          </FiltrosNaGaveta>
           {temFiltro && (
-            <div className="flex items-end">
+            <div className="flex items-end max-md:hidden">
               <SecondaryButton
                 type="button"
                 className="h-11"
