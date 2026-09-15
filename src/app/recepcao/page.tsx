@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/dialog";
 import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery, mensagemDeErro } from "@/lib/api";
+import { rotuloDaPrioridade, rotuloDaSituacaoDoCaso, tomDaPrioridade, tomDaSituacaoDoCaso } from "@/lib/rotulos";
+import { formatCPF } from "@/lib/utils";
 import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, Paginado, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
 import { LinkDoCaso, LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
 import { FaixaDeResumosFalsa } from "@/components/skeletons/blocos";
@@ -690,8 +692,8 @@ function CasosRecentes({ casos }: { casos: Caso[] }) {
                   <strong className="mt-1 block text-sm text-foreground">{caso.servico_nome || "Serviço não informado"}</strong>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
-                  <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloPrioridade(caso.prioridade)}</Badge>
+                  <Badge tone={tomDaSituacaoDoCaso(caso.situacao)}>{rotuloDaSituacaoDoCaso(caso.situacao)}</Badge>
+                  <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloDaPrioridade(caso.prioridade)}</Badge>
                 </div>
               </div>
 
@@ -872,7 +874,7 @@ function FilaSomenteLeitura({ fila, onAtualizar }: { fila: Senha[]; onAtualizar:
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloPrioridade(senha.prioridade)}</Badge>
+                  <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloDaPrioridade(senha.prioridade)}</Badge>
                   <Badge tone="neutral">{rotuloSituacaoFila(senha.situacao)}</Badge>
                   <Badge tone="neutral">{formatarDataHora(senha.criado_em)}</Badge>
                 </div>
@@ -956,27 +958,6 @@ function formatarDataCurta(value: string) {
   }).format(new Date(value));
 }
 
-function rotuloSituacao(value: string) {
-  const labels: Record<string, string> = {
-    EM_TRIAGEM: "Na fila/triagem",
-    EM_ATENDIMENTO: "Em atendimento",
-    CONCLUIDO: "Concluído",
-    ENCAMINHADO: "Encaminhado",
-    CANCELADO: "Cancelado",
-  };
-  return labels[value] ?? value;
-}
-
-function rotuloPrioridade(value: string) {
-  const labels: Record<string, string> = {
-    BAIXA: "Baixa",
-    NORMAL: "Normal",
-    ALTA: "Alta",
-    URGENTE: "Urgente",
-  };
-  return labels[value] ?? value;
-}
-
 function rotuloSituacaoFila(value: string) {
   const labels: Record<string, string> = {
     AGUARDANDO: "Aguardando",
@@ -988,16 +969,3 @@ function rotuloSituacaoFila(value: string) {
   return labels[value] ?? value;
 }
 
-function tomDoCaso(value: string): "neutral" | "good" | "warn" | "bad" {
-  if (value === "CONCLUIDO") return "good";
-  if (value === "CANCELADO") return "neutral";
-  if (value === "EM_ATENDIMENTO") return "warn";
-  return "bad";
-}
-
-function tomDaPrioridade(value: string): "neutral" | "good" | "warn" | "bad" {
-  if (value === "URGENTE") return "bad";
-  if (value === "ALTA") return "warn";
-  if (value === "BAIXA") return "good";
-  return "neutral";
-}

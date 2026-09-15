@@ -17,6 +17,14 @@ import {
 import { Paginacao } from "@/components/shared/paginacao";
 import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery, mensagemDeErro, paginadoVazio } from "@/lib/api";
+import {
+  PRIORIDADES,
+  rotuloDaPrioridade,
+  rotuloDaSituacaoDoCaso,
+  SITUACOES_DO_CASO,
+  tomDaPrioridade,
+  tomDaSituacaoDoCaso,
+} from "@/lib/rotulos";
 import type { Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
 // `LinkDoCaso` nao entra aqui: o protocolo levaria a esta mesma lista.
 import { LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
@@ -25,21 +33,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const POR_PAGINA = 25;
 
+// As opções saem da mesma fonte dos badges: o filtro dizia "Concluído" e o
+// badge da mesma tela dizia "Finalizado".
 const SITUACOES = [
   { value: "", label: "Todas as situações" },
-  { value: "EM_TRIAGEM", label: "Em triagem" },
-  { value: "EM_ATENDIMENTO", label: "Em atendimento" },
-  { value: "CONCLUIDO", label: "Concluído" },
-  { value: "ENCAMINHADO", label: "Encaminhado" },
-  { value: "CANCELADO", label: "Cancelado" },
+  ...SITUACOES_DO_CASO.map(({ value, label }) => ({ value, label })),
 ];
 
-const PRIORIDADES = [
+const PRIORIDADES_DO_FILTRO = [
   { value: "", label: "Todas as prioridades" },
-  { value: "URGENTE", label: "Urgente" },
-  { value: "ALTA", label: "Alta" },
-  { value: "NORMAL", label: "Normal" },
-  { value: "BAIXA", label: "Baixa" },
+  ...PRIORIDADES.map(({ value, label }) => ({ value, label })),
 ];
 
 const ORDENACOES = [
@@ -241,7 +244,7 @@ function CasosComFiltros() {
             <Field label="Prioridade">
               <Dropdown
                 rotulo="Prioridade"
-                opcoes={PRIORIDADES}
+                opcoes={PRIORIDADES_DO_FILTRO}
                 value={filtros.prioridade}
                 onChange={(v) => aplicarFiltro("prioridade", v)}
               />
@@ -310,8 +313,8 @@ function CasosComFiltros() {
                   <div className="min-w-0">
                     <div className="mb-2 flex flex-wrap items-center gap-2">
                       <strong className="text-foreground">{caso.cidadao_nome}</strong>
-                      <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
-                      <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloPrioridade(caso.prioridade)}</Badge>
+                      <Badge tone={tomDaSituacaoDoCaso(caso.situacao)}>{rotuloDaSituacaoDoCaso(caso.situacao)}</Badge>
+                      <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloDaPrioridade(caso.prioridade)}</Badge>
                     </div>
                     <p className="text-sm font-medium text-foreground">{caso.servico_nome || "Serviço não informado"}</p>
                     <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">
@@ -361,8 +364,8 @@ function CasosComFiltros() {
                       <h3 className="mt-1 text-xl text-foreground"><LinkDoCidadao id={casoSelecionado.cidadao} nome={casoSelecionado.cidadao_nome} /></h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <Badge tone={tomDoCaso(casoSelecionado.situacao)}>{rotuloSituacao(casoSelecionado.situacao)}</Badge>
-                      <Badge tone={tomDaPrioridade(casoSelecionado.prioridade)}>{rotuloPrioridade(casoSelecionado.prioridade)}</Badge>
+                      <Badge tone={tomDaSituacaoDoCaso(casoSelecionado.situacao)}>{rotuloDaSituacaoDoCaso(casoSelecionado.situacao)}</Badge>
+                      <Badge tone={tomDaPrioridade(casoSelecionado.prioridade)}>{rotuloDaPrioridade(casoSelecionado.prioridade)}</Badge>
                     </div>
                   </div>
 
@@ -529,42 +532,6 @@ function formatarDataHora(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
-}
-
-function rotuloSituacao(value: string) {
-  const labels: Record<string, string> = {
-    EM_TRIAGEM: "Em triagem",
-    EM_ATENDIMENTO: "Em atendimento",
-    CONCLUIDO: "Finalizado",
-    ENCAMINHADO: "Encaminhado",
-    CANCELADO: "Cancelado",
-  };
-  return labels[value] ?? value;
-}
-
-function rotuloPrioridade(value: string) {
-  const labels: Record<string, string> = {
-    BAIXA: "Baixa",
-    NORMAL: "Normal",
-    ALTA: "Alta",
-    URGENTE: "Urgente",
-  };
-  return labels[value] ?? value;
-}
-
-function tomDaPrioridade(value: string): "neutral" | "good" | "warn" | "bad" {
-  if (value === "URGENTE") return "bad";
-  if (value === "ALTA") return "warn";
-  if (value === "BAIXA") return "good";
-  return "neutral";
-}
-
-function tomDoCaso(value: string): "neutral" | "good" | "warn" | "bad" {
-  if (value === "CONCLUIDO") return "good";
-  if (value === "CANCELADO") return "neutral";
-  if (value === "EM_ATENDIMENTO") return "bad";
-  if (value === "EM_TRIAGEM") return "warn";
-  return "neutral";
 }
 
 function rotuloTom(tone: "good" | "warn" | "bad") {

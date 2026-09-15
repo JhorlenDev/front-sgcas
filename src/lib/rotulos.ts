@@ -144,6 +144,50 @@ export function descricaoDoPapel(papel?: string | null): string {
   return PAPEIS.find((item) => item.value === papel)?.hint ?? "Perfil do operador.";
 }
 
+/** Tom de `Badge` — o texto carrega o significado, a cor só reforça. */
+export type Tom = "neutral" | "good" | "warn" | "bad";
+
+/**
+ * Situação do caso: rótulo e tom, na ordem do fluxo.
+ *
+ * Eram três traduções espalhadas — "Em triagem" em /casos, "Na fila/triagem"
+ * em /fila e /recepcao, o valor cru no Painel e minúsculo na ficha — e as cores
+ * trocadas entre elas: `EM_TRIAGEM` amarelo numa tela e vermelho na outra. O
+ * tom segue /casos, que é a tela do caso e cujos cartões de resumo já usam
+ * essas cores.
+ */
+export const SITUACOES_DO_CASO: ReadonlyArray<{ value: string; label: string; tom: Tom }> = [
+  { value: "EM_TRIAGEM", label: "Em triagem", tom: "warn" },
+  { value: "EM_ATENDIMENTO", label: "Em atendimento", tom: "bad" },
+  { value: "CONCLUIDO", label: "Concluído", tom: "good" },
+  { value: "ENCAMINHADO", label: "Encaminhado", tom: "neutral" },
+  { value: "CANCELADO", label: "Cancelado", tom: "neutral" },
+];
+
+export function rotuloDaSituacaoDoCaso(valor: string): string {
+  return SITUACOES_DO_CASO.find((s) => s.value === valor)?.label ?? valor;
+}
+
+export function tomDaSituacaoDoCaso(valor: string): Tom {
+  return SITUACOES_DO_CASO.find((s) => s.value === valor)?.tom ?? "neutral";
+}
+
+/** Prioridade do caso e da senha, da mais para a menos urgente. */
+export const PRIORIDADES: ReadonlyArray<{ value: string; label: string; tom: Tom }> = [
+  { value: "URGENTE", label: "Urgente", tom: "bad" },
+  { value: "ALTA", label: "Alta", tom: "warn" },
+  { value: "NORMAL", label: "Normal", tom: "neutral" },
+  { value: "BAIXA", label: "Baixa", tom: "good" },
+];
+
+export function rotuloDaPrioridade(valor: string): string {
+  return PRIORIDADES.find((p) => p.value === valor)?.label ?? valor;
+}
+
+export function tomDaPrioridade(valor: string): Tom {
+  return PRIORIDADES.find((p) => p.value === valor)?.tom ?? "neutral";
+}
+
 export function formatarNIS(nis?: string | null): string | null {
   const digitos = (nis ?? "").replace(/\D/g, "");
   if (digitos.length !== 11) return nis ?? null;

@@ -28,6 +28,7 @@ import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Fiel
 import { api, comQuery, mensagemDeErro } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ehEquipeDeAtendimento } from "@/lib/permissoes";
+import { rotuloDaPrioridade, rotuloDaSituacaoDoCaso, tomDaPrioridade, tomDaSituacaoDoCaso } from "@/lib/rotulos";
 import type {
   Caso,
   Cidadao,
@@ -503,7 +504,7 @@ export default function FilaPage() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloPrioridade(senha.prioridade)}</Badge>
+                    <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloDaPrioridade(senha.prioridade)}</Badge>
                     <Badge tone="neutral">{formatarDataHora(senha.criado_em)}</Badge>
                   </div>
                 </div>
@@ -535,7 +536,7 @@ export default function FilaPage() {
               <div className="rounded-lg border border-border bg-background p-5">
                 <div className="row">
                   <Badge tone="good">{atendimento.senha.senha}</Badge>
-                  <Badge tone="warn">{atendimento.senha.prioridade}</Badge>
+                  <Badge tone={tomDaPrioridade(atendimento.senha.prioridade)}>{rotuloDaPrioridade(atendimento.senha.prioridade)}</Badge>
                   <Badge tone={atendimentoIniciado ? "good" : "warn"}>
                     {atendimentoIniciado ? "Atendimento iniciado" : "Aguardando confirmação"}
                   </Badge>
@@ -633,12 +634,12 @@ export default function FilaPage() {
               <article className="rounded-lg border border-border bg-white p-4" key={caso.id}>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <LinkDoCidadao id={caso.cidadao} nome={caso.cidadao_nome} className="font-bold text-foreground" />
-                  <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
+                  <Badge tone={tomDaSituacaoDoCaso(caso.situacao)}>{rotuloDaSituacaoDoCaso(caso.situacao)}</Badge>
                 </div>
                 <p className="text-sm font-medium text-foreground">{caso.servico_nome || caso.protocolo}</p>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">{caso.descricao || "Sem relato registrado."}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloPrioridade(caso.prioridade)}</Badge>
+                  <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloDaPrioridade(caso.prioridade)}</Badge>
                   <Badge tone="neutral">{formatarDataHora(caso.aberto_em)}</Badge>
                 </div>
               </article>
@@ -688,7 +689,7 @@ export default function FilaPage() {
                         <LinkDoCidadao id={senha.cidadao} nome={senha.cidadao_nome} className="block truncate font-semibold text-foreground" />
                         <span className="block truncate text-sm text-muted-foreground">{senha.servico || "Serviço não informado"}</span>
                         <span className="mt-2 flex flex-wrap gap-2">
-                          <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloPrioridade(senha.prioridade)}</Badge>
+                          <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloDaPrioridade(senha.prioridade)}</Badge>
                           <Badge tone="neutral">{formatarDataHora(senha.criado_em)}</Badge>
                         </span>
                       </span>
@@ -698,7 +699,7 @@ export default function FilaPage() {
                     <li key={caso.id} className="rounded-lg border border-border bg-elevated p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <LinkDoCidadao id={caso.cidadao} nome={caso.cidadao_nome} className="font-semibold text-foreground" />
-                        <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
+                        <Badge tone={tomDaSituacaoDoCaso(caso.situacao)}>{rotuloDaSituacaoDoCaso(caso.situacao)}</Badge>
                       </div>
                       <p className="mt-1 text-sm text-foreground">{caso.servico_nome || caso.descricao || "Serviço não informado"}</p>
                       <p className="mt-2 text-xs text-muted-foreground">
@@ -806,7 +807,7 @@ export default function FilaPage() {
                     <div>
                       <div className="mb-2 flex flex-wrap gap-2">
                         <Badge tone="good">{atendimento.senha.senha}</Badge>
-                        <Badge tone={tomDaPrioridade(atendimento.senha.prioridade)}>{rotuloPrioridade(atendimento.senha.prioridade)}</Badge>
+                        <Badge tone={tomDaPrioridade(atendimento.senha.prioridade)}>{rotuloDaPrioridade(atendimento.senha.prioridade)}</Badge>
                       </div>
                       <h3 className="text-xl font-semibold text-foreground"><LinkDoCidadao id={atendimento.cidadao.id} nome={atendimento.cidadao.nome} /></h3>
                       <p className="mt-1 text-sm text-muted-foreground">{atendimento.senha.servico || "Serviço não informado"}</p>
@@ -1184,27 +1185,6 @@ function formatarDataSimples(value: string) {
   }).format(new Date(`${value}T00:00:00`));
 }
 
-function rotuloPrioridade(value: string) {
-  const labels: Record<string, string> = {
-    BAIXA: "Baixa",
-    NORMAL: "Normal",
-    ALTA: "Alta",
-    URGENTE: "Urgente",
-  };
-  return labels[value] ?? value;
-}
-
-function rotuloSituacao(value: string) {
-  const labels: Record<string, string> = {
-    EM_TRIAGEM: "Na fila/triagem",
-    EM_ATENDIMENTO: "Em atendimento",
-    CONCLUIDO: "Concluído",
-    ENCAMINHADO: "Encaminhado",
-    CANCELADO: "Cancelado",
-  };
-  return labels[value] ?? value;
-}
-
 function tituloDoModal(modo: "inicio" | "observacao" | "encaminhar" | "concluir" | "naoCompareceu", senha: string) {
   const titulos = {
     inicio: `Conferir senha ${senha}`,
@@ -1227,16 +1207,3 @@ function descricaoDoModal(modo: "inicio" | "observacao" | "encaminhar" | "conclu
   return descricoes[modo];
 }
 
-function tomDaPrioridade(value: string): "neutral" | "good" | "warn" | "bad" {
-  if (value === "URGENTE") return "bad";
-  if (value === "ALTA") return "warn";
-  if (value === "BAIXA") return "good";
-  return "neutral";
-}
-
-function tomDoCaso(value: string): "neutral" | "good" | "warn" | "bad" {
-  if (value === "CONCLUIDO") return "good";
-  if (value === "CANCELADO") return "neutral";
-  if (value === "EM_ATENDIMENTO") return "warn";
-  return "bad";
-}

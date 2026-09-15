@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FolderOpen, Headset, Users } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
-import { Button, Card, EmptyState, PageHeader } from "@/components/ui";
+import { Badge, Button, Card, EmptyState, PageHeader } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
+import { rotuloDaSituacaoDoCaso, tomDaSituacaoDoCaso } from "@/lib/rotulos";
 import type { Caso, Paginado, ResumoDeCasos, Senha } from "@/types/sgcas";
 import { LinkDoCidadao } from "@/components/shared/links";
 import { IndicadorFalso, LinhasDivididasFalsas } from "@/components/skeletons/blocos";
@@ -109,9 +110,12 @@ export default function DashboardPage() {
           ) : (
             <>
               {recentes.map((caso) => (
-                <div className="row line-row" key={caso.id}>
-                  <span><LinkDoCidadao id={caso.cidadao} nome={caso.cidadao_nome} /></span>
-                  <small>{caso.situacao}</small>
+                <div className="line-row flex flex-wrap items-center justify-between gap-x-4 gap-y-2" key={caso.id}>
+                  <span className="min-w-0"><LinkDoCidadao id={caso.cidadao} nome={caso.cidadao_nome} /></span>
+                  {/* Era o valor cru ("EM_TRIAGEM") — portado da atualização-jhorlen
+                      (a1af3f3), com o badge e os rótulos do sistema no lugar das
+                      cores soltas do original. */}
+                  <Badge tone={tomDaSituacaoDoCaso(caso.situacao)}>{rotuloDaSituacaoDoCaso(caso.situacao)}</Badge>
                 </div>
               ))}
               <RodapeDaLista

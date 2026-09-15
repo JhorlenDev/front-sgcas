@@ -12,6 +12,7 @@ import { Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import {
   faixaEtaria, formatarCEP, formatarDinheiro, formatarNIS, formatarTelefone, rotular,
+  rotuloDaSituacaoDoCaso, tomDaSituacaoDoCaso,
 } from "@/lib/rotulos";
 import { formatCPF, formatDate, formatDateOnly } from "@/lib/utils";
 import type { Caso, Cidadao, EntradaHistorico, Paginado } from "@/types/sgcas";
@@ -277,8 +278,8 @@ export default function ProntuarioPage() {
                   <li key={caso.id} className="border-t border-border/70 pt-3 first:border-t-0 first:pt-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <LinkDoCaso protocolo={caso.protocolo} className="text-sm font-semibold" />
-                      <Badge tone={caso.situacao === "CONCLUIDO" ? "good" : "warn"}>
-                        {caso.situacao.replace(/_/g, " ").toLowerCase()}
+                      <Badge tone={tomDaSituacaoDoCaso(caso.situacao)}>
+                        {rotuloDaSituacaoDoCaso(caso.situacao)}
                       </Badge>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
