@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -9,6 +9,8 @@ import {
   FolderOpen,
   ListChecks,
   Megaphone,
+  RefreshCw,
+  RotateCcw,
   Send,
   Stethoscope,
   UserX,
@@ -24,7 +26,9 @@ import {
 } from "@/components/ui/dialog";
 import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery, mensagemDeErro } from "@/lib/api";
-import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
+import { useAuth } from "@/lib/auth";
+import { ehEquipeDeAtendimento } from "@/lib/permissoes";
+import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, SenhaEmAtendimento, Unidade } from "@/types/sgcas";
 import { LinkDoCaso, LinkDoCidadao } from "@/components/shared/links";
 import { CartaoDeCasoFalso, FaixaDeResumosFalsa, ListaFalsa } from "@/components/skeletons/blocos";
 
@@ -76,18 +80,50 @@ export default function FilaPage() {
   const [mensagem, setMensagem] = useState("");
   // So a primeira carga. As recargas depois de chamar/concluir mantem a tela.
   const [carregando, setCarregando] = useState(true);
+  const [erroCarga, setErroCarga] = useState("");
 
-  async function carregar() {
-    const [filaData, painelData] = await Promise.all([
-      api<Paginado<Senha>>(comQuery("/queues/", { limit: 50 }))
-        .then((r) => r.itens)
-        .catch(() => []),
-      api<PainelAtendente>("/queues/painel").catch(() => null),
+  // Retomada de atendimento — portada da atualização-jhorlen (a1af3f3).
+  //
+  // Antes, recarregar a página no meio de um atendimento perdia a senha da
+  // tela: ela seguia EM_ATENDIMENTO no banco, sem ninguém, e o próximo "Chamar
+  // próximo" puxava outra pessoa. Agora a tela pergunta à API, ao abrir, se o
+  // operador tem uma senha aberta, e a API devolve essa mesma senha no
+  // chamar-proximo em vez de chamar outra.
+  const { user } = useAuth();
+  const unidadeId = user?.unidade?.id ?? null;
+  const podeChamar = ehEquipeDeAtendimento(user?.papel);
+  const [procurandoAtendimento, setProcurandoAtendimento] = useState(true);
+  // Só vale enquanto há o que procurar: sem permissão ou sem unidade, a busca
+  // nem acontece e o botão não pode ficar travado esperando por ela.
+  const recuperando = procurandoAtendimento && podeChamar && Boolean(unidadeId);
+  const [chamando, setChamando] = useState(false);
+  // Trava síncrona contra duplo clique: o estado `chamando` só vale no próximo
+  // render, e dois cliques no mesmo quadro passariam os dois.
+  const chamadaEmCurso = useRef(false);
+  const [abertosVisivel, setAbertosVisivel] = useState(false);
+  const [abertos, setAbertos] = useState<SenhaEmAtendimento[] | null>(null);
+  const [erroAbertos, setErroAbertos] = useState("");
+  const [retomando, setRetomando] = useState<string | null>(null);
+
+  const carregar = useCallback(async () => {
+    // O painel do atendente é `EquipeDeAtendimento`: para a recepção ele
+    // devolveria 403, que apareceria como erro de carga numa tela que ela pode
+    // consultar.
+    const [filaResultado, painelResultado] = await Promise.allSettled([
+      api<Paginado<Senha>>(comQuery("/queues/", { limit: 50 })).then((r) => r.itens),
+      podeChamar ? api<PainelAtendente>("/queues/painel") : Promise.resolve(null),
     ]);
-    setFila(filaData);
-    setPainel(painelData);
+    setFila(filaResultado.status === "fulfilled" ? filaResultado.value : []);
+    setPainel(painelResultado.status === "fulfilled" ? painelResultado.value : null);
+    // Falha silenciosa fazia a fila parecer vazia — "ninguém aguardando" —
+    // quando a verdade era "não consegui perguntar".
+    setErroCarga(
+      filaResultado.status === "rejected" || painelResultado.status === "rejected"
+        ? "Não foi possível atualizar a fila ou o painel. Toque em Atualizar para tentar de novo."
+        : "",
+    );
     setCarregando(false);
-  }
+  }, [podeChamar]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -95,32 +131,119 @@ export default function FilaPage() {
       void api<Unidade[]>("/institutional/units").then(setUnidades).catch(() => setUnidades([]));
     }, 0);
     return () => window.clearTimeout(timer);
+  }, [carregar]);
+
+  /** Coloca um atendimento em "Atendimento atual", com o registro limpo. */
+  const abrirNaTela = useCallback((dados: AtendimentoMontado) => {
+    setAtendimento(dados);
+    setAtendimentoIniciado(false);
+    setModoModal("inicio");
+    setObservacao("");
+    setRelato("");
+    setSituacaoIdentificada("");
+    setProvidencia("");
+    setRetornoNecessario("");
+    setDataRetorno("");
+    setUnidadeDestinoId("");
+    setDestinoExterno("");
+    setMotivoEncaminhamento("");
+    setObservacaoEncaminhamento("");
+    setMotivoNaoCompareceu("");
   }, []);
 
+  useEffect(() => {
+    if (!user?.id || !podeChamar || !unidadeId) return;
+    let cancelado = false;
+    void api<AtendimentoMontado | null>("/queues/atendimento-atual")
+      .then((atual) => {
+        if (cancelado || !atual) return;
+        abrirNaTela(atual);
+        setMensagem(`A senha ${atual.senha.senha} estava aberta com você e voltou para Atendimento atual.`);
+      })
+      .catch((erro) => {
+        // Não trava o botão: se a busca falhou, o chamar-proximo da API ainda
+        // devolve a senha aberta em vez de chamar outra pessoa.
+        if (!cancelado) setMensagem(mensagemDeErro(erro, "Não foi possível verificar se havia atendimento em andamento"));
+      })
+      .finally(() => {
+        if (!cancelado) setProcurandoAtendimento(false);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [user?.id, podeChamar, unidadeId, abrirNaTela]);
+
+  function irParaAtendimentoAtual() {
+    if (!atendimentoIniciado) {
+      setModoModal("inicio");
+      setModalOpen(true);
+      return;
+    }
+    document.getElementById("atendimento-atual")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   async function chamar() {
+    if (chamadaEmCurso.current || recuperando || atendimento || !podeChamar || !unidadeId) return;
+    chamadaEmCurso.current = true;
+    setChamando(true);
     setMensagem("");
     try {
       const data = await api<AtendimentoMontado>("/queues/chamar-proximo", { method: "POST" });
-      setAtendimento(data);
-      setAtendimentoIniciado(false);
-      setModoModal("inicio");
-      setObservacao("");
-      setRelato("");
-      setSituacaoIdentificada("");
-      setProvidencia("");
-      setRetornoNecessario("");
-      setDataRetorno("");
-      setUnidadeDestinoId("");
-      setDestinoExterno("");
-      setMotivoEncaminhamento("");
-      setObservacaoEncaminhamento("");
-      setMotivoNaoCompareceu("");
+      abrirNaTela(data);
       setModalOpen(true);
       await carregar();
-    } catch {
-      setMensagem("Não há ninguém aguardando.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível chamar o próximo"));
+      await carregar();
+    } finally {
+      chamadaEmCurso.current = false;
+      setChamando(false);
     }
   }
+
+  async function listarAbertos() {
+    setAbertosVisivel(true);
+    setAbertos(null);
+    setErroAbertos("");
+    try {
+      setAbertos(await api<SenhaEmAtendimento[]>("/queues/em-atendimento"));
+    } catch (erro) {
+      setAbertos([]);
+      setErroAbertos(mensagemDeErro(erro, "Não foi possível listar as senhas em atendimento"));
+    }
+  }
+
+  async function retomar(senha: SenhaEmAtendimento) {
+    if (retomando) return;
+    setRetomando(senha.id);
+    setErroAbertos("");
+    try {
+      const dados = await api<AtendimentoMontado>(`/queues/${encodeURIComponent(senha.id)}/retomar`);
+      abrirNaTela(dados);
+      setAbertosVisivel(false);
+      setMensagem(`Senha ${dados.senha.senha} retomada em Atendimento atual.`);
+      window.requestAnimationFrame(() =>
+        document.getElementById("atendimento-atual")?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+      await carregar();
+    } catch (erro) {
+      setErroAbertos(mensagemDeErro(erro, `Não foi possível retomar a senha ${senha.senha}`));
+    } finally {
+      setRetomando(null);
+    }
+  }
+
+  /** Ação do cabeçalho: chamar, ou voltar ao atendimento que já está aberto. */
+  const acoesDaTela = !podeChamar
+    ? []
+    : atendimento
+      ? [{ rotulo: `Senha ${atendimento.senha.senha}`, icone: Stethoscope, onClick: irParaAtendimentoAtual }]
+      : [{
+          rotulo: chamando ? "Chamando…" : "Chamar próximo",
+          icone: Megaphone,
+          onClick: () => void chamar(),
+          desabilitada: recuperando || chamando || !unidadeId,
+        }];
 
   function montarRegistroGuiado() {
     const partes = [
@@ -270,10 +393,19 @@ export default function FilaPage() {
       <PageHeader
         title="Atendimento"
         description="Painel do atendente: acompanhe a fila, inicie o próximo caso e registre a conclusão."
-        acoes={[{ rotulo: "Chamar próximo", icone: Megaphone, onClick: () => void chamar() }]}
+        acoes={acoesDaTela}
       />
 
-      {mensagem && <div className="notice">{mensagem}</div>}
+      <div className="grid gap-3">
+        {user && podeChamar && !unidadeId && (
+          <div className="notice">Seu usuário não tem unidade de lotação. Peça o vínculo a um administrador para chamar senhas.</div>
+        )}
+        {user && !podeChamar && (
+          <div className="notice">Seu perfil acompanha a fila, mas não chama senhas nem registra atendimento.</div>
+        )}
+        {erroCarga && <div className="notice" role="alert">{erroCarga}</div>}
+        {mensagem && <div className="notice" role="status">{mensagem}</div>}
+      </div>
       <div style={{ height: 16 }} />
 
       {carregando ? (
@@ -292,9 +424,17 @@ export default function FilaPage() {
 
       <div className="grid two">
         <Card>
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="!mb-0">Fila</h2>
-            <Badge tone={fila.length ? "warn" : "good"}>{fila.length}</Badge>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <h2 className="!mb-0">Fila</h2>
+              <Badge tone={fila.length ? "warn" : "good"}>{fila.length}</Badge>
+            </div>
+            {/* A fila não se atualiza sozinha: sem isto, a única forma de ver
+                quem a recepção acabou de encaminhar era recarregar a página. */}
+            <SecondaryButton type="button" className="h-10 px-4 text-xs" onClick={() => void carregar()}>
+              <RefreshCw size={15} aria-hidden="true" />
+              Atualizar
+            </SecondaryButton>
           </div>
           {carregando ? (
             <ListaFalsa itens={5} comPastilha espaco="gap-0" />
@@ -324,8 +464,22 @@ export default function FilaPage() {
         </Card>
 
         <Card>
-          <h2>Atendimento atual</h2>
-          {!atendimento ? (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            {/* `scroll-mt` desconta o cabeçalho fixo quando a tela rola até aqui. */}
+            <h2 id="atendimento-atual" className="!mb-0 scroll-mt-24">Atendimento atual</h2>
+            {podeChamar && unidadeId && (
+              <SecondaryButton type="button" className="h-10 px-4 text-xs" onClick={() => void listarAbertos()}>
+                <RotateCcw size={15} aria-hidden="true" />
+                Senhas em atendimento
+              </SecondaryButton>
+            )}
+          </div>
+          {recuperando ? (
+            <div aria-busy="true">
+              <span className="sr-only" role="status">Verificando se há atendimento em andamento.</span>
+              <ListaFalsa itens={1} linhas={3} />
+            </div>
+          ) : !atendimento ? (
             <EmptyState title="Nenhum atendimento iniciado" text="Use o botão chamar próximo para conferir a senha antes de iniciar." />
           ) : (
             <div className="grid">
@@ -443,6 +597,69 @@ export default function FilaPage() {
           </div>
         )}
       </Card>
+
+      <Dialog open={abertosVisivel} onOpenChange={setAbertosVisivel}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Senhas em atendimento</DialogTitle>
+            <DialogDescription>
+              Toque numa senha sua para reabri-la em Atendimento atual. As de outros atendentes mostram quem está com elas.
+            </DialogDescription>
+          </DialogHeader>
+
+          {erroAbertos && (
+            <div className="notice flex flex-wrap items-center justify-between gap-3" role="alert">
+              <span>{erroAbertos}</span>
+              <SecondaryButton type="button" className="h-10 px-4 text-xs" onClick={() => void listarAbertos()}>
+                Tentar de novo
+              </SecondaryButton>
+            </div>
+          )}
+
+          {abertos === null ? (
+            <ListaFalsa itens={3} comPastilha espaco="gap-3" />
+          ) : abertos.length === 0 && !erroAbertos ? (
+            <EmptyState title="Nenhuma senha em atendimento" text="Quando alguém da unidade chamar uma senha, ela aparece aqui." />
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {abertos.map((senha) => (
+                <li key={senha.id}>
+                  <button
+                    type="button"
+                    disabled={!senha.pode_retomar || retomando !== null}
+                    onClick={() => void retomar(senha)}
+                    className="flex w-full items-center gap-3 rounded-lg border border-border bg-elevated p-4 text-left transition-colors hover:bg-secondary disabled:cursor-not-allowed disabled:hover:bg-elevated"
+                  >
+                    <strong className="flex h-11 min-w-14 shrink-0 items-center justify-center rounded-md bg-primary px-3 text-lg text-primary-foreground">
+                      {senha.senha}
+                    </strong>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-semibold text-foreground">{senha.cidadao_nome}</span>
+                      <span className="block truncate text-sm text-muted-foreground">{senha.servico || "Serviço não informado"}</span>
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        {senha.pode_retomar ? "Com você" : `Com ${senha.operador_nome ?? "outro atendente"}`}
+                        {senha.chamado_em ? ` · chamada às ${formatarDataHora(senha.chamado_em)}` : ""}
+                      </span>
+                    </span>
+                    {senha.pode_retomar && (
+                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1.5 text-xs font-semibold text-primary">
+                        {retomando === senha.id ? "Abrindo…" : "Retomar"}
+                        <ArrowRight size={14} aria-hidden="true" />
+                      </span>
+                    )}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <DialogFooter>
+            <SecondaryButton type="button" onClick={() => setAbertosVisivel(false)}>
+              Fechar
+            </SecondaryButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-3xl">

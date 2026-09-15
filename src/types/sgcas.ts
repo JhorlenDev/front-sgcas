@@ -163,6 +163,12 @@ export type Senha = {
   criado_em: string;
 };
 
+/** Item de `GET /queues/em-atendimento`: a senha, quem atende e se é sua. */
+export type SenhaEmAtendimento = Senha & {
+  operador_nome: string | null;
+  pode_retomar: boolean;
+};
+
 export type AtendimentoRecepcao = {
   id: string;
   cidadao: string;
