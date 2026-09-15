@@ -199,10 +199,7 @@ export function ListaFalsa({
   comPastilha = false,
   comEtiquetas = false,
   linhas = 2,
-  /**
-   * A fila renderiza as linhas direto dentro do cartão, encostadas. O skeleton
-   * copia isso porque o alvo aqui é não pular, e não corrigir o espaçamento.
-   */
+  /** Espaço entre os itens — o mesmo `gap` da lista real que o esqueleto substitui. */
   espaco = "gap-3",
 }: {
   itens?: number;

@@ -487,29 +487,34 @@ export default function FilaPage() {
             </SecondaryButton>
           </div>
           {carregando ? (
-            <ListaFalsa itens={5} comPastilha espaco="gap-0" />
+            <ListaFalsa itens={5} comPastilha espaco="gap-3" />
           ) : fila.length === 0 ? (
             <EmptyState title="Fila vazia" text="A recepção ainda não encaminhou atendimentos." />
           ) : (
-            fila.map((senha) => (
-              <div className="rounded-lg border border-border bg-background p-4 transition-all hover:bg-white hover:" key={senha.id}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-center gap-3">
-                    <strong className="flex h-11 min-w-14 items-center justify-center rounded-md bg-primary px-3 text-lg text-primary-foreground">
-                      {senha.senha}
-                    </strong>
-                    <div>
-                      <LinkDoCidadao id={senha.cidadao} nome={senha.cidadao_nome} className="font-semibold text-foreground" />
-                      <small className="block text-muted-foreground">{senha.servico}</small>
+            // A lista empilha com `gap`: os cartões eram filhos diretos do
+            // `Card`, sem espaço entre eles, e as bordas encostavam umas nas
+            // outras como se fossem um bloco só.
+            <ul className="flex flex-col gap-3">
+              {fila.map((senha) => (
+                <li className="rounded-lg border border-border bg-background p-4 transition-colors hover:bg-white" key={senha.id}>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <strong className="flex h-11 min-w-14 shrink-0 items-center justify-center rounded-md bg-primary px-3 text-lg text-primary-foreground">
+                        {senha.senha}
+                      </strong>
+                      <div className="min-w-0">
+                        <LinkDoCidadao id={senha.cidadao} nome={senha.cidadao_nome} className="font-semibold text-foreground" />
+                        <small className="block text-muted-foreground">{senha.servico}</small>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloDaPrioridade(senha.prioridade)}</Badge>
+                      <Badge tone="neutral">{formatarDataHora(senha.criado_em)}</Badge>
                     </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloDaPrioridade(senha.prioridade)}</Badge>
-                    <Badge tone="neutral">{formatarDataHora(senha.criado_em)}</Badge>
-                  </div>
-                </div>
-              </div>
-            ))
+                </li>
+              ))}
+            </ul>
           )}
         </Card>
 
