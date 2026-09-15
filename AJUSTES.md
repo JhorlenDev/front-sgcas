@@ -28,6 +28,7 @@ Base da branch: `main` (`d695031`).
 | 10 | Cantos arredondados seguindo a escala do design system | melhoria | — |
 | 11 | Nomes e protocolos viraram links, respeitando permissão | melhoria | — |
 | 12 | Prontuário do cidadão virou ficha completa | melhoria | — |
+| 13 | Cabeçalho da barra lateral parou de estourar | correção | — |
 
 ---
 
@@ -374,6 +375,32 @@ perguntado.
 - **Acompanhamentos** da pessoa, com o protocolo levando à lista filtrada.
 - **Histórico municipal** com a marca de "mês corrente", que é o que a recepção
   precisa ver antes de conceder de novo.
+
+
+## 13. Cabeçalho da barra lateral parou de estourar
+
+Com a barra aberta, a marca "SGCAS / Assistência Social" aparecia deslocada para
+a direita, o botão de minimizar ficava espremido contra a borda, sobrava um vão
+grande até o primeiro item do menu e surgia uma **barra de rolagem horizontal**
+no rodapé da barra lateral.
+
+Causa única: o `Brand` (`src/components/app-shell.tsx`) tinha `mb-8 px-6`
+próprios, e o cabeçalho que o contém **também** aplicava `mb-8 px-6`. O
+espaçamento somava — 48px de recuo à esquerda e 64px abaixo — e o conteúdo
+passava dos 256px da barra. Como a coluna tem `overflow-y-auto`, o navegador
+liga a rolagem nos dois eixos, e o estouro virou barra horizontal.
+
+- O `Brand` ficou sem margem nem padding: quem posiciona é o cabeçalho
+  (`px-5`, `gap-2`).
+- Ícone e texto usam `gap-3` em vez de `mr-3` condicional; o texto tem `min-w-0`
+  para nunca empurrar o botão para fora.
+- A coluna ganhou `overflow-x-hidden` como rede de segurança.
+- A prop `compact` do `Brand` perdeu a razão de existir e saiu.
+
+**Como conferir:** em 1366×700, com a barra aberta, o botão de minimizar termina
+20px antes da borda e `scrollWidth` da coluna é igual a `clientWidth` (255px).
+Minimizada, a marca continua centralizada e o botão de expandir segue sobre a
+borda, como antes.
 
 
 ## Como revisar

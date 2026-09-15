@@ -168,9 +168,9 @@ function Sidebar({
         collapsed ? "md:w-20" : "md:w-64",
       )}
     >
-      <div className="flex flex-grow flex-col overflow-y-auto border-r border-border bg-white pt-6">
-        <div className={cn("mb-8 flex items-center", collapsed ? "justify-center px-3" : "justify-between px-6")}>
-          <Brand href={homeHref} compact={collapsed} hideText={collapsed} />
+      <div className="flex flex-grow flex-col overflow-y-auto overflow-x-hidden border-r border-border bg-white pt-6">
+        <div className={cn("mb-8 flex items-center", collapsed ? "justify-center px-3" : "justify-between gap-2 px-5")}>
+          <Brand href={homeHref} hideText={collapsed} />
           <Button
             variant="ghost"
             size="icon"
@@ -209,7 +209,7 @@ function MobileSidebar({
       <button className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} aria-label="Fechar menu" />
       <aside className="relative flex h-full w-72 max-w-[84vw] flex-col overflow-y-auto border-r border-border bg-white pt-5 shadow-elevated">
         <div className="mb-4 flex items-center justify-between px-5">
-          <Brand href={homeHref} compact />
+          <Brand href={homeHref} />
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
@@ -223,17 +223,16 @@ function MobileSidebar({
   );
 }
 
-function Brand({ href, compact = false, hideText = false }: { href: string; compact?: boolean; hideText?: boolean }) {
+function Brand({ href, hideText = false }: { href: string; hideText?: boolean }) {
   return (
-    <Link
-      className={cn("flex flex-shrink-0 items-center", !compact && "mb-8 px-6", compact && "mb-0 px-0")}
-      href={href}
-      title="SGCAS"
-    >
-      <div className={cn("flex h-10 w-10 items-center justify-center rounded-full bg-primary", !hideText && "mr-3")}>
+    // Sem margem nem padding próprios: quem posiciona a marca é o cabeçalho que
+    // a contém. Com `mb-8 px-6` aqui, o espaçamento somava com o do container e
+    // espremia o botão de minimizar contra a borda da barra.
+    <Link className="flex min-w-0 items-center gap-3" href={href} title="SGCAS">
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary">
         <Shield className="h-5 w-5 text-primary-foreground" />
       </div>
-      <div className={cn(hideText && "sr-only")}>
+      <div className={cn("min-w-0", hideText && "sr-only")}>
         <h1 className="text-base font-semibold tracking-tight text-foreground">SGCAS</h1>
         <p className="text-xs text-muted-foreground">Assistência Social</p>
       </div>
