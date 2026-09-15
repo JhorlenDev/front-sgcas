@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Paginacao } from "@/components/shared/paginacao";
 import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
-import { api, comQuery, paginadoVazio } from "@/lib/api";
+import { api, comQuery, mensagemDeErro, paginadoVazio } from "@/lib/api";
 import type { Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
 // `LinkDoCaso` nao entra aqui: o protocolo levaria a esta mesma lista.
 import { LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
@@ -154,8 +154,8 @@ function CasosComFiltros() {
       setConclusao(null);
       setConfirmOpen(false);
       await carregar(numero, filtros);
-    } catch {
-      setMensagem("Não foi possível concluir o acompanhamento.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível concluir o acompanhamento"));
     } finally {
       setSalvando(false);
     }

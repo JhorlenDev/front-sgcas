@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge, Button, CampoData, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, mensagemDeErro } from "@/lib/api";
 import { LinkDoOperador } from "@/components/shared/links";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import type {
@@ -105,9 +105,7 @@ export default function AcoesItinerantesPage() {
       setAcoes(novasAcoes);
       setResumo(novoResumo);
     } catch (erro: unknown) {
-      const msg =
-        erro instanceof Error ? erro.message : "Não foi possível salvar. Verifique os dados informados.";
-      setErroCadastro(msg);
+      setErroCadastro(mensagemDeErro(erro, "Não foi possível salvar a ação", "Não foi possível salvar. Verifique os dados informados."));
     } finally {
       setSalvando(false);
     }
@@ -128,9 +126,7 @@ export default function AcoesItinerantesPage() {
       setResumo(novoResumo);
       setAcaoExcluir(null);
     } catch (erro: unknown) {
-      setErroExclusao(
-        erro instanceof Error ? `Não foi possível excluir: ${erro.message}` : "Não foi possível excluir a ação. Tente de novo.",
-      );
+      setErroExclusao(mensagemDeErro(erro, "Não foi possível excluir a ação", "Não foi possível excluir a ação. Tente de novo."));
     } finally {
       setExcluindo(false);
     }
@@ -164,8 +160,7 @@ export default function AcoesItinerantesPage() {
       setAcoes(novasAcoes);
       setResumo(novoResumo);
     } catch (erro: unknown) {
-      const msg = erro instanceof Error ? erro.message : "Erro ao concluir ação.";
-      setErroConclusao(msg);
+      setErroConclusao(mensagemDeErro(erro, "Não foi possível concluir a ação"));
     } finally {
       setSalvandoConclusao(false);
     }

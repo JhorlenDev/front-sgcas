@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
-import { api, comQuery } from "@/lib/api";
+import { api, comQuery, mensagemDeErro } from "@/lib/api";
 import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, Paginado, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
 import { LinkDoCaso, LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
 import { FaixaDeResumosFalsa } from "@/components/skeletons/blocos";
@@ -203,7 +203,7 @@ export default function RecepcaoPage() {
       await carregarFila();
       await carregarDadosDoCidadao(cidadao);
     } catch (error) {
-      setMensagem(error instanceof Error ? error.message : "Não foi possível registrar o atendimento.");
+      setMensagem(mensagemDeErro(error, "Não foi possível registrar o atendimento"));
     } finally {
       setRegistrando(false);
     }

@@ -14,15 +14,55 @@ function getCsrfToken(): string | null {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+/**
+ * Frase legível de uma resposta de erro da API.
+ *
+ * A API responde `{ "detalhe": "..." }` (ou `detail`, nas respostas do próprio
+ * DRF), e validação vem como `{ "campo": ["mensagem"] }`. Antes só texto puro
+ * virava mensagem, e as telas mostravam "Erro 404" onde a API tinha dito
+ * "Não há ninguém aguardando". Portado da `atualização-jhorlen` (a1af3f3), com
+ * o formato de validação acrescentado.
+ */
+function mensagemDoErro(status: number, data: unknown): string {
+  if (typeof data === "string" && data.trim()) return data;
+  if (data && typeof data === "object") {
+    const corpo = data as Record<string, unknown>;
+    for (const chave of ["detalhe", "detail"]) {
+      if (typeof corpo[chave] === "string") return corpo[chave] as string;
+    }
+    for (const valor of Object.values(corpo)) {
+      if (typeof valor === "string") return valor;
+      if (Array.isArray(valor) && typeof valor[0] === "string") return valor[0];
+    }
+  }
+  return `Erro ${status}`;
+}
+
 export class ApiError extends Error {
   status: number;
   data: unknown;
 
   constructor(status: number, data: unknown) {
-    super(typeof data === "string" ? data : `Erro ${status}`);
+    super(mensagemDoErro(status, data));
     this.status = status;
     this.data = data;
   }
+}
+
+/**
+ * Mensagem de falha para a tela: o contexto de quem chamou + o motivo da API.
+ *
+ * "Não foi possível cadastrar a unidade" sozinho não diz o que corrigir; o
+ * motivo sozinho ("Já existe unidade com esta sigla") perde o que se tentava
+ * fazer. Sem motivo aproveitável (rede caída, erro sem corpo), vale a
+ * `reserva` — que pode trazer a dica genérica de antes ("Confira sigla e campos
+ * obrigatórios"), inútil quando a API já disse qual campo falhou.
+ */
+export function mensagemDeErro(erro: unknown, contexto: string, reserva = `${contexto}.`): string {
+  if (erro instanceof ApiError && !/^Erro \d+$/.test(erro.message)) {
+    return `${contexto}: ${erro.message}`;
+  }
+  return reserva;
 }
 
 export function clearLogoutMarker() {
@@ -66,7 +106,15 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   });
 
   const text = await response.text();
-  const data = text ? JSON.parse(text) : null;
+  // Proxy, túnel ou servidor caído respondem HTML (502, página de erro). O
+  // `JSON.parse` estourava `SyntaxError: Unexpected token '<'`, que escapava do
+  // `catch` de quem chamou como se fosse defeito da tela.
+  let data: unknown = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    throw new ApiError(response.status, "O servidor respondeu de um jeito inesperado. Tente de novo em instantes.");
+  }
 
   if (!response.ok) {
     if (response.status === 401 && !options.skipAuthRedirect) {

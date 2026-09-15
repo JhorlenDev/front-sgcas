@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Clock3, Loader2, Send, ShieldCheck, UserRoundCheck } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, mensagemDeErro } from "@/lib/api";
 import { Button, Card, SecondaryButton } from "@/components/ui";
 
 export default function WaitingApprovalPage() {
@@ -26,7 +26,7 @@ export default function WaitingApprovalPage() {
       });
       setMensagem(resposta.mensagem ?? "Solicitação reenviada. Aguarde aprovação.");
     } catch (error) {
-      setMensagem(error instanceof Error ? error.message : "Não foi possível reenviar a solicitação.");
+      setMensagem(mensagemDeErro(error, "Não foi possível reenviar a solicitação"));
     } finally {
       setReenviando(false);
     }

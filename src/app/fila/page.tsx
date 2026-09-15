@@ -23,7 +23,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
-import { api, comQuery } from "@/lib/api";
+import { api, comQuery, mensagemDeErro } from "@/lib/api";
 import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
 import { LinkDoCaso, LinkDoCidadao } from "@/components/shared/links";
 import { CartaoDeCasoFalso, FaixaDeResumosFalsa, ListaFalsa } from "@/components/skeletons/blocos";
@@ -159,8 +159,8 @@ export default function FilaPage() {
       setModalOpen(false);
       setMensagem(`Senha ${atendimento.senha.senha} em atendimento.`);
       await carregar();
-    } catch {
-      setMensagem("Não foi possível iniciar o atendimento.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível iniciar o atendimento"));
     } finally {
       setSalvando(false);
     }
@@ -181,8 +181,8 @@ export default function FilaPage() {
       setModalOpen(false);
       setMensagem("Observação registrada no acompanhamento.");
       await carregar();
-    } catch {
-      setMensagem("Não foi possível registrar a observação.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível registrar a observação"));
     } finally {
       setSalvando(false);
     }
@@ -209,7 +209,7 @@ export default function FilaPage() {
       setMensagem("Atendimento encaminhado e senha finalizada.");
       await carregar();
     } catch (error) {
-      setMensagem(error instanceof Error ? error.message : "Não foi possível encaminhar.");
+      setMensagem(mensagemDeErro(error, "Não foi possível encaminhar"));
     } finally {
       setSalvando(false);
     }
@@ -233,8 +233,8 @@ export default function FilaPage() {
       setModalOpen(false);
       setMensagem("Atendimento concluído e senha finalizada.");
       await carregar();
-    } catch {
-      setMensagem("Não foi possível concluir o atendimento.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível concluir o atendimento"));
     } finally {
       setSalvando(false);
     }
@@ -259,7 +259,7 @@ export default function FilaPage() {
       setMensagem("Senha marcada como não compareceu.");
       await carregar();
     } catch (error) {
-      setMensagem(error instanceof Error ? error.message : "Não foi possível marcar não comparecimento.");
+      setMensagem(mensagemDeErro(error, "Não foi possível marcar o não comparecimento"));
     } finally {
       setSalvando(false);
     }

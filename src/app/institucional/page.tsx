@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, mensagemDeErro } from "@/lib/api";
 import type { Coordenacao, Demanda, Servico, Unidade } from "@/types/sgcas";
 import { TabelaFalsa } from "@/components/skeletons/blocos";
 
@@ -83,8 +83,8 @@ export default function InstitucionalPage() {
       setModalUnidade(false);
       event.currentTarget.reset();
       await carregar();
-    } catch {
-      setMensagem("Não foi possível cadastrar a unidade. Confira sigla e campos obrigatórios.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível cadastrar a unidade", "Não foi possível cadastrar a unidade. Confira sigla e campos obrigatórios."));
     } finally {
       setSalvando(false);
     }
@@ -110,8 +110,8 @@ export default function InstitucionalPage() {
       setModalServico(false);
       event.currentTarget.reset();
       await carregar();
-    } catch {
-      setMensagem("Não foi possível cadastrar o serviço. Confira unidade e nome.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível cadastrar o serviço", "Não foi possível cadastrar o serviço. Confira unidade e nome."));
     } finally {
       setSalvando(false);
     }

@@ -6,7 +6,7 @@ import { CheckCircle2, Clock3, ShieldCheck, UserCog, UsersRound } from "lucide-r
 import { AppShell } from "@/components/app-shell";
 import { Badge, Button, Card, Checkbox, Dropdown, EmptyState, Field, Input, PageHeader } from "@/components/ui";
 import { Paginacao } from "@/components/shared/paginacao";
-import { api, comQuery, paginadoVazio } from "@/lib/api";
+import { api, comQuery, mensagemDeErro, paginadoVazio } from "@/lib/api";
 import { descricaoDoPapel, PAPEIS, rotuloDoPapel } from "@/lib/rotulos";
 import type { Operador, Paginado, Unidade } from "@/types/sgcas";
 import { CartaoFalso, FaixaDeResumosFalsa, ListaFalsa } from "@/components/skeletons/blocos";
@@ -106,8 +106,8 @@ function UsuariosComBusca() {
       });
       setMensagem("Pedido aprovado. O usuário deve entrar novamente para receber o novo perfil.");
       await carregar();
-    } catch {
-      setMensagem("Não foi possível aprovar o pedido.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível aprovar o pedido"));
     }
   }
 
@@ -133,8 +133,8 @@ function UsuariosComBusca() {
       });
       setMensagem(novoPapel !== operador.papel ? "Perfil e operador atualizados. O usuário deve entrar novamente." : "Operador atualizado.");
       await carregar();
-    } catch {
-      setMensagem("Não foi possível atualizar operador.");
+    } catch (erro) {
+      setMensagem(mensagemDeErro(erro, "Não foi possível atualizar o operador"));
     }
   }
 

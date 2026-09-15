@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button, CampoData, Card, Checkbox, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
-import { api } from "@/lib/api";
+import { api, mensagemDeErro } from "@/lib/api";
 import type { Cidadao } from "@/types/sgcas";
 
 export default function NovoCidadaoPage() {
@@ -43,8 +43,8 @@ export default function NovoCidadaoPage() {
         }),
       });
       router.replace(`/cidadaos/${cidadao.id}`);
-    } catch {
-      setErro("Não foi possível salvar. Confira os dados e o consentimento.");
+    } catch (erro) {
+      setErro(mensagemDeErro(erro, "Não foi possível salvar o cadastro", "Não foi possível salvar. Confira os dados e o consentimento."));
     } finally {
       setSalvando(false);
     }

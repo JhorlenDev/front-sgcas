@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge, Button, CampoData, Card, Checkbox, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
-import { api, comQuery, paginadoVazio } from "@/lib/api";
+import { api, comQuery, mensagemDeErro, paginadoVazio } from "@/lib/api";
 import type { Cidadao, CidadaoLista, Paginado } from "@/types/sgcas";
 import { TabelaFalsa } from "@/components/skeletons/blocos";
 
@@ -76,8 +76,8 @@ export default function CidadaosPage() {
       setTermoLido(false);
       event.currentTarget.reset();
       router.push(`/cidadaos/${cidadao.id}`);
-    } catch {
-      setErroCadastro("Não foi possível salvar. Confira os dados e o consentimento.");
+    } catch (erro) {
+      setErroCadastro(mensagemDeErro(erro, "Não foi possível salvar o cadastro", "Não foi possível salvar. Confira os dados e o consentimento."));
     } finally {
       setSalvando(false);
     }
