@@ -23,6 +23,7 @@ import {
 import { Badge, Button, CampoData, Card, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api } from "@/lib/api";
 import { LinkDoOperador } from "@/components/shared/links";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import type {
   AcaoItinerante,
   BalancoAcaoItinerante,
@@ -50,6 +51,10 @@ export default function AcoesItinerantesPage() {
   const [casosInput, setCasosInput] = useState("");
   const [salvandoConclusao, setSalvandoConclusao] = useState(false);
   const [erroConclusao, setErroConclusao] = useState("");
+
+  const [acaoExcluir, setAcaoExcluir] = useState<AcaoItinerante | null>(null);
+  const [excluindo, setExcluindo] = useState(false);
+  const [erroExclusao, setErroExclusao] = useState("");
 
   const [modalBalancoAberto, setModalBalancoAberto] = useState(false);
   const [balancoDetalhe, setBalancoDetalhe] = useState<BalancoAcaoItinerante | null>(null);
@@ -108,19 +113,26 @@ export default function AcoesItinerantesPage() {
     }
   }
 
-  async function excluirAcao(acao: AcaoItinerante) {
-    if (!confirm(`Excluir a ação "${acao.titulo}"?`)) return;
+  async function excluirAcao() {
+    if (!acaoExcluir) return;
+    setExcluindo(true);
+    setErroExclusao("");
 
     try {
-      await api(`/itinerant-actions/${acao.id}/excluir`, { method: "DELETE" });
+      await api(`/itinerant-actions/${acaoExcluir.id}/excluir`, { method: "DELETE" });
       const [novasAcoes, novoResumo] = await Promise.all([
         api<AcaoItinerante[]>("/itinerant-actions/").catch(() => []),
         api<ResumoAcoesItinerantes>("/itinerant-actions/resumo").catch(() => null),
       ]);
       setAcoes(novasAcoes);
       setResumo(novoResumo);
-    } catch {
-      alert("Erro ao excluir ação.");
+      setAcaoExcluir(null);
+    } catch (erro: unknown) {
+      setErroExclusao(
+        erro instanceof Error ? `Não foi possível excluir: ${erro.message}` : "Não foi possível excluir a ação. Tente de novo.",
+      );
+    } finally {
+      setExcluindo(false);
     }
   }
 
@@ -410,10 +422,14 @@ export default function AcoesItinerantesPage() {
                       )}
                       <button
                         type="button"
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--pmt-color-danger)] bg-[var(--pmt-color-danger-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--pmt-color-danger-soft-fg)] transition-colors hover:bg-[var(--pmt-color-danger-soft)]"
-                        onClick={() => void excluirAcao(acao)}
+                        className="inline-flex min-w-9 items-center justify-center gap-1.5 rounded-full border border-[var(--pmt-color-danger)] bg-[var(--pmt-color-danger-soft)] px-3 py-1.5 text-xs font-semibold text-[var(--pmt-color-danger-soft-fg)] transition-colors hover:bg-[var(--pmt-color-danger-soft)]"
+                        onClick={() => {
+                          setErroExclusao("");
+                          setAcaoExcluir(acao);
+                        }}
+                        aria-label={`Excluir a ação ${acao.titulo}`}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                       </button>
                     </div>
                   </td>
@@ -423,6 +439,25 @@ export default function AcoesItinerantesPage() {
           </table>
         )}
       </Card>
+
+      {/* Substitui o `confirm()` nativo: aquela caixa do navegador não segue a
+          identidade, não vira gaveta no celular e, no erro, o `alert()` não
+          dizia o que tinha acontecido. */}
+      <ConfirmDialog
+        open={acaoExcluir !== null}
+        onOpenChange={(aberto) => {
+          if (!aberto && !excluindo) setAcaoExcluir(null);
+        }}
+        title="Excluir ação itinerante"
+        description={
+          erroExclusao ||
+          `A ação "${acaoExcluir?.titulo ?? ""}" sai do histórico. O registro continua guardado, mas não há como restaurá-lo por esta tela.`
+        }
+        confirmLabel="Excluir ação"
+        variant="destructive"
+        isLoading={excluindo}
+        onConfirm={() => void excluirAcao()}
+      />
 
       {/* Modal Nova Ação */}
       <Dialog open={modalNovaAberto} onOpenChange={setModalNovaAberto}>
