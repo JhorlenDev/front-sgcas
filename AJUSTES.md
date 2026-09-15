@@ -33,6 +33,9 @@ Base da branch: `main` (`d695031`).
 | 15 | Celular com cara de app: barra inferior, botão flutuante, cartões, gavetas | melhoria | — |
 | 16 | Grid sem colunas declaradas estourava a largura no celular | correção | — |
 | 17 | Exclusão de ação itinerante pelo `ConfirmDialog`, não `confirm()` | correção | — |
+| 18 | Funcionalidades da `atualização-jhorlen` portadas para esta interface | integração | — |
+| 19 | Situação do caso e prioridade com rótulo e cor únicos | correção | — |
+| 20 | Cartões da fila encostados e folga no rodapé da gaveta | correção | — |
 
 ---
 
@@ -535,6 +538,105 @@ mensagem da API e fica aberto para tentar de novo.
 
 O texto diz o que o endpoint faz: a exclusão é **lógica** (`excluida_em`), o
 registro continua no banco, mas nenhuma tela restaura.
+
+
+## 18. Integração da `atualização-jhorlen`
+
+A branch do Jhorlen (commit `a1af3f3`, 10/09) **não entrou por merge**: ela
+partia de antes da identidade PMT 2026 da `main`, usava classes de estilo que
+não existem mais (`meta-slate`, `rounded-card`, `shadow-lift`), lia `/queues/`
+como lista simples (a API desta branch devolve envelope paginado) e dava
+conflito em 5 arquivos. Decisão do Paulo: **a interface desta branch
+prevalece**; o que veio dela foram as funcionalidades e o fluxo, reescritos
+aqui, com o commit dele citado no corpo de cada commit.
+
+Na API, a branch dele entrou por merge — ver `api-sgcas/AJUSTES.md`, item 11.
+
+| O que | Onde | Diferença em relação ao original |
+| --- | --- | --- |
+| Retomada do atendimento aberto | `/fila` | ver abaixo |
+| Indicadores clicáveis | `/fila` | lê o envelope paginado (10 por página); o cartão é o botão, sem `<section>` dentro de `<button>` |
+| Mensagem de erro real da API | `src/lib/api.ts` | também lê validação do DRF (`{campo: [msg]}`) e passou a valer nos 17 pontos de falha das telas |
+| Situação do caso traduzida no Painel | `/dashboard` | badge e rótulos do sistema, sem as cores soltas (blue/amber/violet) do original |
+| CPF formatado, "Não encontrou? Cadastrar cidadão", "Trocar cidadão" | `/cidadaos`, `/recepcao` | — |
+
+### Retomada do atendimento
+
+O defeito: recarregar `/fila` no meio de um atendimento perdia a senha da tela.
+Ela seguia `EM_ATENDIMENTO` no banco, sem ninguém, e o próximo "Chamar próximo"
+puxava outra pessoa. Na base de carga, o ADMIN de teste tinha **10 senhas presas**
+assim.
+
+- Ao abrir `/fila`, a tela pergunta a `/queues/atendimento-atual` e devolve a
+  senha aberta para "Atendimento atual", com aviso.
+- Com um atendimento aberto, o botão do cabeçalho (e o flutuante no celular)
+  deixa de ser "Chamar próximo" e vira **"Senha X"**, que leva de volta a ele —
+  em vez de um botão desabilitado sem explicação, como no original.
+- "Chamar próximo" trava contra duplo clique por `ref` síncrona.
+- **"Senhas em atendimento"** lista as da unidade: as suas se retomam, as dos
+  outros mostram quem está com elas.
+- Aviso para quem não tem unidade ou não pode chamar. Falha ao carregar deixa de
+  parecer "fila vazia". A fila ganhou "Atualizar".
+
+A falha na busca do atendimento aberto **não trava** o botão (no original,
+travava): a API devolve a senha aberta no `chamar-proximo` de qualquer jeito.
+
+### Mensagem de erro com contexto
+
+`mensagemDeErro(erro, contexto, reserva)` junta o que se tentava fazer com o
+motivo da API — "Não foi possível cadastrar a unidade: Já existe unidade com esta
+sigla". Sem motivo aproveitável, vale a reserva. Antes, 10 pontos descartavam o
+motivo (`catch {}`) e 7 mostravam `error.message` cru, que com a rede caída
+aparecia como "Failed to fetch", em inglês. Resposta HTML (502 do túnel) não
+estoura mais `JSON.parse`.
+
+### Achados na varredura, corrigidos junto
+
+- **Permissões espelhadas numa fonte só** — `src/lib/permissoes.ts`
+  (`ehEquipeDeAtendimento`, `ehSupervisao`). O original copiava a lista de
+  papéis dentro da tela.
+- O botão "Novo cidadão" da Recepção levava à lista `/cidadaos`, não ao cadastro.
+- Nos resultados da busca da Recepção, havendo CPF, o bairro sumia.
+
+**Não veio:** o teste de navegador `scripts/test-fila.mjs`. Ele simula o formato
+antigo da API e os textos da interface antiga; reescrever é trabalho próprio.
+
+**Como conferir:** entrar como ADMIN e abrir `/fila` — a senha presa volta para
+"Atendimento atual" e o botão vira "Senha …". "Senhas em atendimento" lista 17 na
+base de carga, 10 retomáveis. O cartão "Acompanhamento" abre "1–10 de 3.121
+casos".
+
+
+## 19. Situação do caso e prioridade: rótulo e cor únicos
+
+A situação do caso tinha três traduções, com cores trocadas entre as telas:
+
+| Tela | `EM_TRIAGEM` | `CONCLUIDO` |
+| --- | --- | --- |
+| `/casos` | "Em triagem", amarelo | badge "Finalizado", filtro "Concluído" |
+| `/fila`, `/recepcao` | "Na fila/triagem", vermelho | "Concluído" |
+| ficha do cidadão | "em triagem", minúsculo | — |
+| Painel | `EM_TRIAGEM` cru | — |
+
+A prioridade era a mesma função copiada em três telas, e no cartão "Atendimento
+atual" aparecia crua (`URGENTE`) e sempre amarela.
+
+Fonte única em `src/lib/rotulos.ts`: `SITUACOES_DO_CASO` e `PRIORIDADES`, cada
+item com rótulo e tom, e o filtro de `/casos` deriva dela. As **cores seguem
+`/casos`**, cujos cartões de resumo já as usam — o que muda para quem usa `/fila`
+e `/recepcao`: "Em triagem" passa de vermelho a amarelo, "Em atendimento" de
+amarelo a vermelho.
+
+
+## 20. Espaçamento da fila e rodapé da gaveta
+
+- **Cartões da fila encostados** em `/fila`: eram filhos diretos do `Card`, sem
+  `gap`, e as bordas se tocavam. O esqueleto copiava o aperto de propósito;
+  agora os dois usam `gap-3`.
+- **Rodapé fixo da gaveta com folga** (defeito do item 15): `sticky` para no fim
+  do conteúdo do contêiner de rolagem, descontado o padding, e sobrava uma faixa
+  de 20px abaixo de "Salvar" em que o formulário aparecia passando. Medido: 20px
+  antes, 0 depois.
 
 
 ## Como revisar
