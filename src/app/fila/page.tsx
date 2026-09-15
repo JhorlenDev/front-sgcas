@@ -25,6 +25,7 @@ import { AreaDeTexto, Badge, Button, CampoData, Card, Dropdown, EmptyState, Fiel
 import { api, comQuery } from "@/lib/api";
 import type { Caso, Cidadao, EntradaHistorico, Paginado, PainelAtendente, Senha, Unidade } from "@/types/sgcas";
 import { LinkDoCaso, LinkDoCidadao } from "@/components/shared/links";
+import { CartaoDeCasoFalso, FaixaDeResumosFalsa, ListaFalsa } from "@/components/skeletons/blocos";
 
 const SITUACOES_IDENTIFICADAS = [
   { value: "Atualização cadastral ou orientação simples", label: "Atualização/orientação" },
@@ -72,6 +73,8 @@ export default function FilaPage() {
   const [motivoNaoCompareceu, setMotivoNaoCompareceu] = useState("");
   const [salvando, setSalvando] = useState(false);
   const [mensagem, setMensagem] = useState("");
+  // So a primeira carga. As recargas depois de chamar/concluir mantem a tela.
+  const [carregando, setCarregando] = useState(true);
 
   async function carregar() {
     const [filaData, painelData] = await Promise.all([
@@ -82,6 +85,7 @@ export default function FilaPage() {
     ]);
     setFila(filaData);
     setPainel(painelData);
+    setCarregando(false);
   }
 
   useEffect(() => {
@@ -271,6 +275,9 @@ export default function FilaPage() {
       {mensagem && <div className="notice">{mensagem}</div>}
       <div style={{ height: 16 }} />
 
+      {carregando ? (
+        <FaixaDeResumosFalsa quantidade={5} colunas="md:grid-cols-2 xl:grid-cols-5" />
+      ) : (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <MiniStat title="Atendidos hoje" value={painel?.atendidos_hoje ?? 0} detail="Finalizados pelo atendente" icon={CheckCircle2} tone="good" />
         <MiniStat title="Aguardando na fila" value={painel?.aguardando_na_fila ?? fila.length} detail="Próximas chamadas" icon={ListChecks} tone="warn" />
@@ -278,6 +285,7 @@ export default function FilaPage() {
         <MiniStat title="Finalizados" value={painel?.finalizados_hoje ?? 0} detail="Casos fechados hoje" icon={Clock3} tone="neutral" />
         <MiniStat title="Acompanhamento" value={painel?.casos_em_acompanhamento ?? 0} detail="Casos ativos na unidade" icon={FolderOpen} tone="bad" />
       </div>
+      )}
 
       <div style={{ height: 16 }} />
 
@@ -287,7 +295,9 @@ export default function FilaPage() {
             <h2 className="!mb-0">Fila</h2>
             <Badge tone={fila.length ? "warn" : "good"}>{fila.length}</Badge>
           </div>
-          {fila.length === 0 ? (
+          {carregando ? (
+            <ListaFalsa itens={5} comPastilha espaco="gap-0" />
+          ) : fila.length === 0 ? (
             <EmptyState title="Fila vazia" text="A recepção ainda não encaminhou atendimentos." />
           ) : (
             fila.map((senha) => (
@@ -405,7 +415,13 @@ export default function FilaPage() {
           <Badge tone="neutral">{painel?.ultimos_atendimentos?.length ?? 0}</Badge>
         </div>
 
-        {!painel?.ultimos_atendimentos?.length ? (
+        {carregando ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {[0, 1, 2, 3].map((i) => (
+              <CartaoDeCasoFalso key={i} />
+            ))}
+          </div>
+        ) : !painel?.ultimos_atendimentos?.length ? (
           <EmptyState title="Sem atendimentos recentes" text="Quando você iniciar/concluir casos, eles aparecem aqui." />
         ) : (
           <div className="grid gap-3 md:grid-cols-2">

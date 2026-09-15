@@ -17,6 +17,7 @@ import { Badge, Button, CampoData, Card, Checkbox, EmptyState, Field, Input, Pag
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Cidadao, CidadaoLista, Paginado } from "@/types/sgcas";
+import { TabelaFalsa } from "@/components/skeletons/blocos";
 
 const POR_PAGINA = 25;
 
@@ -119,6 +120,8 @@ export default function CidadaosPage() {
             <Badge tone="neutral">{(pagina?.total ?? 0).toLocaleString("pt-BR")}</Badge>
           </div>
         </div>
+
+        {carregando && resultados.length === 0 && <TabelaFalsa colunas={4} linhas={8} />}
 
         {resultados.length > 0 && (
           <table className="table">

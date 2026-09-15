@@ -58,6 +58,10 @@ const config: Config = {
 
         'fade-entra': { from: { opacity: '0' }, to: { opacity: '1' } },
         'fade-sai': { from: { opacity: '1' }, to: { opacity: '0' } },
+        // Varredura do esqueleto: a faixa clara atravessa a barra da esquerda
+        // para a direita. Substituiu o `animate-pulse`, que so mexia na
+        // opacidade de um cinza claro demais e sumia no fundo bege da tela.
+        brilho: { from: { transform: 'translateX(-100%)' }, to: { transform: 'translateX(100%)' } },
 
         'lista-entra': {
           from: { opacity: '0', transform: 'translateY(-4px) scale(0.98)' },
@@ -73,6 +77,7 @@ const config: Config = {
         'gaveta-sai': 'gaveta-sai 0.2s ease-in',
         'fade-entra': 'fade-entra 0.2s ease-out',
         'fade-sai': 'fade-sai 0.16s ease-in',
+        brilho: 'brilho 1.6s ease-in-out infinite',
         'lista-entra': 'lista-entra 0.14s ease-out',
       },
     },

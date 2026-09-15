@@ -8,6 +8,7 @@ import { Badge, Button, Card, Checkbox, Dropdown, EmptyState, Field, Input, Page
 import { Paginacao } from "@/components/shared/paginacao";
 import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Operador, Paginado, Papel, Unidade } from "@/types/sgcas";
+import { CartaoFalso, FaixaDeResumosFalsa, ListaFalsa } from "@/components/skeletons/blocos";
 
 type Pedido = {
   id: string;
@@ -38,6 +39,8 @@ function UsuariosComBusca() {
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [unidades, setUnidades] = useState<Unidade[]>([]);
   const [mensagem, setMensagem] = useState("");
+  // Só a primeira carga: rebusca por página ou por termo mantém a tabela na tela.
+  const [carregando, setCarregando] = useState(true);
 
   const carregar = useCallback(async () => {
     const [users, requests, units] = await Promise.all([
@@ -50,6 +53,7 @@ function UsuariosComBusca() {
     setPaginaDeOperadores(users);
     setPedidos(requests);
     setUnidades(units);
+    setCarregando(false);
   }, [numero, buscaDeOperador]);
 
   const operadores = paginaDeOperadores?.itens ?? [];
@@ -153,11 +157,15 @@ function UsuariosComBusca() {
       {mensagem && <div className="notice">{mensagem}</div>}
       <div style={{ height: 16 }} />
 
+      {carregando ? (
+        <FaixaDeResumosFalsa quantidade={3} variante="media" />
+      ) : (
       <div className="grid gap-4 md:grid-cols-3">
         <ResumoCard title="Solicitações" value={resumo.pendentes} text="Aguardando aprovação" icon={Clock3} tone="warn" />
         <ResumoCard title="Operadores ativos" value={resumo.ativos} text="Com acesso liberado" icon={UsersRound} tone="good" />
         <ResumoCard title="Sem unidade" value={resumo.semUnidade} text="Precisam de lotação" icon={ShieldCheck} tone="bad" />
       </div>
+      )}
 
       <div style={{ height: 16 }} />
 
@@ -171,7 +179,9 @@ function UsuariosComBusca() {
             <Badge tone={pedidos.length ? "warn" : "good"}>{pedidos.length}</Badge>
           </div>
 
-          {pedidos.length === 0 ? (
+          {carregando ? (
+            <ListaFalsa itens={2} linhas={4} />
+          ) : pedidos.length === 0 ? (
             <EmptyState title="Sem solicitações" text="Quando alguém entrar sem role do SGCAS, aparece aqui." />
           ) : (
             <div className="space-y-3">
@@ -235,7 +245,9 @@ function UsuariosComBusca() {
             </Field>
           </div>
 
-          {operadores.length === 0 ? (
+          {carregando ? (
+            <ListaFalsa itens={4} linhas={4} />
+          ) : operadores.length === 0 ? (
             <EmptyState title="Nenhum operador" text="Os usuários aprovados aparecem aqui." />
           ) : (
             <div className="space-y-3">
@@ -302,6 +314,28 @@ function UsuariosComBusca() {
   );
 }
 
+function EsqueletoDeUsuarios() {
+  return (
+    <AppShell>
+      <PageHeader
+        title="Usuários"
+        description="Aprove solicitações, defina perfil, vincule unidade e acompanhe operadores cadastrados."
+      />
+      <div style={{ height: 16 }} />
+      <FaixaDeResumosFalsa quantidade={3} variante="media" />
+      <div style={{ height: 16 }} />
+      <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]" aria-busy="true">
+        <CartaoFalso>
+          <ListaFalsa itens={2} linhas={4} />
+        </CartaoFalso>
+        <CartaoFalso>
+          <ListaFalsa itens={4} linhas={4} />
+        </CartaoFalso>
+      </div>
+    </AppShell>
+  );
+}
+
 function ResumoCard({
   title,
   value,
@@ -356,7 +390,9 @@ function formatarDataCurta(value: string) {
 
 export default function AdminPage() {
   return (
-    <Suspense fallback={<AppShell><EmptyState title="Carregando…" text="Preparando a gestão de acesso." /></AppShell>}>
+    // O `useSearchParams` obriga a fronteira de Suspense, e o que ela mostra é
+    // o primeiro quadro da tela — então mostra a própria tela, não um aviso.
+    <Suspense fallback={<EsqueletoDeUsuarios />}>
       <UsuariosComBusca />
     </Suspense>
   );

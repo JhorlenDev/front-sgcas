@@ -29,6 +29,7 @@ Base da branch: `main` (`d695031`).
 | 11 | Nomes e protocolos viraram links, respeitando permissão | melhoria | — |
 | 12 | Prontuário do cidadão virou ficha completa | melhoria | — |
 | 13 | Cabeçalho da barra lateral parou de estourar | correção | — |
+| 14 | Esqueletos de carregamento no lugar de "Carregando…" | melhoria | — |
 
 ---
 
@@ -401,6 +402,27 @@ liga a rolagem nos dois eixos, e o estouro virou barra horizontal.
 20px antes da borda e `scrollWidth` da coluna é igual a `clientWidth` (255px).
 Minimizada, a marca continua centralizada e o botão de expandir segue sobre a
 borda, como antes.
+
+
+## 14. Esqueletos de carregamento
+
+As telas mostravam "Carregando…" solto — e, na sessão, a frase no meio do vazio
+fazia o sistema inteiro sumir por um instante a cada navegação. Agora a moldura
+(barra lateral e cabeçalho) aparece na hora, e cada bloco que espera dado vira o
+seu esqueleto.
+
+- **Por tipo de bloco, não por página** — `src/components/skeletons/blocos.tsx`:
+  indicador, faixa de resumos, lista, tabela, filtros, seção da ficha. Cada um
+  espelha grid, alturas e espaçamento do bloco real, para o conteúdo entrar sem
+  a página pular.
+- **Só a primeira carga.** Trocar de página ou de filtro mantém a lista na tela
+  em vez de piscar esqueleto de novo.
+- **A ficha do cidadão** não renderiza mais com "Não informado" em todo campo
+  enquanto a resposta não chega — parecia um cadastro vazio de verdade.
+- `/casos` e `/admin` usam o esqueleto como fallback do `<Suspense>`.
+- O `Skeleton` trocou o `animate-pulse` sobre `bg-border/70`, que sumia no fundo
+  bege, por uma faixa clara atravessando a barra (`animate-brilho`). Com
+  `prefers-reduced-motion`, a barra fica parada.
 
 
 ## Como revisar

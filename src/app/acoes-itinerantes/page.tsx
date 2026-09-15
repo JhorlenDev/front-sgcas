@@ -28,6 +28,7 @@ import type {
   BalancoAcaoItinerante,
   ResumoAcoesItinerantes,
 } from "@/types/sgcas";
+import { FaixaDeResumosFalsa, TabelaFalsa } from "@/components/skeletons/blocos";
 
 type Ordenacao = "mais-proximas" | "mais-recentes";
 
@@ -216,6 +217,9 @@ export default function AcoesItinerantesPage() {
         }
       />
 
+      {carregando ? (
+        <FaixaDeResumosFalsa quantidade={3} blocos={2} />
+      ) : (
       <div className="grid gap-4 md:grid-cols-3">
         {/* Card Planejamento - próximas 3 ações */}
         <Card className="!p-4">
@@ -292,7 +296,9 @@ export default function AcoesItinerantesPage() {
                 {resumo?.total_cidadaos ?? 0} cidadãos
               </strong>
               <small className="mt-1 block text-muted-foreground">
-                {resumo ? `${resumo.total_concluidas} de ${resumo.total_acoes} ações concluídas` : "Carregando..."}
+                {resumo
+                  ? `${resumo.total_concluidas} de ${resumo.total_acoes} ações concluídas`
+                  : "Balanço indisponível no momento."}
               </small>
             </div>
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-success/10 text-success">
@@ -317,6 +323,7 @@ export default function AcoesItinerantesPage() {
           )}
         </Card>
       </div>
+      )}
 
       <div style={{ height: 16 }} />
 
@@ -336,7 +343,7 @@ export default function AcoesItinerantesPage() {
           </div>
         </div>
 
-        {carregando && <span className="text-sm text-muted-foreground">Carregando...</span>}
+        {carregando && <TabelaFalsa colunas={7} linhas={5} />}
 
         {!carregando && acoesOrdenadas.length === 0 && (
           <EmptyState
@@ -551,7 +558,7 @@ export default function AcoesItinerantesPage() {
             )}
           </DialogHeader>
 
-          {carregandoBalanco && <span className="text-sm text-muted-foreground">Carregando...</span>}
+          {carregandoBalanco && <FaixaDeResumosFalsa quantidade={3} variante="compacta" espaco="gap-3" />}
 
           {balancoDetalhe && !carregandoBalanco && (
             <div className="grid gap-4">

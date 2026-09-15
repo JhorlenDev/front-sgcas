@@ -19,6 +19,8 @@ import { api, comQuery, paginadoVazio } from "@/lib/api";
 import type { Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
 // `LinkDoCaso` nao entra aqui: o protocolo levaria a esta mesma lista.
 import { LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
+import { FaixaDeResumosFalsa, FiltrosFalsos, ListaFalsa } from "@/components/skeletons/blocos";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const POR_PAGINA = 25;
 
@@ -162,6 +164,9 @@ function CasosComFiltros() {
       {mensagem && <div className="notice">{mensagem}</div>}
       <div style={{ height: 16 }} />
 
+      {carregando && !resumo ? (
+        <FaixaDeResumosFalsa quantidade={3} marca="pastilha" />
+      ) : (
       <div className="grid gap-4 md:grid-cols-3">
         <ResumoCard
           title="Em triagem"
@@ -182,6 +187,7 @@ function CasosComFiltros() {
           tone="good"
         />
       </div>
+      )}
 
       <div style={{ height: 16 }} />
 
@@ -266,7 +272,7 @@ function CasosComFiltros() {
         </div>
 
         {carregando && casos.length === 0 ? (
-          <EmptyState title="Carregando…" text="Buscando os acompanhamentos da sua unidade." />
+          <ListaFalsa itens={6} comEtiquetas linhas={3} />
         ) : casos.length === 0 ? (
           <EmptyState
             title={temFiltro ? "Nada encontrado" : "Sem acompanhamentos"}
@@ -423,6 +429,28 @@ function CasosComFiltros() {
   );
 }
 
+function EsqueletoDeAcompanhamentos() {
+  return (
+    <AppShell>
+      <PageHeader
+        title="Acompanhamentos"
+        description="Consulte o caso, veja em que etapa ele está e registre o desfecho quando o atendimento terminar."
+      />
+      <div style={{ height: 16 }} />
+      <FaixaDeResumosFalsa quantidade={3} marca="pastilha" />
+      <div style={{ height: 16 }} />
+      <Card aria-busy="true">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-6 w-20 rounded-full" />
+        </div>
+        <FiltrosFalsos campos={6} />
+        <ListaFalsa itens={6} comEtiquetas linhas={3} />
+      </Card>
+    </AppShell>
+  );
+}
+
 function ResumoCard({
   title,
   value,
@@ -537,7 +565,7 @@ function rotuloTom(tone: "good" | "warn" | "bad") {
  */
 export default function CasosPage() {
   return (
-    <Suspense fallback={<AppShell><EmptyState title="Carregando…" text="Preparando os acompanhamentos." /></AppShell>}>
+    <Suspense fallback={<EsqueletoDeAcompanhamentos />}>
       <CasosComFiltros />
     </Suspense>
   );

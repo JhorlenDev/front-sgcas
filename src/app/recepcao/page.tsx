@@ -30,6 +30,7 @@ import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, P
 import { api, comQuery } from "@/lib/api";
 import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, Paginado, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
 import { LinkDoCaso, LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
+import { FaixaDeResumosFalsa } from "@/components/skeletons/blocos";
 
 type HistoricoResponse = {
   cidadao: CidadaoLista;
@@ -55,6 +56,9 @@ export default function RecepcaoPage() {
   const [historico, setHistorico] = useState<EntradaHistorico[]>([]);
   const [ultimosAtendimentos, setUltimosAtendimentos] = useState<AtendimentoRecepcao[]>([]);
   const [painel, setPainel] = useState<PainelRecepcao | null>(null);
+  // Separado de `painel === null`, que tambem e o estado de falha: sem isso o
+  // esqueleto ficaria girando para sempre quando o painel nao responde.
+  const [carregandoPainel, setCarregandoPainel] = useState(true);
   const [fila, setFila] = useState<Senha[]>([]);
   const [servicoId, setServicoId] = useState("");
   const [prioridade, setPrioridade] = useState("NORMAL");
@@ -84,6 +88,7 @@ export default function RecepcaoPage() {
 
   async function carregarPainel() {
     const data = await api<PainelRecepcao>("/reception/painel").catch(() => null);
+    setCarregandoPainel(false);
     setPainel(data);
     if (data?.ultimos_atendimentos) {
       setUltimosAtendimentos(data.ultimos_atendimentos);
@@ -240,7 +245,7 @@ export default function RecepcaoPage() {
       </div>
 
       <div className="grid gap-5">
-        <PainelResumoRecepcao painel={painel} />
+        <PainelResumoRecepcao painel={painel} carregando={carregandoPainel} />
 
         {aba === "nova" && (
           <>
@@ -508,7 +513,24 @@ function AbaButton({
   );
 }
 
-function PainelResumoRecepcao({ painel }: { painel: PainelRecepcao | null }) {
+function PainelResumoRecepcao({
+  painel,
+  carregando,
+}: {
+  painel: PainelRecepcao | null;
+  carregando: boolean;
+}) {
+  if (carregando) {
+    return (
+      <FaixaDeResumosFalsa
+        quantidade={5}
+        colunas="md:grid-cols-2 xl:grid-cols-5"
+        espaco="gap-3"
+        variante="compacta"
+      />
+    );
+  }
+
   return (
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
       <MiniStat

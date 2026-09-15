@@ -22,6 +22,8 @@ import {
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ConteudoFalso } from "@/components/skeletons/blocos";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { defaultRouteForRole, useAuth } from "@/lib/auth";
 
@@ -65,7 +67,49 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (loading) {
-    return <main className="center-screen">Carregando sessão...</main>;
+    // A moldura aparece na hora; só o miolo espera a sessão.
+    //
+    // Antes esta tela era a frase "Carregando sessão..." no meio do vazio: a
+    // pessoa clicava e o sistema sumia por inteiro por um instante. A barra
+    // lateral e o cabeçalho não dependem de dado nenhum para existir — só os
+    // rótulos dentro deles dependem, e é só isso que vira esqueleto.
+    return (
+      <div className="min-h-screen bg-background">
+        <aside className={cn(
+          "hidden border-r border-border bg-white md:fixed md:inset-y-0 md:z-30 md:flex md:flex-col",
+          sidebarCollapsed ? "md:w-20" : "md:w-64",
+        )}>
+          <div className="flex items-center gap-3 px-5 pt-6">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            {!sidebarCollapsed && (
+              <div className="flex-1">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="mt-1.5 h-3 w-28" />
+              </div>
+            )}
+          </div>
+          <div className="mt-8 grid gap-1 px-3">
+            {Array.from({ length: 8 }, (_, i) => (
+              <Skeleton key={i} className="h-11 w-full" />
+            ))}
+          </div>
+        </aside>
+
+        <div className={cn("transition-[padding] duration-300", sidebarCollapsed ? "md:pl-20" : "md:pl-64")}>
+          <header className="sticky top-0 z-20 flex h-14 items-center gap-4 border-b border-border/70 bg-elevated px-4 md:px-8">
+            <Skeleton className="h-4 w-32" />
+            <div className="flex-1" />
+            <Skeleton className="h-6 w-28 rounded-full" />
+            <Skeleton className="h-9 w-9 rounded-full" />
+          </header>
+
+          <main className="mx-auto max-w-[1440px] p-4 md:p-8" aria-busy="true">
+            <span className="sr-only" role="status">Carregando a sessão…</span>
+            <ConteudoFalso />
+          </main>
+        </div>
+      </div>
+    );
   }
 
   if (!user) {

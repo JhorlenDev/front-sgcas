@@ -15,6 +15,12 @@ import {
 } from "@/lib/rotulos";
 import { formatCPF, formatDate, formatDateOnly } from "@/lib/utils";
 import type { Caso, Cidadao, EntradaHistorico, Paginado } from "@/types/sgcas";
+import {
+  ListaDaFichaFalsa,
+  SecaoDeFichaFalsa,
+  TabelaFalsa,
+} from "@/components/skeletons/blocos";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProntuarioPage() {
   const params = useParams<{ id: string }>();
@@ -36,6 +42,48 @@ export default function ProntuarioPage() {
       .then((data) => setCasos(data.itens))
       .catch(() => setCasos([]));
   }, [params.id]);
+
+  // A ficha inteira renderiza com "Não informado" em todo campo enquanto a
+  // resposta não chega — o que não é uma tela em branco, é pior: parece um
+  // cadastro vazio de verdade. O esqueleto diz que os dados estão vindo.
+  if (!cidadao && !erro) {
+    return (
+      <AppShell>
+        <PageHeader title="Prontuário" description="Carregando o cadastro da pessoa." />
+        <div className="mb-5 flex flex-wrap gap-2" aria-hidden="true">
+          <Skeleton className="h-6 w-32 rounded-full" />
+          <Skeleton className="h-6 w-40 rounded-full" />
+        </div>
+        <div className="grid gap-5 xl:grid-cols-[1.15fr_1fr]" aria-busy="true">
+          <div className="grid gap-5">
+            <SecaoDeFichaFalsa campos={12} larguraDoTitulo="w-32" />
+            <SecaoDeFichaFalsa campos={2} larguraDoTitulo="w-20" />
+            <SecaoDeFichaFalsa campos={6} larguraDoTitulo="w-24" />
+            <SecaoDeFichaFalsa campos={10} larguraDoTitulo="w-48" />
+            <SecaoDeFichaFalsa larguraDoTitulo="w-44">
+              <TabelaFalsa colunas={3} linhas={3} />
+            </SecaoDeFichaFalsa>
+          </div>
+          <div className="grid gap-5 self-start">
+            <SecaoDeFichaFalsa campos={2} larguraDoTitulo="w-44" />
+            <SecaoDeFichaFalsa larguraDoTitulo="w-20">
+              <ListaDaFichaFalsa itens={2} />
+            </SecaoDeFichaFalsa>
+            <SecaoDeFichaFalsa larguraDoTitulo="w-40">
+              <ListaDaFichaFalsa itens={4} />
+            </SecaoDeFichaFalsa>
+            <SecaoDeFichaFalsa larguraDoTitulo="w-44">
+              <ListaDaFichaFalsa itens={5} />
+            </SecaoDeFichaFalsa>
+            <SecaoDeFichaFalsa campos={2} larguraDoTitulo="w-24" />
+          </div>
+        </div>
+        <span className="sr-only" role="status">
+          Carregando o prontuário do cidadão.
+        </span>
+      </AppShell>
+    );
+  }
 
   if (erro) {
     return (

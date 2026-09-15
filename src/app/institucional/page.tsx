@@ -14,6 +14,7 @@ import {
 import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api } from "@/lib/api";
 import type { Coordenacao, Demanda, Servico, Unidade } from "@/types/sgcas";
+import { TabelaFalsa } from "@/components/skeletons/blocos";
 
 const tiposDeUnidade = [
   ["CRAS", "CRAS"],
@@ -33,6 +34,10 @@ export default function InstitucionalPage() {
   const [modalUnidade, setModalUnidade] = useState(false);
   const [modalServico, setModalServico] = useState(false);
   const [salvando, setSalvando] = useState(false);
+  // A tela nao tinha estado de carga: mostrava "Nenhuma unidade cadastrada" e
+  // trocava pela tabela quando a resposta chegava - dizendo que a rede esta
+  // vazia enquanto ainda estava perguntando.
+  const [carregando, setCarregando] = useState(true);
 
   async function carregar() {
     const [units, services, coords, demands] = await Promise.all([
@@ -46,6 +51,7 @@ export default function InstitucionalPage() {
     setServicos(services);
     setCoordenacoes(coords);
     setDemandas(demands);
+    setCarregando(false);
   }
 
   useEffect(() => {
@@ -139,7 +145,9 @@ export default function InstitucionalPage() {
             <Badge tone="neutral">{unidades.length} cadastradas</Badge>
           </div>
 
-          {unidades.length === 0 ? (
+          {carregando ? (
+            <TabelaFalsa colunas={4} linhas={6} subtituloNaPrimeira />
+          ) : unidades.length === 0 ? (
             <EmptyState title="Nenhuma unidade" text="Cadastre a primeira unidade para vincular serviços e operadores." />
           ) : (
             <table className="table">
@@ -178,7 +186,9 @@ export default function InstitucionalPage() {
             <Badge tone="neutral">{servicos.length} ativos</Badge>
           </div>
 
-          {servicos.length === 0 ? (
+          {carregando ? (
+            <TabelaFalsa colunas={3} linhas={7} subtituloNaPrimeira />
+          ) : servicos.length === 0 ? (
             <EmptyState title="Nenhum serviço" text="Cadastre os serviços que aparecem na recepção e no encaminhamento." />
           ) : (
             <table className="table">

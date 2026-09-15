@@ -8,6 +8,8 @@ import { Button, Card, EmptyState, PageHeader } from "@/components/ui";
 import { api, comQuery } from "@/lib/api";
 import type { Caso, Paginado, ResumoDeCasos, Senha } from "@/types/sgcas";
 import { LinkDoCidadao } from "@/components/shared/links";
+import { IndicadorFalso, LinhasDivididasFalsas } from "@/components/skeletons/blocos";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const [fila, setFila] = useState<Paginado<Senha> | null>(null);
@@ -27,11 +29,28 @@ export default function DashboardPage() {
 
   const senhas = fila?.itens ?? [];
   const recentes = casos?.itens ?? [];
+  // `null` = ainda buscando. Lista vazia é outra coisa, e tem o próprio texto.
+  const carregando = fila === null && casos === null && resumo === null;
 
   return (
     <AppShell>
       <PageHeader title="Painel" description="Resumo operacional da unidade para começar o atendimento." />
 
+      {carregando ? (
+        <>
+          <div className="grid three dashboard-stats">
+            <IndicadorFalso alto />
+            <IndicadorFalso alto />
+            <IndicadorFalso alto />
+          </div>
+          <div style={{ height: 16 }} />
+          <div className="grid two dashboard-lists">
+            <Card><Skeleton className="h-5 w-44" /><div className="mt-4"><LinhasDivididasFalsas itens={6} /></div></Card>
+            <Card><Skeleton className="h-5 w-36" /><div className="mt-4"><LinhasDivididasFalsas itens={6} /></div></Card>
+          </div>
+        </>
+      ) : (
+      <>
       <div className="grid three dashboard-stats">
         <StatCard
           title="Na fila"
@@ -105,6 +124,8 @@ export default function DashboardPage() {
           )}
         </Card>
       </div>
+      </>
+      )}
     </AppShell>
   );
 }
