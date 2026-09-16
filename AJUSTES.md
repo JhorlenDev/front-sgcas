@@ -36,6 +36,8 @@ Base da branch: `main` (`d695031`).
 | 18 | Funcionalidades da `atualização-jhorlen` portadas para esta interface | integração | — |
 | 19 | Situação do caso e prioridade com rótulo e cor únicos | correção | — |
 | 20 | Cartões da fila encostados e folga no rodapé da gaveta | correção | — |
+| 21 | Formulário de novo cidadão escrito duas vezes, com divergências | correção (duplicação) | — |
+| 22 | Consulta ao cadastro central da Prefeitura ao informar o CPF | integração | — |
 
 ---
 
@@ -671,3 +673,91 @@ Da versão de celular (item 15):
   efeito colateral escondido — era ali que as tabelas de 4 colunas apertavam.
 - **Nenhum guard verifica `data-rotulo`.** Uma `<td>` nova sem o atributo vira
   linha sem rótulo no cartão; hoje depende de revisão.
+
+---
+
+## 21. Formulário de novo cidadão escrito duas vezes
+
+**Era:** o mesmo formulário existia em dois lugares — a página
+`/cidadaos/novo` e o diálogo "Novo cadastro" da lista — cada um com sua cópia
+do markup.
+
+**Estragava:** já tinham divergido em coisas que ninguém escolheu. A página não
+tinha placeholder em campo nenhum, gravava a cidade como **"Tefe"** sem acento
+(o diálogo gravava "Tefé"), e as duas dispunham os campos em grades diferentes.
+Qualquer coisa nova precisaria ser escrita duas vezes — e as duas iam divergir
+de novo na primeira correção.
+
+**Ficou:** `src/components/cidadaos/campos-do-cidadao.tsx`, usado pelas duas
+telas. As cascas de submit e de confirmação continuam separadas: o que era
+comum eram os campos, não o fluxo.
+
+Os campos passaram a ser **controlados**, que é o que permite preenchê-los de
+fora (item 22). Todos mantêm o `name`, então as duas telas continuam lendo o
+formulário com `FormData` sem saber que há estado dentro do componente. Como
+`form.reset()` não limpa campo controlado, o diálogo remonta o componente
+trocando a `key`.
+
+De passagem, o CPF ganhou máscara progressiva e passou a enviar **só os
+dígitos** por um campo oculto — a máscara ficou sendo só leitura. `formatCPFInput`
+e `isValidCPF` já existiam em `src/lib/utils.ts` **sem nenhum uso**.
+
+## 22. Consulta ao cadastro central ao informar o CPF
+
+**Era:** cada secretaria redigitava a mesma pessoa do zero, e nada avisava o
+atendente de que aquele CPF já tinha cadastro — nem na Prefeitura, nem no
+próprio SGCAS.
+
+**Ficou:** quando o atendente termina de digitar o CPF, o formulário pergunta ao
+cadastro central da Prefeitura (`GET /api/citizens/consulta-central`).
+
+| Resposta | O que a tela faz |
+| --- | --- |
+| Está na central, **não** está aqui | Diálogo "Encontramos esta pessoa no cadastro central" com **Preencher** / **Não preencher** |
+| Já tem cadastro **aqui** | Aviso no topo do formulário, com link para a ficha existente. **Sem** diálogo de preenchimento |
+| Não encontrado, falhou, desligado, CPF inválido | Nada. Silêncio |
+
+**Por que a duplicata local tira o diálogo:** quem já tem cadastro aqui não
+precisa de formulário preenchido, precisa que o atendente abra a ficha que
+existe. Oferecer o preenchimento convidaria exatamente a duplicata que o aviso
+está tentando evitar — e o diálogo ainda cobriria o aviso.
+
+**Por que o aviso é no topo:** no rodapé, a duplicata só seria vista depois de o
+atendente ter redigitado a pessoa inteira.
+
+**Campos preenchidos ficam destacados**, com a linha "confirme com a pessoa
+antes de salvar". Editar um deles à mão tira o destaque — mantê-lo passaria a
+afirmar uma origem que não é mais verdade.
+
+### Cuidado com o teto da central
+
+São 120 requisições por minuto **por IP**, e todos os atendentes do prédio saem
+pelo mesmo. Por isso:
+
+- a consulta só dispara com 11 dígitos **e** verificador válido, no `blur` —
+  nunca a cada tecla;
+- a resposta fica guardada por CPF na aba: voltar ao campo para conferir um
+  dígito não gera consulta nova.
+
+O verificador também resolve uma ambiguidade do lado da API: a central responde
+**404 tanto para CPF inexistente quanto para malformado**. Sem validar antes,
+"essa pessoa não está cadastrada" e "esse número não é um CPF" chegariam ao
+atendente como a mesma resposta.
+
+### Falha é silenciosa
+
+A consulta é conveniência. A pessoa está na frente do atendente, e o formulário
+tem que seguir preenchível à mão — central fora do ar, timeout ou integração
+desligada não mostram erro nenhum.
+
+### O que ficou de fora
+
+| Fora | Por quê |
+| --- | --- |
+| Rua e número separados | O formulário tem um campo `endereço` de linha única. A central guarda `street` e `number`; a volta junta os dois nesse campo, e o próximo envio devolve tudo como `street`. Separar pede campo novo no formulário |
+| Botão "atualizar da central" no prontuário | Depende de um `PATCH` de cidadão, que a API não tem |
+| Sexo, RG e observações no formulário | A consulta já traz os três, mas o formulário de cadastro não tem esses campos — eles só existem no prontuário |
+
+> Depende da branch `ajustes-marreira` da API: o endpoint
+> `/api/citizens/consulta-central` e o campo `integracoes` na resposta do
+> cadastro não existem na `main`.
