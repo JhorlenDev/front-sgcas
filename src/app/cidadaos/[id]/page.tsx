@@ -390,9 +390,10 @@ function PrivacidadePanel({ cidadao }: { cidadao: Cidadao }) {
   return (
     <Card>
       <Titulo icon={ShieldCheck} title="Privacidade e LGPD" count={null} />
-      <p className="text-sm leading-6 text-meta-slate">Exportação de dados e consentimento de imagem ficam vinculados ao prontuário.</p>
+      <p className="text-sm leading-6 text-meta-slate">Imprima o prontuário para uso administrativo ou exporte os dados pessoais em JSON quando houver solicitação LGPD.</p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <a className="button secondary" href={`/api/citizens/${cidadao.id}/exportar`} target="_blank" rel="noreferrer">Exportar dados</a>
+        <a className="button" href={`/api/citizens/${cidadao.id}/imprimir`} target="_blank" rel="noreferrer">Imprimir prontuário</a>
+        <a className="button secondary" href={`/api/citizens/${cidadao.id}/exportar`} target="_blank" rel="noreferrer">Exportar JSON LGPD</a>
         <Badge tone={cidadao.imagem_revogada_em ? "bad" : cidadao.autoriza_imagem ? "good" : "neutral"}>{cidadao.imagem_revogada_em ? "Imagem revogada" : cidadao.autoriza_imagem ? "Imagem autorizada" : "Imagem sem autorização"}</Badge>
       </div>
     </Card>
