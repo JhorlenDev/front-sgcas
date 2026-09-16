@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { ButtonHTMLAttributes, InputHTMLAttributes, SelectHTMLAttributes } from "react";
+import type { ButtonHTMLAttributes, ComponentPropsWithRef, SelectHTMLAttributes } from "react";
 import { BotaoFlutuante, type AcaoDaTela } from "@/components/ui/botao-flutuante";
 
 export { Dropdown } from "@/components/ui/dropdown";
@@ -26,7 +26,10 @@ export function DangerButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button className={`button danger ${className}`} {...rest} />;
 }
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
+// `ComponentPropsWithRef` e nao `InputHTMLAttributes` para aceitar `ref`: em
+// React 19 a ref e prop comum de componente de funcao, mas o tipo antigo nao a
+// declarava, e quem precisasse da ref caia num erro de tipo sem saida.
+export function Input(props: ComponentPropsWithRef<"input">) {
   const { className = "", ...rest } = props;
   return <input className={`input ${className}`} {...rest} />;
 }
@@ -64,12 +67,37 @@ export function EmptyState({ title, text }: { title: string; text: string }) {
   );
 }
 
-export function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
+/**
+ * Rótulo + campo, com mensagem de erro opcional.
+ *
+ * O erro fica **fora** do `<label>` de propósito: `<label>` só aceita conteúdo
+ * de frase, e um `<p>` dentro dele é HTML inválido. Por isso o wrapper.
+ */
+export function Field({
+  label,
+  erro,
+  children,
+}: {
+  label: string;
+  erro?: string;
+  children: React.ReactNode;
+}) {
+  const rotuloECampo = (
     <label className="field">
       <span>{label}</span>
       {children}
     </label>
+  );
+
+  if (!erro) return rotuloECampo;
+
+  return (
+    <div className="grid gap-2">
+      {rotuloECampo}
+      <p className="text-sm text-[var(--pmt-color-danger)]" role="alert">
+        {erro}
+      </p>
+    </div>
   );
 }
 
