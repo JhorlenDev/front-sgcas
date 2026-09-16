@@ -159,6 +159,9 @@ export type Caso = {
   tecnico_nome?: string | null;
   servico?: string | null;
   servico_nome?: string | null;
+  acao_itinerante?: string | null;
+  acao_itinerante_titulo?: string | null;
+  acao_itinerante_local?: string | null;
   aberto_em: string;
   fechado_em?: string | null;
 };

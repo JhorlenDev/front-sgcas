@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { CalendarClock, CheckCircle2, ClipboardList, MapPin, Stethoscope } from "lucide-react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { CalendarClock, CheckCircle2, ClipboardList, MapPin, MapPinned, Stethoscope } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import {
@@ -14,27 +14,42 @@ import {
 } from "@/components/ui/dialog";
 import { Badge, Button, Card, EmptyState, Field, PageHeader, SecondaryButton, Select } from "@/components/ui";
 import { api } from "@/lib/api";
-import type { Caso } from "@/types/sgcas";
+import type { AcaoItinerante, Caso } from "@/types/sgcas";
+
+type OrigemFiltro = "todos" | "sede" | "itinerante";
 
 export default function CasosPage() {
   const [casos, setCasos] = useState<Caso[]>([]);
+  const [acoes, setAcoes] = useState<AcaoItinerante[]>([]);
+  const [origem, setOrigem] = useState<OrigemFiltro>("todos");
+  const [acaoSelecionada, setAcaoSelecionada] = useState("");
   const [casoSelecionado, setCasoSelecionado] = useState<Caso | null>(null);
   const [mensagem, setMensagem] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [conclusao, setConclusao] = useState<{ situacao: FormDataEntryValue | null; relato: FormDataEntryValue | null } | null>(null);
 
-  async function carregar() {
-    const data = await api<Caso[]>("/cases/").catch(() => []);
+  const carregar = useCallback(async () => {
+    const params = new URLSearchParams();
+    if (origem !== "todos") params.set("origem", origem);
+    if (acaoSelecionada) params.set("acao_itinerante", acaoSelecionada);
+    const query = params.toString();
+    const data = await api<Caso[]>(`/cases/${query ? `?${query}` : ""}`).catch(() => []);
     setCasos(data);
-  }
+  }, [acaoSelecionada, origem]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void carregar();
+      void api<AcaoItinerante[]>("/acoes-itinerantes/?compacto=1").then(setAcoes).catch(() => setAcoes([]));
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [carregar]);
+
+  function alterarOrigem(valor: OrigemFiltro) {
+    setOrigem(valor);
+    if (valor !== "itinerante") setAcaoSelecionada("");
+  }
 
   const resumo = useMemo(() => ({
     triagem: casos.filter((caso) => caso.situacao === "EM_TRIAGEM").length,
@@ -96,9 +111,38 @@ export default function CasosPage() {
       <div style={{ height: 16 }} />
 
       <Card>
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="!mb-0">Lista de acompanhamentos</h2>
-          <Badge tone="neutral">{casos.length}</Badge>
+        <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="!mb-0">Lista de acompanhamentos</h2>
+              <Badge tone="neutral">{casos.length}</Badge>
+            </div>
+            <p className="mt-1 text-sm text-meta-slate">Filtre por origem para separar atendimentos da sede e casos de ações itinerantes.</p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:w-[520px]">
+            <Field label="Origem">
+              <Select value={origem} onChange={(event) => alterarOrigem(event.target.value as OrigemFiltro)}>
+                <option value="todos">Todos os acompanhamentos</option>
+                <option value="sede">Atendimento na sede/unidade</option>
+                <option value="itinerante">Ações itinerantes</option>
+              </Select>
+            </Field>
+            <Field label="Ação itinerante">
+              <Select
+                value={acaoSelecionada}
+                disabled={origem !== "itinerante"}
+                onChange={(event) => setAcaoSelecionada(event.target.value)}
+              >
+                <option value="">Todas as ações</option>
+                {acoes.map((acao) => (
+                  <option key={acao.id} value={acao.id}>
+                    {acao.titulo} · {formatarData(acao.data)}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
         </div>
 
         {casos.length === 0 ? (
@@ -117,8 +161,15 @@ export default function CasosPage() {
                       <strong className="text-meta-charcoal">{caso.cidadao_nome}</strong>
                       <Badge tone={tomDoCaso(caso.situacao)}>{rotuloSituacao(caso.situacao)}</Badge>
                       <Badge tone={tomDaPrioridade(caso.prioridade)}>{rotuloPrioridade(caso.prioridade)}</Badge>
+                      {caso.acao_itinerante && <Badge tone="neutral">Ação itinerante</Badge>}
                     </div>
                     <p className="text-sm font-medium text-meta-charcoal">{caso.servico_nome || "Serviço não informado"}</p>
+                    {caso.acao_itinerante && (
+                      <p className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+                        <MapPinned size={14} />
+                        {caso.acao_itinerante_titulo || "Ação itinerante"}{caso.acao_itinerante_local ? ` · ${caso.acao_itinerante_local}` : ""}
+                      </p>
+                    )}
                     <p className="mt-1 line-clamp-2 text-sm leading-6 text-meta-slate">
                       {caso.descricao || "Sem observação registrada."}
                     </p>
@@ -165,6 +216,9 @@ export default function CasosPage() {
                   <div className="grid gap-3 md:grid-cols-2">
                     <Info icon={ClipboardList} label="Serviço solicitado" value={casoSelecionado.servico_nome || "Serviço não informado"} />
                     <Info icon={MapPin} label="Unidade" value={casoSelecionado.unidade_nome} />
+                    {casoSelecionado.acao_itinerante && (
+                      <Info icon={MapPinned} label="Ação itinerante" value={[casoSelecionado.acao_itinerante_titulo, casoSelecionado.acao_itinerante_local].filter(Boolean).join(" · ") || "Ação itinerante"} />
+                    )}
                     <Info icon={CalendarClock} label="Aberto em" value={formatarDataHora(casoSelecionado.aberto_em)} />
                     <Info icon={Stethoscope} label="Atendente/técnico" value={casoSelecionado.tecnico_nome || "Ainda não assumido"} />
                     {casoSelecionado.fechado_em && (
@@ -293,6 +347,10 @@ function formatarDataHora(value: string) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function formatarData(value: string) {
+  return new Intl.DateTimeFormat("pt-BR").format(new Date(value));
 }
 
 function rotuloSituacao(value: string) {
