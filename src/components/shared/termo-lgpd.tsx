@@ -56,6 +56,11 @@ export function TermoLGPD() {
         <ul className="ml-5 list-disc">
           <li>Órgãos públicos quando exigido por lei</li>
           <li>Sistema Tefé Cidadão para criação de conta (apenas com seu consentimento)</li>
+          <li>
+            Cadastro central de cidadãos da Prefeitura Municipal de Tefé, para que as
+            secretarias municipais identifiquem você sem pedir os mesmos dados a cada
+            atendimento
+          </li>
         </ul>
       </section>
 
