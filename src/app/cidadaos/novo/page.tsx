@@ -12,7 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button, CampoData, Card, Checkbox, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { Button, Card, Checkbox, PageHeader, SecondaryButton } from "@/components/ui";
+import { CamposDoCidadao } from "@/components/cidadaos/campos-do-cidadao";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api, mensagemDeErro } from "@/lib/api";
 import type { Cidadao } from "@/types/sgcas";
@@ -55,39 +56,10 @@ export default function NovoCidadaoPage() {
       <PageHeader title="Novo cidadão" description="Cadastro completo pode ser refinado depois no atendimento." />
 
       <Card>
-        <form className="grid two" onSubmit={salvar}>
-          <Field label="Nome">
-            <Input name="nome" required />
-          </Field>
-          <Field label="E-mail">
-            <Input name="email" type="email" required />
-          </Field>
-          <Field label="CPF">
-            <Input name="cpf" />
-          </Field>
-          <Field label="NIS">
-            <Input name="nis" />
-          </Field>
-          <Field label="Telefone">
-            <Input name="telefone" />
-          </Field>
-          <Field label="Nascimento">
-            <CampoData name="nascimento" rotulo="Data de nascimento" max={new Date().toISOString().slice(0, 10)} />
-          </Field>
-          <Field label="Bairro">
-            <Input name="bairro" />
-          </Field>
-          <Field label="Cidade">
-            <Input name="cidade" defaultValue="Tefe" />
-          </Field>
-          <Field label="UF">
-            <Input name="uf" defaultValue="AM" />
-          </Field>
-          <Field label="Endereço">
-            <Input name="endereco" />
-          </Field>
+        <form className="grid gap-6" onSubmit={salvar}>
+          <CamposDoCidadao />
 
-          <div className="col-span-full grid gap-3 rounded-lg bg-secondary p-4">
+          <div className="grid gap-3 rounded-lg bg-secondary p-4">
             <h4 className="text-sm font-semibold text-foreground">Termos de Uso e Privacidade (LGPD)</h4>
 
             <button
@@ -122,7 +94,8 @@ export default function NovoCidadaoPage() {
           </div>
 
           {erro && <div className="notice">{erro}</div>}
-          <div>
+
+          <div className="mt-2">
             <Button disabled={salvando || (criarAcesso && !termoLido)}>
               {salvando ? "Salvando..." : "Salvar cadastro"}
             </Button>

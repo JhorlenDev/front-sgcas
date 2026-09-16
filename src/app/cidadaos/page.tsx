@@ -13,7 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge, Button, CampoData, Card, Checkbox, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { Badge, Button, Card, Checkbox, EmptyState, Input, PageHeader, SecondaryButton } from "@/components/ui";
+import { CamposDoCidadao } from "@/components/cidadaos/campos-do-cidadao";
 import { TermoLGPD } from "@/components/shared/termo-lgpd";
 import { api, comQuery, mensagemDeErro, paginadoVazio } from "@/lib/api";
 import { formatCPF } from "@/lib/utils";
@@ -35,6 +36,9 @@ export default function CidadaosPage() {
   const [mostrarTermo, setMostrarTermo] = useState(false);
   const [termoLido, setTermoLido] = useState(false);
   const [criarAcesso, setCriarAcesso] = useState(true);
+  // Os campos sao controlados por dentro do componente: `form.reset()` nao os
+  // limpa. Trocar a chave remonta o formulario zerado para o proximo cadastro.
+  const [chaveDoFormulario, setChaveDoFormulario] = useState(0);
 
   const carregarCidadaos = useCallback(async (termo: string, pedida: number) => {
     setCarregando(true);
@@ -75,7 +79,7 @@ export default function CidadaosPage() {
 
       setModalAberto(false);
       setTermoLido(false);
-      event.currentTarget.reset();
+      setChaveDoFormulario((n) => n + 1);
       router.push(`/cidadaos/${cidadao.id}`);
     } catch (erro) {
       setErroCadastro(mensagemDeErro(erro, "Não foi possível salvar o cadastro", "Não foi possível salvar. Confira os dados e o consentimento."));
@@ -189,39 +193,7 @@ export default function CidadaosPage() {
           </DialogHeader>
 
           <form className="grid gap-4" onSubmit={salvarCidadao}>
-            <Field label="Nome">
-              <Input name="nome" placeholder="Digite nome e sobrenome" required />
-            </Field>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <Field label="E-mail">
-                <Input name="email" type="email" placeholder="cidadao@email.com" required />
-              </Field>
-              <Field label="CPF">
-                <Input name="cpf" placeholder="000.000.000-00" />
-              </Field>
-              <Field label="NIS">
-                <Input name="nis" />
-              </Field>
-              <Field label="Telefone">
-                <Input name="telefone" placeholder="(92) 99999-9999" />
-              </Field>
-              <Field label="Data de nascimento">
-                <CampoData name="nascimento" rotulo="Data de nascimento" max={new Date().toISOString().slice(0, 10)} />
-              </Field>
-              <Field label="Bairro">
-                <Input name="bairro" />
-              </Field>
-              <Field label="Cidade">
-                <Input name="cidade" defaultValue="Tefé" />
-              </Field>
-              <Field label="UF">
-                <Input name="uf" defaultValue="AM" />
-              </Field>
-              <Field label="Endereço">
-                <Input name="endereco" />
-              </Field>
-            </div>
+            <CamposDoCidadao key={chaveDoFormulario} />
 
             <div className="grid gap-3 rounded-lg bg-secondary p-4">
               <h4 className="text-sm font-semibold text-foreground">Termos de Uso e Privacidade (LGPD)</h4>
