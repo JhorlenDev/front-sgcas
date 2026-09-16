@@ -729,6 +729,45 @@ atendente ter redigitado a pessoa inteira.
 antes de salvar". Editar um deles à mão tira o destaque — mantê-lo passaria a
 afirmar uma origem que não é mais verdade.
 
+### CPF errado é acusado ao sair do campo
+
+A validação existia só no servidor: o atendente digitava o número errado, não
+recebia sinal nenhum, preenchia **o formulário inteiro** e só descobria o erro
+ao salvar. O CPF é o primeiro campo — o mais caro de voltar para corrigir.
+
+| Estado ao sair do campo | Mensagem |
+| --- | --- |
+| Vazio | nenhuma (o CPF é opcional — atendimento de rua às vezes começa sem documento) |
+| Menos de 11 dígitos | "CPF incompleto — faltam dígitos." |
+| 11 dígitos, verificador errado | "CPF inválido — confira o número digitado." |
+
+**Só no `blur`, nunca a cada tecla** — a cada tecla, todo CPF pela metade
+estaria "errado" enquanto a pessoa ainda digita. Mas **enquanto há erro na
+tela** ele é reconferido a cada tecla, para sumir no instante em que o número
+fica certo, em vez de continuar acusando quem já corrigiu.
+
+O erro também trava o envio, por `setCustomValidity`: é o próprio navegador que
+barra e devolve o foco ao campo, o mesmo mecanismo do `required` que já existe
+em nome e e-mail. O servidor continua sendo a autoridade — isto é o aviso, não
+a garantia.
+
+Com erro na tela, a consulta à central **não** sai: número que não é CPF não
+tem por que gastar requisição.
+
+Para isso, dois ajustes em `src/components/ui.tsx`:
+
+- `Field` passou a aceitar `erro`. A mensagem fica **fora** do `<label>` — que
+  só aceita conteúdo de frase, e um `<p>` dentro dele é HTML inválido.
+- `Input` passou a aceitar `ref` (`ComponentPropsWithRef` no lugar de
+  `InputHTMLAttributes`). Em React 19 a ref é prop comum, mas o tipo antigo não
+  a declarava e quem precisasse dela caía num erro de tipo sem saída.
+- A grade de duas colunas ganhou `items-start`: sem isso, o campo que ganha a
+  mensagem estica o irmão da mesma linha, que fica com o input mais alto.
+
+> Existe um `src/components/shared/form-field.tsx` com rótulo + erro, **sem uso
+> em lugar nenhum** e com estilo de rótulo diferente do `Field` que o app
+> inteiro usa. Adotá-lo deixaria só o CPF com cara diferente. Ficou onde está.
+
 ### Cuidado com o teto da central
 
 São 120 requisições por minuto **por IP**, e todos os atendentes do prédio saem

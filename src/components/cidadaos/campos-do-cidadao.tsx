@@ -62,7 +62,9 @@ export function CamposDoCidadao() {
   const [consulta, setConsulta] = useState<ConsultaCentral | null>(null);
   const [consultando, setConsultando] = useState(false);
   const [ofereceu, setOfereceu] = useState<DadosDaCentral | null>(null);
+  const [erroCpf, setErroCpf] = useState("");
   const ultimoConsultado = useRef("");
+  const campoCpf = useRef<HTMLInputElement>(null);
 
   const aplicar = useCallback((resposta: ConsultaCentral) => {
     setConsulta(resposta);
@@ -86,6 +88,33 @@ export function CamposDoCidadao() {
       proximos.delete(campo);
       return proximos;
     });
+  }, []);
+
+  /**
+   * Acusa CPF errado assim que o atendente sai do campo.
+   *
+   * Deixar para o `save` obrigaria a preencher o formulário inteiro para só
+   * então descobrir o erro — e o CPF é o primeiro campo, logo o mais caro de
+   * voltar para corrigir.
+   *
+   * `setCustomValidity` trava o submit pelo próprio navegador, que ainda leva o
+   * foco de volta ao campo. É o mesmo mecanismo do `required` que já existe em
+   * nome e e-mail, então o formulário continua com uma regra só.
+   */
+  const conferirCpf = useCallback((mascarado: string) => {
+    const digitos = onlyDigits(mascarado);
+
+    // Vazio não é erro: atendimento de rua às vezes começa sem documento.
+    let mensagem = "";
+    if (digitos && digitos.length < 11) {
+      mensagem = "CPF incompleto — faltam dígitos.";
+    } else if (digitos.length === 11 && !isValidCPF(digitos)) {
+      mensagem = "CPF inválido — confira o número digitado.";
+    }
+
+    setErroCpf(mensagem);
+    campoCpf.current?.setCustomValidity(mensagem);
+    return mensagem;
   }, []);
 
   const procurar = useCallback(async (mascarado: string) => {
@@ -134,6 +163,7 @@ export function CamposDoCidadao() {
     });
     setDaCentral(vindos);
     setOfereceu(null);
+    conferirCpf(dados.cpf ?? "");
   }
 
   const marca = (campo: keyof Valores) =>
@@ -165,17 +195,32 @@ export function CamposDoCidadao() {
           />
         </Field>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field label="CPF">
+        {/* `items-start`: sem isso, o campo que ganha mensagem de erro estica
+            o irmão da mesma linha, que fica com o input mais alto que os outros. */}
+        <div className="grid items-start gap-4 md:grid-cols-2">
+          <Field label="CPF" erro={erroCpf}>
             <div className="relative">
               <Input
+                ref={campoCpf}
                 placeholder="000.000.000-00"
                 inputMode="numeric"
                 autoComplete="off"
+                aria-invalid={erroCpf ? true : undefined}
                 className="pr-10"
                 value={valores.cpf}
-                onChange={(e) => muda("cpf", formatCPFInput(e.target.value))}
-                onBlur={(e) => void procurar(e.target.value)}
+                onChange={(e) => {
+                  const mascarado = formatCPFInput(e.target.value);
+                  muda("cpf", mascarado);
+                  // Enquanto há erro na tela, reconfere a cada tecla: o aviso
+                  // some no instante em que o número fica certo, em vez de
+                  // acusar quem já corrigiu. Sem erro na tela, não reclama no
+                  // meio da digitação — todo CPF pela metade estaria "errado".
+                  if (erroCpf) conferirCpf(mascarado);
+                }}
+                onBlur={(e) => {
+                  if (conferirCpf(e.target.value)) return;
+                  void procurar(e.target.value);
+                }}
               />
               {/* O que vai para a API são só os dígitos: a máscara é de leitura. */}
               <input type="hidden" name="cpf" value={onlyDigits(valores.cpf)} />
