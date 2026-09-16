@@ -108,6 +108,36 @@ export type AtendimentoRecepcao = {
   criado_em: string;
 };
 
+export type BeneficioEventual = {
+  id: string;
+  cidadao: string;
+  cidadao_nome: string;
+  nome_da_pessoa: string;
+  tipo: string;
+  tipo_rotulo?: string | null;
+  tipo_outro?: string | null;
+  descricao?: string | null;
+  registrado_por?: string | null;
+  registrado_por_nome?: string | null;
+  unidade?: string | null;
+  unidade_nome?: string | null;
+  criado_em: string;
+  atualizado_em: string;
+};
+
+export type Encaminhamento = {
+  id: string;
+  caso: string;
+  situacao: string;
+  motivo: string;
+  observacoes?: string | null;
+  unidade_destino?: string | null;
+  unidade_destino_nome?: string | null;
+  destino_externo: string;
+  encaminhado_por_nome: string;
+  criado_em: string;
+};
+
 export type PainelRecepcao = {
   atendimentos_hoje: number;
   finalizados_no_balcao: number;
@@ -150,6 +180,21 @@ export type EntradaHistorico = {
   quem_atendeu: string | null;
   no_mes_corrente: boolean;
   e_de_outra_unidade: boolean;
+};
+
+export type ProntuarioCidadao = {
+  cidadao: Cidadao;
+  historico: EntradaHistorico[];
+  casos: Caso[];
+  atendimentos_recepcao: AtendimentoRecepcao[];
+  beneficios_eventuais: BeneficioEventual[];
+  encaminhamentos: Encaminhamento[];
+  senhas: Senha[];
+  anexos: Record<string, unknown>[];
+  membros_da_familia: Record<string, unknown>[];
+  socioeconomico: Record<string, unknown>;
+  documentos: Record<string, unknown>;
+  endereco_detalhado: Record<string, unknown>;
 };
 
 export type AcaoItinerante = {
