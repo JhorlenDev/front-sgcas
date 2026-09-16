@@ -139,6 +139,52 @@ export type Cidadao = CidadaoLista & {
   acao_itinerante?: string | null;
   criado_em?: string | null;
   atualizado_em?: string | null;
+  integracoes?: {
+    tefeCidadao: SituacaoDaIntegracao | null;
+    cadastroCentral: SituacaoDaIntegracao | null;
+  } | null;
+};
+
+/** Como as integracoes externas voltam no POST de cadastro. */
+export type SituacaoDaIntegracao = {
+  situacao: string;
+  mensagem: string | null;
+  faltando: string[];
+};
+
+/** Um cidadao do cadastro central, ja traduzido para os campos do formulario. */
+export type DadosDaCentral = {
+  cpf: string | null;
+  nome: string | null;
+  nascimento: string | null;
+  sexo: string | null;
+  rg: string | null;
+  nis: string | null;
+  email: string | null;
+  telefone: string | null;
+  endereco: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null;
+  cep: string | null;
+  observacoes: string | null;
+};
+
+/**
+ * Resposta de `GET /citizens/consulta-central`.
+ *
+ * `situacao` nunca vira erro HTTP: central fora do ar chega como `falhou` e o
+ * formulario segue preenchivel a mao.
+ */
+export type ConsultaCentral = {
+  situacao:
+    | "encontrado"
+    | "nao_encontrado"
+    | "cpf_invalido"
+    | "falhou"
+    | "desligado";
+  cidadao: DadosDaCentral | null;
+  ja_cadastrado_local: { id: string; nome: string } | null;
 };
 
 export type Servico = {
