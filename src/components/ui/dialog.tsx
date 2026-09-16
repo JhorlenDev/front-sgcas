@@ -69,6 +69,46 @@ function veioDeCamadaFlutuante(alvo: EventTarget | null) {
 }
 
 /**
+ * Esconde do Radix o foco que vai para uma camada flutuante.
+ *
+ * Os três `on*Outside` do `Content` cobrem o `DismissableLayer` — é o que
+ * impede o diálogo de FECHAR ao clicar numa opção. O `FocusScope`, porém, é
+ * outro mecanismo: ele escuta `focusin` no `document` e, vendo foco fora do
+ * contêiner, devolve na hora. Não há prop para desligá-lo por evento.
+ *
+ * Por isso o dropdown dentro de um diálogo abria mas não deixava digitar na
+ * busca: o campo recebia o foco e o perdia no mesmo instante, síncrono. Botão
+ * não sofria — o clique já disparou antes do foco ser devolvido —, e foi por
+ * isso que o calendário parecia bem enquanto só o campo de busca quebrava.
+ *
+ * Interceptar na CAPTURA do `document` chega antes dos ouvintes do Radix, que
+ * são de bolha. Só para foco que vai PARA uma camada flutuante: todo o resto do
+ * trap continua valendo, que é o que mantém o foco preso ao diálogo.
+ *
+ * São dois eventos, e o `focusout` é o que de fato quebrava. Ele dispara antes
+ * do `focusin`, e o handler do Radix olha o `relatedTarget`: vendo o foco sair
+ * do gatilho para fora do contêiner, devolve na hora. Filtrar por `target` não
+ * adianta nele — o alvo do `focusout` é o gatilho, que está DENTRO do diálogo.
+ * Quem precisa ser olhado é o destino.
+ */
+function useFocoLivreNasCamadasFlutuantes() {
+  React.useEffect(() => {
+    const aoFocar = (evento: FocusEvent) => {
+      if (veioDeCamadaFlutuante(evento.target)) evento.stopPropagation();
+    };
+    const aoDesfocar = (evento: FocusEvent) => {
+      if (veioDeCamadaFlutuante(evento.relatedTarget)) evento.stopPropagation();
+    };
+    document.addEventListener('focusin', aoFocar, true);
+    document.addEventListener('focusout', aoDesfocar, true);
+    return () => {
+      document.removeEventListener('focusin', aoFocar, true);
+      document.removeEventListener('focusout', aoDesfocar, true);
+    };
+  }, []);
+}
+
+/**
  * Conteúdo do diálogo — centralizado no desktop, gaveta no celular.
  *
  * A centralização é do flex do contêiner, e não de `translate(-50%, -50%)`.
@@ -82,6 +122,7 @@ const DialogContent = React.forwardRef<
   ConteudoProps
 >(({ className, children, semBotaoFechar = false, ...props }, ref) => {
   const ehGaveta = useEhGaveta();
+  useFocoLivreNasCamadasFlutuantes();
   const conteudo = React.useRef<HTMLDivElement | null>(null);
   const [arrasto, setArrasto] = React.useState(0);
   const inicio = React.useRef<number | null>(null);

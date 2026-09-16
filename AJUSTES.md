@@ -38,6 +38,7 @@ Base da branch: `main` (`d695031`).
 | 20 | Cartões da fila encostados e folga no rodapé da gaveta | correção | — |
 | 21 | Formulário de novo cidadão escrito duas vezes, com divergências | correção (duplicação) | — |
 | 22 | Consulta ao cadastro central da Prefeitura ao informar o CPF | integração | — |
+| 23 | Busca do dropdown não aceitava foco dentro de um diálogo | correção | — |
 
 ---
 
@@ -800,3 +801,46 @@ desligada não mostram erro nenhum.
 > Depende da branch `ajustes-marreira` da API: o endpoint
 > `/api/citizens/consulta-central` e o campo `integracoes` na resposta do
 > cadastro não existem na `main`.
+
+---
+
+## 23. Busca do dropdown não aceitava foco dentro de um diálogo
+
+**Era:** no modal "Iniciar atendimento" (`/recepcao`), o dropdown de serviço
+abria normalmente, mas o campo **Buscar…** não aceitava clique nem digitação.
+Com 137 serviços na lista, buscar era o único jeito prático de achar um.
+
+**Causa:** o `FocusScope` do Radix, que é o que prende o foco dentro do modal.
+Dropdown e calendário abrem em portal no `body` para escapar de ancestrais com
+`overflow` — e para o Radix isso é o mundo exterior.
+
+O `DialogContent` já tinha três guardas (`onPointerDownOutside`,
+`onInteractOutside`, `onFocusOutside`), mas eles cobrem só o
+`DismissableLayer` — é o que impede o modal de **fechar** ao clicar numa opção.
+O `FocusScope` é outro mecanismo, sem prop para desligar por evento: ele escuta
+no `document` e devolve o foco assim que ele sai do contêiner.
+
+**Por que só a busca quebrava:** botão não precisa *manter* o foco — o clique já
+disparou antes de o foco ser devolvido. Por isso o calendário e as opções da
+lista pareciam bem, e só o campo de texto ficava inutilizável.
+
+**Ficou:** `useFocoLivreNasCamadasFlutuantes` em `dialog.tsx` intercepta na
+**captura** do `document` (que chega antes dos ouvintes do Radix, de bolha) e
+para a propagação só quando o foco vai para dentro de `[data-camada-flutuante]`.
+Todo o resto do trap continua valendo — conferido: Tab volta para dentro do
+diálogo e Escape fecha.
+
+São **dois** eventos, e o que de fato quebrava era o `focusout`:
+
+| Evento | O que o Radix faz | O que olhar |
+| --- | --- | --- |
+| `focusout` | dispara **primeiro**; vendo o `relatedTarget` fora do contêiner, devolve o foco | o **destino** (`relatedTarget`) — o `target` aqui é o gatilho, que está dentro do diálogo |
+| `focusin` | vendo o `target` fora do contêiner, devolve o foco | o `target` |
+
+Filtrar só por `target` nos dois não resolve: no `focusout` o alvo é o gatilho,
+que está dentro do diálogo, e o guarda nunca dispararia. Foi o que a primeira
+tentativa fez, e o campo continuou sem aceitar foco.
+
+**Como conferir:** `/recepcao` → buscar um cidadão → Começar atendimento →
+Iniciar atendimento → abrir "Serviço solicitado". O cursor tem que nascer na
+busca; digitar "cesta" filtra de 137 para 14 opções.
