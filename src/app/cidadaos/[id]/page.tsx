@@ -260,7 +260,7 @@ export default function ProntuarioPage() {
                 {anexos.map((anexo, i) => (
                   <li key={anexo.id ?? i} className="flex items-center gap-2 text-sm text-foreground">
                     <Paperclip className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    {anexo.nome ?? "Documento"}
+                    {descreverAnexo(anexo)}
                   </li>
                 ))}
               </ul>
@@ -332,6 +332,23 @@ export default function ProntuarioPage() {
       </div>
     </AppShell>
   );
+}
+
+/**
+ * O que dizer de um anexo.
+ *
+ * A API grava `tipo_documento` (texto livre, `outro` quando não informado),
+ * `mime` e `tamanho` — não há nome de arquivo. A versão anterior lia
+ * `anexo.nome`, que nunca existe, e todo anexo aparecia como "Documento".
+ */
+function descreverAnexo(anexo: { tipo_documento?: string; mime?: string; tamanho?: number }): string {
+  const tipo = anexo.tipo_documento && anexo.tipo_documento !== "outro"
+    ? anexo.tipo_documento.charAt(0).toUpperCase() + anexo.tipo_documento.slice(1)
+    : "Documento";
+  const formato = anexo.mime === "application/pdf" ? "PDF" : anexo.mime?.startsWith("image/") ? "imagem" : null;
+  const tamanho = anexo.tamanho ? `${Math.max(1, Math.round(anexo.tamanho / 1024))} KB` : null;
+  const detalhe = [formato, tamanho].filter(Boolean).join(", ");
+  return detalhe ? `${tipo} (${detalhe})` : tipo;
 }
 
 function simNao(valor?: boolean | null): string | null {

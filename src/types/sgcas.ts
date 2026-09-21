@@ -131,7 +131,8 @@ export type Cidadao = CidadaoLista & {
   endereco_detalhado?: EnderecoDetalhado | null;
   socioeconomico?: Socioeconomico | null;
   membros_da_familia?: MembroDaFamilia[] | null;
-  anexos?: { id?: string; nome?: string; tipo?: string; tamanho?: number }[] | null;
+  /** As chaves que `apps/cidadaos/anexos.py::guardar` grava. Não há `nome`. */
+  anexos?: { id?: string; tipo_documento?: string; mime?: string; tamanho?: number }[] | null;
   autoriza_imagem?: boolean | null;
   imagem_aceita_em?: string | null;
   imagem_revogada_em?: string | null;
