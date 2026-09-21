@@ -449,7 +449,12 @@ function Resumo({
         </span>
         <Icone className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden="true" />
       </div>
-      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">{rotulo}</p>
+      {/* Menor e menos espaçado no celular: com dois cartões por linha em 360px,
+          "ENCAMINHAMENTO" em maiúsculas espaçadas encostava na borda. A
+          hifenização é a rede para uma palavra mais longa no futuro. */}
+      <p className="mt-1 hyphens-auto text-[0.6875rem] font-semibold uppercase tracking-[0.04em] text-muted-foreground sm:text-xs sm:tracking-[0.08em]">
+        {rotulo}
+      </p>
     </Card>
   );
 }
