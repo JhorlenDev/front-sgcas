@@ -39,6 +39,9 @@ Base da branch: `main` (`d695031`).
 | 21 | Formulário de novo cidadão escrito duas vezes, com divergências | correção (duplicação) | — |
 | 22 | Consulta ao cadastro central da Prefeitura ao informar o CPF | integração | — |
 | 23 | Busca do dropdown não aceitava foco dentro de um diálogo | correção | — |
+| 24 | Prontuário completo portado da segunda atualização do Jhorlen | integração | — |
+| 25 | Filtro de casos por origem (sede ou ação itinerante) | integração | — |
+| 26 | Três defeitos visuais achados no caminho | correção | — |
 
 ---
 
@@ -844,3 +847,82 @@ tentativa fez, e o campo continuou sem aceitar foco.
 **Como conferir:** `/recepcao` → buscar um cidadão → Começar atendimento →
 Iniciar atendimento → abrir "Serviço solicitado". O cursor tem que nascer na
 busca; digitar "cesta" filtra de 137 para 14 opções.
+
+---
+
+## 24. Prontuário completo portado da segunda atualização do Jhorlen
+
+A `atualização-jhorlen` recebeu quatro commits em 16/09 (`4dc738b` a
+`464fb3d`). Como no item 18, **não entrou por merge**: o front dela parte da
+`main`, anterior à identidade PMT e ao envelope paginado — a tela de casos lê
+`/cases/` como lista pura e quebraria aqui. Foi portado à mão.
+
+**O que chegou** em `/cidadaos/[id]`:
+
+- a ficha inteira numa chamada só (`GET /citizens/:id/prontuario`); eram três,
+  e as seções chegavam cada uma numa hora;
+- resumo no topo: casos em aberto, benefícios, encaminhamentos, família;
+- seções novas: benefícios eventuais, encaminhamentos, atendimentos e fila;
+- **registrar benefício e encaminhamento** de dentro do prontuário;
+- **imprimir** o prontuário e **exportar** os dados (LGPD), junto dos
+  consentimentos — as duas saídas entram na auditoria como `EXPORT`;
+- socioeconômico, moradia e família no formato do Jhorlen, adotado como padrão
+  (ver o item 17 do `AJUSTES.md` da API).
+
+**O que ficou desta branch, e não dele:** o esqueleto fiel no carregamento, o
+"Não informado" explícito, `Secao`/`Campo`, `LinkDoCaso` com permissão e os
+rótulos traduzidos — a tela dele mostrava o código cru (`PROPRIA`, `URBANA`) e
+usava o `Select` nativo, depreciado aqui.
+
+**Formulários** (regra do projeto para o que grava):
+
+- o obrigatório é cobrado **antes** da requisição, com a lista de tudo que falta
+  de uma vez; cada item leva ao campo;
+- o desfecho responde num diálogo, de sucesso ou de erro
+  (`components/shared/resultado-do-formulario.tsx`). É o `Dialog` do projeto, e
+  não um `<dialog>` nativo: ele já vira gaveta no celular e tem o foco resolvido
+  com as camadas flutuantes (item 23) — um segundo sistema de diálogo seria mais
+  uma coisa a manter;
+- o encaminhamento só oferece **casos em que o operador pode mexer**. O de outra
+  unidade voltaria 403 (item 16 da API), e a pessoa só descobriria depois de
+  preencher tudo. `podeAcessarUnidade` ganhou gêmeo em `lib/permissoes.ts`;
+- campos em uma coluna só: o formulário mora na coluna lateral, a mais estreita
+  no desktop, e duas colunas por viewport apertavam os campos ali — rótulo
+  quebrando em duas linhas e o nome da pessoa cortado.
+
+**De passagem, por reúso:** o rótulo da situação da senha morava dentro de
+`/recepcao` e subiu para `lib/rotulos.ts`, porque o prontuário também lista
+senhas. `urlDaApi` (`lib/api.ts`) guarda o prefixo `/api` para os links que o
+navegador abre sozinho, que não passam por `api()`.
+
+**Como conferir:** abrir um cidadão da demonstração (`semear_demo`), registrar
+um benefício do tipo "Outros" sem dizer qual — a lista do que falta aparece e o
+atalho leva ao campo —, preencher e salvar. O diálogo confirma, e a lista, o
+contador da seção e o resumo do topo atualizam juntos.
+
+## 25. Filtro de casos por origem
+
+Porta `7648219`. Em `/casos`, dois filtros novos: **Origem** (sede, ações
+itinerantes, ou as duas) e **Ação itinerante** (uma ação específica, com busca).
+Cada caso vindo de ação mostra de qual, na própria linha.
+
+Origem e ação andam juntas: escolher uma ação é escolher "itinerante", e
+escolher "sede" apaga a ação. Sem isso, "sede + ação X" filtra por duas coisas
+que se excluem e devolve lista vazia — que parece "nada encontrado".
+
+Os filtros vão para a lista e para o contador do topo, que a API resolve na
+mesma base (conferido por teste do lado da API). O contador de filtros ativos
+da gaveta do celular os enxerga sozinho.
+
+## 26. Três defeitos visuais achados no caminho
+
+Nenhum veio da atualização do Jhorlen; todos já estavam aqui.
+
+| Defeito | Causa | Irmãos |
+| --- | --- | --- |
+| Todo anexo aparecia como "Documento" | a tela lia `anexo.nome`, que a API nunca grava (ela grava `tipo_documento`, `mime`, `tamanho`) | a versão do Jhorlen lia `nome_original`, que também não existe |
+| Rótulo do cartão de tabela partindo no meio: "ESCOLARIDAD / E" | coluna de 6.5rem e o rótulo herdando o `overflow-wrap: anywhere` da célula | "Responsável", em `/acoes-itinerantes` — varrendo todos os `data-rotulo` do projeto |
+| Selo "OK" vazando para fora do cartão de resumo em `/casos` | texto sem `min-w-0` e título sem espaço onde quebrar ("Finalizados/encaminhados") | o cartão de resumo de `/admin` tem a mesma estrutura; recebeu a mesma trava antes de estourar |
+
+> Depende da branch `ajustes-marreira` da API: as rotas do prontuário, o
+> filtro por origem e o formato novo dos campos JSON não existem na `main`.
