@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { AreaDeTexto, Badge, Button, Card, Dropdown, EmptyState, Field, Input, PageHeader, SecondaryButton } from "@/components/ui";
 import { api, comQuery, mensagemDeErro } from "@/lib/api";
-import { rotuloDaPrioridade, rotuloDaSituacaoDoCaso, tomDaPrioridade, tomDaSituacaoDoCaso } from "@/lib/rotulos";
+import { rotular, rotuloDaPrioridade, rotuloDaSituacaoDoCaso, tomDaPrioridade, tomDaSituacaoDoCaso } from "@/lib/rotulos";
 import { formatCPF } from "@/lib/utils";
 import type { AtendimentoRecepcao, Caso, CidadaoLista, EntradaHistorico, Paginado, PainelRecepcao, Senha, Servico } from "@/types/sgcas";
 import { LinkDoCaso, LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
@@ -893,7 +893,7 @@ function FilaSomenteLeitura({ fila, onAtualizar }: { fila: Senha[]; onAtualizar:
 
                 <div className="flex flex-wrap gap-2">
                   <Badge tone={tomDaPrioridade(senha.prioridade)}>{rotuloDaPrioridade(senha.prioridade)}</Badge>
-                  <Badge tone="neutral">{rotuloSituacaoFila(senha.situacao)}</Badge>
+                  <Badge tone="neutral">{rotular("situacaoDaSenha", senha.situacao)}</Badge>
                   <Badge tone="neutral">{formatarDataHora(senha.criado_em)}</Badge>
                 </div>
               </div>
@@ -976,14 +976,4 @@ function formatarDataCurta(value: string) {
   }).format(new Date(value));
 }
 
-function rotuloSituacaoFila(value: string) {
-  const labels: Record<string, string> = {
-    AGUARDANDO: "Aguardando",
-    CHAMADO: "Chamado",
-    EM_ATENDIMENTO: "Em atendimento",
-    ATENDIDO: "Atendido",
-    DESISTIU: "Desistiu",
-  };
-  return labels[value] ?? value;
-}
 

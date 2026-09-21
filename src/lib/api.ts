@@ -99,7 +99,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
     }
   }
 
-  const response = await fetch(`/api${path}`, {
+  const response = await fetch(urlDaApi(path), {
     ...options,
     credentials: "include",
     headers,
@@ -124,6 +124,18 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   }
 
   return data as T;
+}
+
+/**
+ * Endereço de uma rota da API, para quem não passa por `api()`.
+ *
+ * Existe para o link que o navegador abre sozinho — imprimir o prontuário,
+ * baixar a exportação LGPD —, que precisa ser um `href` e não uma chamada
+ * `fetch`. O prefixo `/api` (que o `next.config.ts` reescreve para o Django)
+ * fica só aqui.
+ */
+export function urlDaApi(path: string) {
+  return `/api${path}`;
 }
 
 /**

@@ -78,35 +78,53 @@ export type CidadaoLista = {
   cidade?: string | null;
 };
 
-/** Uma pessoa da composição familiar, como o cadastro grava. */
+/*
+ * Os tres campos JSON do prontuario seguem o formato da atualizacao do Jhorlen,
+ * adotado como padrao: nomes do CadUnico em snake_case. Os valores de
+ * vocabulario fechado sao codigos (`PROPRIA`, `URBANA`, `BOLSA_FAMILIA`), e a
+ * tela os traduz por `rotular` (lib/rotulos.ts).
+ *
+ * A base antiga gravava em camelCase; o comando `converter_formato_prontuario`
+ * da API renomeia sem perder dado. O que nao tem equivalente no formato novo
+ * (`rendaPerCapita`, `tipoConstrucao`...) continua no JSON com o nome antigo, e
+ * por isso os tipos abaixo nao o declaram.
+ */
+
+/** Uma pessoa da composição familiar. */
 export type MembroDaFamilia = {
-  nome?: string | null;
+  nome_membro?: string | null;
   parentesco?: string | null;
-  nascimento?: string | null;
-  rendaPropria?: number | null;
+  cpf_membro?: string | null;
+  /** Explícito, e não CPF em branco: em branco é indistinguível de "ninguém perguntou". */
+  nao_possui_cpf?: boolean | null;
+  data_nascimento?: string | null;
+  escolaridade?: string | null;
+};
+
+export type BeneficioRecebido = {
+  beneficio_tipo?: string | null;
+  beneficio_nome?: string | null;
+  beneficio_valor?: number | null;
 };
 
 export type Socioeconomico = {
-  rendaFamiliar?: number | null;
-  rendaPerCapita?: number | null;
-  pessoasNoDomicilio?: number | null;
-  situacaoMoradia?: string | null;
-  tipoConstrucao?: string | null;
-  aguaEncanada?: boolean | null;
-  energiaEletrica?: boolean | null;
-  coletaDeLixo?: boolean | null;
-  beneficios?: string[] | null;
+  renda_total?: number | null;
+  precedencia_rendimento?: string | null;
+  quantidade_pessoas_residencia?: number | null;
+  recebe_beneficio?: boolean | null;
+  beneficios_recebidos?: BeneficioRecebido[] | null;
+  ha_gestante?: boolean | null;
+  ha_pessoa_com_deficiencia?: boolean | null;
+  servicos_sociais?: string[] | null;
+  observacoes_gerais?: string | null;
 };
 
+/** Condições da moradia — o endereço em si está nas colunas do cidadão. */
 export type EnderecoDetalhado = {
-  logradouro?: string | null;
-  numero?: string | null;
-  bairro?: string | null;
-  municipio?: string | null;
-  uf?: string | null;
-  cep?: string | null;
-  zona?: string | null;
-  referencia?: string | null;
+  tipo_localizacao?: string | null;
+  situacao_imovel?: string | null;
+  abastecimento_agua?: string | null;
+  possui_saneamento?: boolean | null;
 };
 
 export type Cidadao = CidadaoLista & {
@@ -257,12 +275,66 @@ export type Caso = {
   descricao?: string | null;
   cidadao: string;
   cidadao_nome: string;
+  unidade?: string | null;
   unidade_nome: string;
   tecnico_nome?: string | null;
   servico?: string | null;
   servico_nome?: string | null;
+  acao_itinerante?: string | null;
+  acao_itinerante_titulo?: string | null;
+  acao_itinerante_local?: string | null;
   aberto_em: string;
   fechado_em?: string | null;
+};
+
+/** Ação itinerante no formato curto (`?compacto=1`), para seletor. */
+export type AcaoItineranteCompacta = {
+  id: string;
+  titulo: string;
+  local: string;
+  data: string;
+};
+
+export type BeneficioEventual = {
+  id: string;
+  cidadao: string;
+  nome_da_pessoa: string;
+  tipo: string;
+  tipo_rotulo?: string | null;
+  tipo_outro?: string | null;
+  descricao?: string | null;
+  registrado_por_nome?: string | null;
+  unidade_nome?: string | null;
+  criado_em: string;
+};
+
+export type Encaminhamento = {
+  id: string;
+  caso: string;
+  situacao: string;
+  motivo: string;
+  observacoes?: string | null;
+  unidade_destino?: string | null;
+  unidade_destino_nome?: string | null;
+  destino_externo: string;
+  encaminhado_por_nome: string;
+  criado_em: string;
+};
+
+/** `GET /citizens/:id/prontuario` — a ficha inteira numa chamada. */
+export type ProntuarioCidadao = {
+  cidadao: Cidadao;
+  historico: EntradaHistorico[];
+  casos: Caso[];
+  atendimentos_recepcao: AtendimentoRecepcao[];
+  beneficios_eventuais: BeneficioEventual[];
+  encaminhamentos: Encaminhamento[];
+  senhas: Senha[];
+  anexos: NonNullable<Cidadao["anexos"]>;
+  membros_da_familia: MembroDaFamilia[];
+  socioeconomico: Socioeconomico;
+  documentos: Record<string, string | null>;
+  endereco_detalhado: EnderecoDetalhado;
 };
 
 export type PainelAtendente = {

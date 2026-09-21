@@ -90,6 +90,41 @@ const SITUACAO_BENEFICIARIO: Record<string, string> = {
   ATIVO: "Ativo", INATIVO: "Inativo", EM_ANALISE: "Em análise",
 };
 
+/* Os três a seguir vêm do formato do prontuário (categorias do CadÚnico). */
+
+const ABASTECIMENTO: Record<string, string> = {
+  REDE_GERAL: "Rede geral",
+  POCO_OU_NASCENTE: "Poço ou nascente",
+  CISTERNA: "Cisterna",
+  OUTRA: "Outra forma",
+};
+
+const ORIGEM_DA_RENDA: Record<string, string> = {
+  TRABALHO_FORMAL: "Trabalho formal",
+  TRABALHO_INFORMAL: "Trabalho informal",
+  APOSENTADORIA_PENSAO: "Aposentadoria ou pensão",
+  BENEFICIO_SOCIAL: "Benefício social",
+  SEM_RENDA: "Sem renda",
+};
+
+const SITUACAO_DO_ENCAMINHAMENTO: Record<string, string> = {
+  PENDENTE: "Pendente", ACEITO: "Aceito", RECUSADO: "Recusado", CONCLUIDO: "Concluído",
+};
+
+/** Morava dentro de `/recepcao`; subiu quando o prontuário passou a listar senhas. */
+const SITUACAO_DA_SENHA: Record<string, string> = {
+  AGUARDANDO: "Aguardando",
+  CHAMADO: "Chamado",
+  EM_ATENDIMENTO: "Em atendimento",
+  ATENDIDO: "Atendido",
+  DESISTIU: "Desistiu",
+};
+
+const DESFECHO_DA_RECEPCAO: Record<string, string> = {
+  ENCAMINHADO: "Encaminhado para a fila",
+  FINALIZADO: "Finalizado no balcão",
+};
+
 const DICIONARIOS = {
   sexo: SEXO,
   escolaridade: ESCOLARIDADE,
@@ -102,6 +137,11 @@ const DICIONARIOS = {
   beneficio: BENEFICIO,
   parentesco: PARENTESCO,
   situacaoBeneficiario: SITUACAO_BENEFICIARIO,
+  abastecimento: ABASTECIMENTO,
+  origemDaRenda: ORIGEM_DA_RENDA,
+  situacaoDoEncaminhamento: SITUACAO_DO_ENCAMINHAMENTO,
+  situacaoDaSenha: SITUACAO_DA_SENHA,
+  desfechoDaRecepcao: DESFECHO_DA_RECEPCAO,
 } as const;
 
 /**
