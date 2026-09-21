@@ -392,14 +392,20 @@
     @apply flex flex-col gap-2.5 rounded-lg border border-border bg-elevated p-4;
   }
 
+  /* 7.5rem cabe a palavra mais longa usada como rótulo hoje ("Escolaridade",
+     "Responsável", em maiúsculas espaçadas). Com 6.5rem elas não cabiam e,
+     herdando o `anywhere` abaixo, partiam no meio: "ESCOLARIDAD / E". */
   .tabela-responsiva .table td {
-    @apply grid grid-cols-[6.5rem_minmax(0,1fr)] items-baseline gap-3 border-0 p-0;
+    @apply grid grid-cols-[7.5rem_minmax(0,1fr)] items-baseline gap-3 border-0 p-0;
     overflow-wrap: anywhere;
   }
 
   .tabela-responsiva .table td::before {
     content: attr(data-rotulo);
     @apply text-[0.6875rem] font-bold uppercase tracking-eyebrow text-muted-foreground;
+    /* O `anywhere` da célula protege o VALOR (e-mail, protocolo longo). O
+       rótulo quebra entre palavras, nunca dentro de uma. */
+    overflow-wrap: normal;
   }
 
   .tabela-responsiva .table td[data-papel="titulo"] {
