@@ -348,13 +348,14 @@ function ResumoCard({
 
   return (
     <Card className="!p-4">
+      {/* Mesma trava do cartão de /casos: título longo não empurra o ícone. */}
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</p>
           <strong className="mt-1.5 block text-2xl text-foreground">{value.toLocaleString("pt-BR")}</strong>
           <small className="mt-0.5 block text-xs text-muted-foreground">{text}</small>
         </div>
-        <span className={`flex h-9 w-9 items-center justify-center rounded-full ${toneClass}`}>
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${toneClass}`}>
           <Icon size={16} />
         </span>
       </div>

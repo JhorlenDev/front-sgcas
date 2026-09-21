@@ -191,7 +191,7 @@ function CasosComFiltros() {
           tone="bad"
         />
         <ResumoCard
-          title="Finalizados/encaminhados"
+          title="Finalizados / encaminhados"
           value={resumo?.finalizados ?? 0}
           text="Casos com relato ou desfecho registrado."
           tone="good"
@@ -483,13 +483,16 @@ function ResumoCard({
 }) {
   return (
     <Card className="!p-4">
+      {/* `min-w-0` no texto e `shrink-0` no selo: sem os dois, o título mais
+          longo cresce até a largura da própria palavra e empurra o selo para
+          fora do cartão — era o "OK" de "Finalizados/encaminhados". */}
       <div className="flex items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{title}</p>
           <strong className="mt-2 block text-3xl text-foreground">{value.toLocaleString("pt-BR")}</strong>
           <small className="mt-1 block text-muted-foreground">{text}</small>
         </div>
-        <Badge tone={tone}>{rotuloTom(tone)}</Badge>
+        <span className="shrink-0"><Badge tone={tone}>{rotuloTom(tone)}</Badge></span>
       </div>
     </Card>
   );
