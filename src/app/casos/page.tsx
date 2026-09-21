@@ -2,7 +2,7 @@
 
 import { FormEvent, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarClock, CheckCircle2, ClipboardList, MapPin, Stethoscope } from "lucide-react";
+import { CalendarClock, CheckCircle2, ClipboardList, MapPin, Stethoscope, Tent } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FiltrosNaGaveta } from "@/components/shared/filtros-na-gaveta";
@@ -25,7 +25,7 @@ import {
   tomDaPrioridade,
   tomDaSituacaoDoCaso,
 } from "@/lib/rotulos";
-import type { Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
+import type { AcaoItineranteCompacta, Caso, Paginado, ResumoDeCasos } from "@/types/sgcas";
 // `LinkDoCaso` nao entra aqui: o protocolo levaria a esta mesma lista.
 import { LinkDoCidadao, LinkDoOperador } from "@/components/shared/links";
 import { FaixaDeResumosFalsa, FiltrosFalsos, ListaFalsa } from "@/components/skeletons/blocos";
@@ -52,12 +52,23 @@ const ORDENACOES = [
   { value: "prioridade", label: "Prioridade" },
 ];
 
+// Sede x ação itinerante (atualização do Jhorlen). A API aplica o filtro na
+// base compartilhada da lista e do contador, então os dois batem.
+const ORIGENS = [
+  { value: "", label: "Sede e ações itinerantes" },
+  { value: "sede", label: "Só atendimentos na sede" },
+  { value: "itinerante", label: "Só ações itinerantes" },
+];
+
 const DESFECHOS = [
   { value: "CONCLUIDO", label: "Concluído", hint: "O atendimento terminou aqui." },
   { value: "ENCAMINHADO", label: "Encaminhado", hint: "Segue em outra unidade ou órgão." },
 ];
 
-const FILTROS_VAZIOS = { situacao: "", prioridade: "", busca: "", de: "", ate: "", ordenar: "-aberto_em" };
+const FILTROS_VAZIOS = {
+  situacao: "", prioridade: "", busca: "", de: "", ate: "", ordenar: "-aberto_em",
+  origem: "", acao_itinerante: "",
+};
 
 /**
  * Os filtros nascem da URL.
@@ -77,7 +88,10 @@ function CasosComFiltros() {
     de: parametros.get("de") ?? "",
     ate: parametros.get("ate") ?? "",
     ordenar: parametros.get("ordenar") ?? "-aberto_em",
+    origem: parametros.get("origem") ?? "",
+    acao_itinerante: parametros.get("acao_itinerante") ?? "",
   }));
+  const [acoes, setAcoes] = useState<AcaoItineranteCompacta[]>([]);
   const [numero, setNumero] = useState(1);
   const [carregando, setCarregando] = useState(true);
   const temporizadorDaBusca = useRef<number | undefined>(undefined);
@@ -108,6 +122,30 @@ function CasosComFiltros() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, [carregar, numero, filtros]);
+
+  useEffect(() => {
+    // Formato curto: só o que o seletor mostra. Falhar deixa o filtro por
+    // origem funcionando, só sem a escolha de uma ação específica.
+    void api<AcaoItineranteCompacta[]>("/acoes-itinerantes/?compacto=1")
+      .then(setAcoes)
+      .catch(() => setAcoes([]));
+  }, []);
+
+  const opcoesDeAcao = useMemo(() => [
+    { value: "", label: "Todas as ações" },
+    ...acoes.map((a) => ({ value: a.id, label: a.titulo, hint: `${a.local} · ${formatarDataHora(a.data)}` })),
+  ], [acoes]);
+
+  /**
+   * Origem e ação andam juntas: escolher uma ação é escolher "itinerante", e
+   * escolher "sede" apaga a ação. Sem isso a combinação "sede + ação X" filtra
+   * por duas coisas que se excluem e devolve lista vazia, que parece "nada
+   * encontrado" quando o problema é o filtro.
+   */
+  function aplicarOrigem(origem: string, acao_itinerante = "") {
+    setNumero(1);
+    setFiltros((atual) => ({ ...atual, origem, acao_itinerante }));
+  }
 
   function aplicarFiltro(campo: keyof typeof FILTROS_VAZIOS, valor: string) {
     // Volta para a primeira página: manter a página 7 depois de trocar o filtro
@@ -249,6 +287,24 @@ function CasosComFiltros() {
                 onChange={(v) => aplicarFiltro("prioridade", v)}
               />
             </Field>
+            <Field label="Origem">
+              <Dropdown
+                rotulo="Origem"
+                opcoes={ORIGENS}
+                value={filtros.origem}
+                onChange={(v) => aplicarOrigem(v)}
+              />
+            </Field>
+            <Field label="Ação itinerante">
+              <Dropdown
+                rotulo="Ação itinerante"
+                opcoes={opcoesDeAcao}
+                value={filtros.acao_itinerante}
+                buscavel
+                disabled={filtros.origem === "sede"}
+                onChange={(v) => aplicarOrigem(v ? "itinerante" : filtros.origem, v)}
+              />
+            </Field>
             <Field label="Ordenar por">
               <Dropdown
                 rotulo="Ordenar por"
@@ -330,6 +386,12 @@ function CasosComFiltros() {
                       <CalendarClock size={14} />
                       {formatarDataHora(caso.aberto_em)}
                     </span>
+                    {caso.acao_itinerante_titulo && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5">
+                        <Tent size={14} aria-hidden="true" />
+                        {caso.acao_itinerante_titulo}
+                      </span>
+                    )}
                   </div>
                 </div>
               </button>
