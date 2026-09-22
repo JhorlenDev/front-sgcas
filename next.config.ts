@@ -19,6 +19,8 @@ const origensDeDesenvolvimento = (process.env.NEXT_DEV_ORIGINS ?? "")
   .filter(Boolean);
 
 const nextConfig: NextConfig = {
+  // A imagem de producao roda o `server.js` do standalone, sem node_modules.
+  output: "standalone",
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
   ...(origensDeDesenvolvimento.length > 0
